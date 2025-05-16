@@ -18,10 +18,8 @@ class MapView extends StatefulWidget {
 class MapViewState extends State<MapView> {
   late final MapViewModel _viewModel;
   final MapController _mapController = MapController();
-  double _offsetLat = 0.0, _offsetLng = 0.0;
-
-  final LatLng _initialTopLeft = const LatLng(39.80705421108194, 32.4570747010855);
-  final LatLng _initialBottomRight = const LatLng(39.80647399121594, 32.45791153462235);
+  final LatLng _initialTopLeft = const LatLng(39.80704721108194, 32.457085701085504);
+  final LatLng _initialBottomRight = const LatLng(39.806466991215935, 32.45792253462235);
 
   @override
   void initState() {
@@ -38,18 +36,8 @@ class MapViewState extends State<MapView> {
   }
 
   void _centerMap() {
-    final bounds = LatLngBounds.fromPoints([
-      LatLng(_initialTopLeft.latitude + _offsetLat, _initialTopLeft.longitude + _offsetLng),
-      LatLng(_initialBottomRight.latitude + _offsetLat, _initialBottomRight.longitude + _offsetLng),
-    ]);
-    _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
-  }
-
-  void _adjustOffset(double dLat, double dLng) {
-    setState(() {
-      _offsetLat += dLat;
-      _offsetLng += dLng;
-    });
+    final bounds = LatLngBounds.fromPoints([LatLng(_initialTopLeft.latitude, _initialTopLeft.longitude), LatLng(_initialBottomRight.latitude, _initialBottomRight.longitude)]);
+    _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50), maxZoom: 19.6, minZoom: 19.6));
   }
 
   @override
@@ -74,9 +62,9 @@ class MapViewState extends State<MapView> {
                   onSelected: viewModel.setColorMode,
                   itemBuilder:
                       (context) => const [
-                        PopupMenuItem(value: ColorMode.voltage, child: Text('Voltage (V)')),
-                        PopupMenuItem(value: ColorMode.current, child: Text('Current (A)')),
-                        PopupMenuItem(value: ColorMode.power, child: Text('Power (W)')),
+                        PopupMenuItem(value: ColorMode.voltage, child: Text('Gerilim (V)')),
+                        PopupMenuItem(value: ColorMode.current, child: Text('Akım (A)')),
+                        PopupMenuItem(value: ColorMode.power, child: Text('Güç (W)')),
                       ],
                 ),
               ],
@@ -85,15 +73,19 @@ class MapViewState extends State<MapView> {
               children: [
                 FlutterMap(
                   mapController: _mapController,
-                  options: MapOptions(initialCenter: const LatLng(39.8067, 32.4575), initialZoom: 22, minZoom: 17, maxZoom: 25, onTap: (_, __) => viewModel.selectString(null)),
+                  options: MapOptions(
+                    initialCenter: const LatLng(39.8067, 32.4575),
+                    initialZoom: 19.6,
+                    minZoom: 17,
+                    maxZoom: 22,
+                    onTap: (_, __) => viewModel.selectString(null),
+                    //cameraConstraint: CameraConstraint.contain(bounds: LatLngBounds(_initialBottomRight, _initialTopLeft,)),
+                  ),
                   children: [
                     OverlayImageLayer(
                       overlayImages: [
                         OverlayImage(
-                          bounds: LatLngBounds.fromPoints([
-                            LatLng(_initialTopLeft.latitude + _offsetLat, _initialTopLeft.longitude + _offsetLng),
-                            LatLng(_initialBottomRight.latitude + _offsetLat, _initialBottomRight.longitude + _offsetLng),
-                          ]),
+                          bounds: LatLngBounds.fromPoints([LatLng(_initialTopLeft.latitude, _initialTopLeft.longitude), LatLng(_initialBottomRight.latitude, _initialBottomRight.longitude)]),
                           opacity: 0.8,
                           imageProvider: NetworkImage('http://78.187.86.118:8083/UPLOAD/mistav_2.png'),
                         ),
@@ -110,13 +102,14 @@ class MapViewState extends State<MapView> {
                         final string = stringAssociations[index];
                         return Marker(
                           point: center,
-                          width: 30,
+                          width: 60,
                           height: 30,
                           child: GestureDetector(
                             onTap: () => viewModel.selectString(string),
                             child: Container(
+                              padding: EdgeInsets.all(2),
                               decoration: BoxDecoration(color: viewModel.getStringColor(string), shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
-                              child: Center(child: Text(string.technicalName.substring(0, 1), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                              child: Center(child: Text(string.technicalName.replaceAll("MPPT-", ""), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
                             ),
                           ),
                         );
@@ -130,27 +123,6 @@ class MapViewState extends State<MapView> {
                 if (viewModel.errorMessage != null) Positioned(top: 20, left: 20, right: 20, child: _buildErrorCard(viewModel.errorMessage!)),
 
                 if (viewModel.selectedString != null) _buildInfoCard(viewModel.selectedString!),
-
-                Positioned(
-                  right: 10,
-                  bottom: 140,
-                  child: Column(
-                    children: [
-                      FloatingActionButton(onPressed: () => _adjustOffset(0.00001, 0), mini: true, child: const Icon(Icons.arrow_upward)),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FloatingActionButton(onPressed: () => _adjustOffset(0, -0.00001), mini: true, child: const Icon(Icons.arrow_back)),
-                          const SizedBox(width: 8),
-                          FloatingActionButton(onPressed: () => _adjustOffset(0, 0.00001), mini: true, child: const Icon(Icons.arrow_forward)),
-                        ],
-                      ),
-                      FloatingActionButton(onPressed: () => _adjustOffset(-0.00001, 0), mini: true, child: const Icon(Icons.arrow_downward)),
-                      Text("Top left ${(_initialTopLeft.latitude + _offsetLat, _initialTopLeft.longitude + _offsetLng)}"),
-                      Text("bottom right ${(_initialBottomRight.latitude + _offsetLat, _initialBottomRight.longitude + _offsetLng)}"),
-                    ],
-                  ),
-                ),
               ],
             ),
           );
@@ -194,13 +166,13 @@ class MapViewState extends State<MapView> {
               ),
               const SizedBox(height: 8),
               Text('Inverter: ${pvString.inverterName}'),
-              Text('Panel Type: ${pvString.panelType}'),
-              Text('Panel Count: ${pvString.panelCount}'),
+              Text('Panel Tipi: ${pvString.panelType}'),
+              Text('Panel Sayısı: ${pvString.panelCount}'),
               const Divider(),
-              Text('Last Production Data', style: Theme.of(context).textTheme.titleMedium),
-              Text('Voltage: ${pvString.lastPVV?.toStringAsFixed(2) ?? 'N/A'} V'),
-              Text('Current: ${pvString.lastPVA?.toStringAsFixed(2) ?? 'N/A'} A'),
-              Text('Power: ${pvString.lastPower.toStringAsFixed(2)} W'),
+              Text('Son Üretim Bilgileri', style: Theme.of(context).textTheme.titleMedium),
+              Text('Gerilim: ${pvString.lastPVV?.toStringAsFixed(2) ?? 'N/A'} V'),
+              Text('Akım: ${pvString.lastPVA?.toStringAsFixed(2) ?? 'N/A'} A'),
+              Text('Güç: ${pvString.lastPower.toStringAsFixed(2)} W'),
               if (pvString.maxPower != null) Text('Max Power Today: ${pvString.maxPower?.toStringAsFixed(2)} W'),
             ],
           ),

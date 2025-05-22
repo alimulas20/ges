@@ -18,8 +18,11 @@ class MapView extends StatefulWidget {
 class MapViewState extends State<MapView> {
   late final MapViewModel _viewModel;
   final MapController _mapController = MapController();
-  final LatLng _initialTopLeft = const LatLng(39.80704721108194, 32.457085701085504);
-  final LatLng _initialBottomRight = const LatLng(39.806466991215935, 32.45792253462235);
+  final LatLng _initialTopLeft = const LatLng(39.808451, 32.453752);
+  final LatLng _initialBottomRight = const LatLng(39.805106, 32.461504);
+
+  // final LatLng _initialTopLeft = const LatLng(39.808560, 32.453596);
+  // final LatLng _initialBottomRight = const LatLng(39.805100, 32.461398);
 
   @override
   void initState() {
@@ -36,8 +39,8 @@ class MapViewState extends State<MapView> {
   }
 
   void _centerMap() {
-    final bounds = LatLngBounds.fromPoints([LatLng(_initialTopLeft.latitude, _initialTopLeft.longitude), LatLng(_initialBottomRight.latitude, _initialBottomRight.longitude)]);
-    _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50), maxZoom: 19.6, minZoom: 19.6));
+    var center = LatLng(39.806783, 32.457461);
+    _mapController.move(center, 19.6);
   }
 
   @override
@@ -74,20 +77,20 @@ class MapViewState extends State<MapView> {
                 FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: const LatLng(39.8067, 32.4575),
-                    initialZoom: 19.6,
-                    minZoom: 17,
-                    maxZoom: 22,
+                    initialCenter: const LatLng(39.806783, 32.457461),
+                    initialZoom: 21,
+                    minZoom: 0,
+                    maxZoom: 25,
                     onTap: (_, __) => viewModel.selectString(null),
-                    //cameraConstraint: CameraConstraint.contain(bounds: LatLngBounds(_initialBottomRight, _initialTopLeft,)),
+                    //cameraConstraint: CameraConstraint.contain(bounds: LatLngBounds.fromPoints([_initialTopLeft, _initialBottomRight])),
                   ),
                   children: [
                     OverlayImageLayer(
                       overlayImages: [
                         OverlayImage(
-                          bounds: LatLngBounds.fromPoints([LatLng(_initialTopLeft.latitude, _initialTopLeft.longitude), LatLng(_initialBottomRight.latitude, _initialBottomRight.longitude)]),
+                          bounds: LatLngBounds.fromPoints([_initialTopLeft, _initialBottomRight]),
                           opacity: 0.8,
-                          imageProvider: NetworkImage('http://78.187.86.118:8083/UPLOAD/mistav_2.png'),
+                          imageProvider: NetworkImage('http://78.187.86.118:8083/UPLOAD/mistav_3.jpg'),
                         ),
                       ],
                     ),
@@ -173,7 +176,7 @@ class MapViewState extends State<MapView> {
               Text('Gerilim: ${pvString.lastPVV?.toStringAsFixed(2) ?? 'N/A'} V'),
               Text('Akım: ${pvString.lastPVA?.toStringAsFixed(2) ?? 'N/A'} A'),
               Text('Güç: ${pvString.lastPower.toStringAsFixed(2)} W'),
-              if (pvString.maxPower != null) Text('Max Power Today: ${pvString.maxPower?.toStringAsFixed(2)} W'),
+              if (pvString.maxPower != null) Text('Maksimum Güç(Bugün): ${pvString.maxPower?.toStringAsFixed(2)} W'),
             ],
           ),
         ),

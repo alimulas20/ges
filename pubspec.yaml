@@ -7,13 +7,16 @@ environment:
   sdk: ^3.7.2
 
 dependencies:
+  dio: ^5.8.0+1
   flutter:
     sdk: flutter
   flutter_map: ^8.1.1
+  flutter_secure_storage: ^9.2.4
   google_maps_flutter: ^2.12.1
   http: ^1.4.0
   latlong2: ^0.9.1
   provider: ^6.1.5
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

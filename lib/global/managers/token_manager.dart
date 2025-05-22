@@ -1,3 +1,4 @@
+// token_manager.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../pages/login/models/token_response.dart';
@@ -15,7 +16,8 @@ class TokenManager {
     await _storage.write(key: 'refresh_expires_in', value: token.refreshExpiresIn.toString());
     await _storage.write(key: 'token_type', value: token.tokenType);
     await _storage.write(key: 'session_state', value: token.sessionState);
-    await _storage.write(key: 'scope', value: token.scope.join(' '));
+    await _storage.write(key: 'scope', value: token.scope.join(' ') ?? '');
+    await _storage.write(key: 'expires_at', value: (DateTime.now().millisecondsSinceEpoch + token.expiresIn * 1000).toString());
   }
 
   /// Token'ı siler

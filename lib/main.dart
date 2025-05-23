@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
 
 import 'global/managers/dio_service.dart';
 import 'global/managers/token_manager.dart';
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
   Future<Widget> getInitialPage() async {
     final auth = await TokenManager.getAuth();
     if (auth != null) {
-      return const MapView(plantId: 4);
+      return CustomNavbar(pages: [MapView(plantId: 4), Container(), Container()], icons: [Icon(Icons.home), Icon(Icons.abc), Icon(Icons.person_4_rounded)], title: "Tesisler");
     } else {
       return LoginView();
     }
@@ -29,7 +30,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PV Monitoring',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        colorScheme: ColorScheme.light(
+          primary: Colors.blue.shade700,
+          secondary: Colors.teal.shade400,
+          surface: Colors.white,
+          primaryContainer: Colors.blue.shade50,
+          secondaryContainer: Colors.teal.shade50,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade400)),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.blue.shade700,
+            padding: EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        textTheme: TextTheme(headlineMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), bodyMedium: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+      ),
       home: FutureBuilder<Widget>(
         future: getInitialPage(),
         builder: (context, snapshot) {

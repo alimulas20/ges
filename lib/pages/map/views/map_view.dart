@@ -78,11 +78,11 @@ class MapViewState extends State<MapView> {
                   mapController: _mapController,
                   options: MapOptions(
                     initialCenter: const LatLng(39.806783, 32.457461),
-                    initialZoom: 21,
+                    initialZoom: 19.6,
                     minZoom: 0,
                     maxZoom: 25,
                     onTap: (_, __) => viewModel.selectString(null),
-                    //cameraConstraint: CameraConstraint.contain(bounds: LatLngBounds.fromPoints([_initialTopLeft, _initialBottomRight])),
+                    cameraConstraint: CameraConstraint.contain(bounds: LatLngBounds.fromPoints([_initialTopLeft, _initialBottomRight])),
                   ),
                   children: [
                     OverlayImageLayer(

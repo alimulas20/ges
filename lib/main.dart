@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
+import 'package:smart_ges_360/pages/plant/views/plant_list_view.dart';
 
 import 'global/managers/dio_service.dart';
 import 'global/managers/token_manager.dart';
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
   Future<Widget> getInitialPage() async {
     final auth = await TokenManager.getAuth();
     if (auth != null) {
-      return CustomNavbar(pages: [MapView(plantId: 4), Container(), Container()], icons: [Icon(Icons.home), Icon(Icons.abc), Icon(Icons.person_4_rounded)], title: "Tesisler");
+      return CustomNavbar(pages: [PlantListView(), Container(), Container()], icons: [Icon(Icons.home), Icon(Icons.abc), Icon(Icons.person_4_rounded)], title: "Tesisler");
     } else {
       return LoginView();
     }

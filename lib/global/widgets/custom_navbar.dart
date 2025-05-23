@@ -48,12 +48,15 @@ class CustomNavbarState extends State<CustomNavbar> with SingleTickerProviderSta
         elevation: 0,
         backgroundColor: Colors.white,
         systemOverlayStyle: SystemUiOverlayStyle(statusBarBrightness: Brightness.dark),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: MyColors.primary),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        leading:
+            ModalRoute.of(context)?.settings.name != '/home' && ModalRoute.of(context)?.settings.name != '/'
+                ? IconButton(
+                  icon: Icon(Icons.arrow_back, color: MyColors.primary),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                )
+                : null,
         title: Text(widget.title),
       ),
       body: Column(

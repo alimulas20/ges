@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../models/pv_string_model.dart';
-import '../services/api_service.dart';
+import '../services/map_service.dart';
 
 enum ColorMode { voltage, current, power }
 
 class MapViewModel with ChangeNotifier {
-  final ApiService _apiService;
+  final MapService _apiService;
   List<PVStringModel> _pvStrings = [];
   ColorMode _colorMode = ColorMode.power;
   PVStringModel? _selectedString;

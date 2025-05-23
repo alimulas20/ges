@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import '../services/api_service.dart';
+import '../services/map_service.dart';
 import '../viewmodels/map_viewmodel.dart';
 import '../models/pv_string_model.dart';
 
@@ -27,7 +27,7 @@ class MapViewState extends State<MapView> {
   @override
   void initState() {
     super.initState();
-    _viewModel = MapViewModel(ApiService());
+    _viewModel = MapViewModel(MapService());
     _loadData();
   }
 

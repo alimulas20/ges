@@ -42,7 +42,6 @@ class CustomNavbarState extends State<CustomNavbar> with SingleTickerProviderSta
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Column(
         children: <Widget>[
           // Sayfaların gösterildiği alan
@@ -69,7 +68,6 @@ class CustomNavbarState extends State<CustomNavbar> with SingleTickerProviderSta
                 indicatorSize: TabBarIndicatorSize.tab,
                 indicatorWeight: 1,
                 unselectedLabelColor: MyColors.grey_20,
-                labelColor: MyColors.primary,
                 tabs: getTabs(),
               ),
             ),

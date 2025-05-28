@@ -4,11 +4,10 @@ import 'package:flutter/services.dart';
 import '../constant/my_colors.dart';
 
 class CustomNavbar extends StatefulWidget {
-  const CustomNavbar({super.key, required this.pages, required this.icons, required this.title});
+  const CustomNavbar({super.key, required this.pages, required this.icons});
 
   final List<Widget> pages;
   final List<Icon> icons;
-  final String title;
 
   @override
   CustomNavbarState createState() => CustomNavbarState();
@@ -44,21 +43,6 @@ class CustomNavbarState extends State<CustomNavbar> with SingleTickerProviderSta
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        systemOverlayStyle: SystemUiOverlayStyle(statusBarBrightness: Brightness.dark),
-        leading:
-            ModalRoute.of(context)?.settings.name != '/home' && ModalRoute.of(context)?.settings.name != '/'
-                ? IconButton(
-                  icon: Icon(Icons.arrow_back, color: MyColors.primary),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                )
-                : null,
-        title: Text(widget.title),
-      ),
       body: Column(
         children: <Widget>[
           // Sayfaların gösterildiği alan

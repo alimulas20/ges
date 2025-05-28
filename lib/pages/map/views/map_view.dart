@@ -1,3 +1,4 @@
+import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -23,6 +24,23 @@ class MapViewState extends State<MapView> {
 
   // final LatLng _initialTopLeft = const LatLng(39.808560, 32.453596);
   // final LatLng _initialBottomRight = const LatLng(39.805100, 32.461398);
+
+  // ToggleButtons(
+  //         isSelected: isSelectedTab,
+  //         color: MyColors.grey_60,
+  //         selectedBorderColor: MyColors.primary,
+  //         borderRadius: BorderRadius.circular(30),
+  //         children: [
+  //           Container(padding: EdgeInsets.symmetric(horizontal: 25), child: Text("BUTTON 1", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500))),
+  //           Container(padding: EdgeInsets.symmetric(horizontal: 25), child: Text("BUTTON 2", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500))),
+  //           Container(padding: EdgeInsets.symmetric(horizontal: 25), child: Text("BUTTON 3", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500))),
+  //         ],
+  //         onPressed: (int index) {
+  //           isSelectedTab = List.generate(3, (index) => false);
+  //           isSelectedTab[index] = true;
+  //           setState(() {});
+  //         },
+  //       ),
 
   @override
   void initState() {
@@ -61,15 +79,15 @@ class MapViewState extends State<MapView> {
                 IconButton(icon: const Icon(Icons.zoom_in), onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 0.5)),
                 IconButton(icon: const Icon(Icons.zoom_out), onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 0.5)),
                 IconButton(icon: const Icon(Icons.center_focus_strong), onPressed: _centerMap),
-                PopupMenuButton<ColorMode>(
-                  onSelected: viewModel.setColorMode,
-                  itemBuilder:
-                      (context) => const [
-                        PopupMenuItem(value: ColorMode.voltage, child: Text('Gerilim (V)')),
-                        PopupMenuItem(value: ColorMode.current, child: Text('Akım (A)')),
-                        PopupMenuItem(value: ColorMode.power, child: Text('Güç (W)')),
-                      ],
-                ),
+                // PopupMenuButton<ColorMode>(
+                //   onSelected: viewModel.setColorMode,
+                //   itemBuilder:
+                //       (context) => const [
+                //         PopupMenuItem(value: ColorMode.voltage, child: Text('Gerilim (V)')),
+                //         PopupMenuItem(value: ColorMode.current, child: Text('Akım (A)')),
+                //         PopupMenuItem(value: ColorMode.power, child: Text('Güç (W)')),
+                //       ],
+                // ),
               ],
             ),
             body: Stack(
@@ -120,7 +138,39 @@ class MapViewState extends State<MapView> {
                     ),
                   ],
                 ),
-
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: AnimatedToggleSwitch<ColorMode>.size(
+                      current: viewModel.colorMode,
+                      style: ToggleStyle(
+                        // backgroundColor: const Color(0xFF919191),
+                        // indicatorColor: const Color(0xFFEC3345),
+                        borderColor: Colors.transparent,
+                        borderRadius: BorderRadius.circular(10.0),
+                        indicatorBorderRadius: BorderRadius.zero,
+                      ),
+                      values: const [ColorMode.voltage, ColorMode.current, ColorMode.power],
+                      iconOpacity: 1.0,
+                      selectedIconScale: 1.0,
+                      indicatorSize: const Size.fromWidth(100),
+                      iconAnimationType: AnimationType.onHover,
+                      styleAnimationType: AnimationType.onHover,
+                      spacing: 2.0,
+                      customSeparatorBuilder: (context, local, global) {
+                        final opacity = ((global.position - local.position).abs() - 0.5).clamp(0.0, 1.0);
+                        return VerticalDivider(indent: 10.0, endIndent: 10.0, color: Colors.white38.withValues(alpha: opacity));
+                      },
+                      customIconBuilder: (context, local, global) {
+                        final text = const ['Gerilim (V)', 'Akım (A)', 'Güç (W)'][local.index];
+                        return Center(child: Text(text, style: TextStyle(color: Color.lerp(Colors.black, Colors.white, local.animationValue))));
+                      },
+                      borderWidth: 0.0,
+                      onChanged: (i) => setState(() => viewModel.setColorMode(i)),
+                    ),
+                  ),
+                ),
                 if (viewModel.isLoading) const Center(child: CircularProgressIndicator()),
 
                 if (viewModel.errorMessage != null) Positioned(top: 20, left: 20, right: 20, child: _buildErrorCard(viewModel.errorMessage!)),

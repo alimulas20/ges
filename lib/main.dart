@@ -3,13 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/constant/theme.dart';
 import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
 import 'package:smart_ges_360/pages/plant/views/plant_list_view.dart';
+import 'package:smart_ges_360/pages/profile/view/profile_view.dart';
 
 import 'global/managers/dio_service.dart';
 import 'global/managers/token_manager.dart';
 
 import 'pages/login/views/login_view.dart';
 import 'pages/login/viewmodels/login_view_model.dart';
-import 'pages/map/views/map_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   Future<Widget> getInitialPage() async {
     final auth = await TokenManager.getAuth();
     if (auth != null) {
-      return CustomNavbar(pages: [PlantListView(), Container(), Container()], icons: [Icon(Icons.home), Icon(Icons.abc), Icon(Icons.person_4_rounded)]);
+      return CustomNavbar(pages: [PlantListView(), Container(), ProfileView()], icons: [Icon(Icons.home), Icon(Icons.abc), Icon(Icons.person_4_rounded)]);
     } else {
       return LoginView();
     }
@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/login': (_) => ChangeNotifierProvider(create: (_) => LoginViewModel(), child: LoginView()),
-        '/home': (_) => CustomNavbar(pages: [PlantListView(), Container(), Container()], icons: [Icon(Icons.home), Icon(Icons.auto_awesome_mosaic), Icon(Icons.person_4_rounded)]),
+        '/home': (_) => CustomNavbar(pages: [PlantListView(), Container(), ProfileView()], icons: [Icon(Icons.home), Icon(Icons.auto_awesome_mosaic), Icon(Icons.person_4_rounded)]),
       },
     );
   }

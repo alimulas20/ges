@@ -1,6 +1,6 @@
-// token_manager.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../pages/login/models/token_response.dart';
 import '../../pages/login/services/auth_service.dart';
 
@@ -10,14 +10,45 @@ class TokenManager {
 
   /// Token'ı güvenli şekilde saklar
   static Future<void> saveToken(TokenResponse token) async {
+    final accessToken = token.accessToken;
+
+    // Token'ı decode et
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
+
+    // Kullanıcı ID'si
+    String userId = decodedToken['sub'] ?? '';
+    // Admin kontrolü: aud içinde realm-management varsa admin kabul et
+    bool isAdmin = false;
+
+    final aud = decodedToken['aud'];
+    if (aud is String) {
+      isAdmin = aud == 'realm-management';
+    } else if (aud is List) {
+      isAdmin = aud.contains('realm-management');
+    }
+    List<String> groups = [];
+    if (decodedToken.containsKey('group')) {
+      final groupValue = decodedToken['group'];
+      if (groupValue is List) {
+        groups = List<String>.from(groupValue.map((e) => e.toString()));
+      } else if (groupValue is String) {
+        groups = [groupValue];
+      }
+    }
+
+    await _storage.write(key: 'user_groups', value: groups.join(','));
     await _storage.write(key: 'access_token', value: token.accessToken);
     await _storage.write(key: 'refresh_token', value: token.refreshToken);
     await _storage.write(key: 'expires_in', value: token.expiresIn.toString());
     await _storage.write(key: 'refresh_expires_in', value: token.refreshExpiresIn.toString());
     await _storage.write(key: 'token_type', value: token.tokenType);
     await _storage.write(key: 'session_state', value: token.sessionState);
-    await _storage.write(key: 'scope', value: token.scope.join(' ') ?? '');
+    await _storage.write(key: 'scope', value: token.scope.join(' '));
     await _storage.write(key: 'expires_at', value: (DateTime.now().millisecondsSinceEpoch + token.expiresIn * 1000).toString());
+
+    // Eklenenler
+    await _storage.write(key: 'user_id', value: userId);
+    await _storage.write(key: 'is_admin', value: isAdmin.toString());
   }
 
   /// Token'ı siler
@@ -57,10 +88,25 @@ class TokenManager {
     if (token != null) {
       return token;
     } else {
-      // Refresh da başarısızsa login'e yönlendir
-      final navigator = Navigator.of(context);
-      navigator.pushNamedAndRemoveUntil('/login', (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
       return null;
     }
+  }
+
+  /// Admin olup olmadığını getirir
+  static Future<bool> getIsAdmin() async {
+    final isAdminStr = await _storage.read(key: 'is_admin');
+    return isAdminStr == 'true';
+  }
+
+  /// User ID'yi getirir
+  static Future<String?> getUserId() async {
+    return await _storage.read(key: 'user_id');
+  }
+
+  static Future<List<String>> getGroups() async {
+    final groupStr = await _storage.read(key: 'user_groups');
+    if (groupStr == null || groupStr.isEmpty) return [];
+    return groupStr.split(',').where((e) => e.isNotEmpty).toList();
   }
 }

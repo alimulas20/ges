@@ -45,7 +45,7 @@ class AuthService {
 
     if (refreshToken == null) return null;
 
-    final response = await http.post(Uri.parse('$_baseUrl/api/Auth/refresh-token'), body: jsonEncode({'refreshToken': refreshToken}), headers: {'Content-Type': 'application/json'});
+    final response = await http.post(Uri.parse('$_baseUrl/auth/refresh'), body: jsonEncode({'refreshToken': refreshToken}), headers: {'Content-Type': 'application/x-www-form-urlencoded'});
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);

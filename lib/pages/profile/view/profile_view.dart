@@ -46,6 +46,7 @@ class _ProfileBody extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Card(
             child: Padding(
@@ -72,7 +73,11 @@ class _ProfileBody extends StatelessWidget {
             const SizedBox(height: 24),
             const Text('Kullanıcı Yönetimi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            ...viewModel.profiles.map((profile) => _buildUserListTile(profile, context)),
+            ...viewModel.groupedUsers.entries.map((entry) {
+              final groupName = entry.key;
+              final users = entry.value;
+              return _buildGroupExpansionTile(groupName, users, context, viewModel);
+            }),
           ],
         ],
       ),
@@ -93,13 +98,21 @@ class _ProfileBody extends StatelessWidget {
     );
   }
 
-  Widget _buildUserListTile(ProfileModel profile, BuildContext context) {
+  Widget _buildGroupExpansionTile(String groupName, List<ProfileModel> users, BuildContext context, ProfileViewModel viewModel) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        title: Text('${profile.firstName} ${profile.lastName}'),
-        subtitle: Text(profile.email),
-        trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () => _showEditProfileDialog(context, profile)),
+      child: ExpansionTile(
+        title: Text(groupName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        children:
+            users
+                .map(
+                  (user) => ListTile(
+                    title: Text('${user.firstName} ${user.lastName}'),
+                    subtitle: Text(user.email),
+                    trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () => _showEditProfileDialog(context, user)),
+                  ),
+                )
+                .toList(),
       ),
     );
   }

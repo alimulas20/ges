@@ -12,6 +12,8 @@ class ProfileViewModel extends ChangeNotifier {
   String? error;
   ProfileModel? currentProfile;
   List<ProfileModel> profiles = [];
+  Map<String, List<ProfileModel>> groupedUsers = {};
+  bool isGroupsLoading = false;
 
   bool isAdmin = false;
 
@@ -25,24 +27,49 @@ class ProfileViewModel extends ChangeNotifier {
       isAdmin = await TokenManager.getIsAdmin();
       if (isAdmin) {
         profiles = await _service.getUsers(context);
+        // Gruplar ayrı yükleniyor
+        _loadGroups(context);
       }
     } catch (e) {
       error = e.toString();
-    } finally {
       isLoading = false;
       notifyListeners();
     }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> _loadGroups(BuildContext context) async {
+    isGroupsLoading = true;
+    notifyListeners();
+
+    try {
+      groupedUsers = await _service.getUsersGroupedByGroupName(context);
+    } catch (e) {
+      error = 'Grup verileri alınamadı: $e';
+    }
+
+    isGroupsLoading = false;
+    notifyListeners();
   }
 
   Future<void> updateProfile(ProfileModel updatedProfile, BuildContext context) async {
     try {
       await _service.updateProfile(updatedProfile, context);
+
+      // groupedUsers içindeki kullanıcıyı güncelle
+      groupedUsers.forEach((groupName, users) {
+        final index = users.indexWhere((u) => u.id == updatedProfile.id);
+        if (index != -1) {
+          users[index] = updatedProfile;
+        }
+      });
+
       if (currentProfile?.id == updatedProfile.id) {
         currentProfile = updatedProfile;
-      } else {
-        final index = profiles.indexWhere((p) => p.id == updatedProfile.id);
-        if (index != -1) profiles[index] = updatedProfile;
       }
+
       notifyListeners();
     } catch (e) {
       error = e.toString();

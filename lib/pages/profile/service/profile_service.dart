@@ -20,6 +20,32 @@ class ProfileService {
     }
   }
 
+  Future<Map<String, List<ProfileModel>>> getUsersGroupedByGroupName(BuildContext context) async {
+    try {
+      final userId = await TokenManager.getUserId();
+
+      final groupResponse = await DioService.keyCloak.get('/users/$userId/groups');
+      final List<dynamic> groupsJson = groupResponse.data;
+
+      Map<String, List<ProfileModel>> groupedUsers = {};
+
+      for (var group in groupsJson) {
+        final String groupId = group['id'];
+        final String groupName = group['name'];
+
+        final response = await DioService.keyCloak.get('/groups/$groupId/members');
+        final List<dynamic> membersJson = response.data;
+        final members = membersJson.map((json) => ProfileModel.fromJson(json)).toList();
+
+        groupedUsers[groupName] = members;
+      }
+
+      return groupedUsers;
+    } on DioException catch (e) {
+      throw Exception('Gruplar alınırken hata oluştu: ${e.message}');
+    }
+  }
+
   Future<ProfileModel> getCurrentProfile(BuildContext context) async {
     final userId = await TokenManager.getUserId();
     if (userId == null) {

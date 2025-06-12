@@ -5,7 +5,12 @@ import 'token_manager.dart';
 
 class DioService {
   static final Dio _dio = Dio(
-    BaseOptions(baseUrl: 'http://192.168.1.57:5002/api', connectTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 10), contentType: 'application/json'),
+    BaseOptions(
+      baseUrl: 'https://pms-demo.smartplant360.com/services/logger',
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      contentType: 'application/json',
+    ),
   );
   static final Dio _keycloak = Dio(
     BaseOptions(baseUrl: 'https://pms-demo.smartplant360.com/keycloak', connectTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 10), contentType: 'application/json'),

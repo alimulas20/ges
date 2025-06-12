@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/constant/theme.dart';
 import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
+import 'package:smart_ges_360/pages/device/view/device_setup_list_view.dart';
 import 'package:smart_ges_360/pages/plant/views/plant_list_view.dart';
 import 'package:smart_ges_360/pages/profile/view/profile_view.dart';
 
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
   Future<Widget> getInitialPage() async {
     final auth = await TokenManager.getAuth();
     if (auth != null) {
-      return CustomNavbar(pages: [PlantListView(), Container(), ProfileView()], icons: [Icon(Icons.home), Icon(Icons.abc), Icon(Icons.person_4_rounded)]);
+      return CustomNavbar(pages: [PlantListView(), DeviceSetupListView(), ProfileView()], icons: [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)]);
     } else {
       return LoginView();
     }
@@ -53,7 +54,7 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/login': (_) => ChangeNotifierProvider(create: (_) => LoginViewModel(), child: LoginView()),
-        '/home': (_) => CustomNavbar(pages: [PlantListView(), Container(), ProfileView()], icons: [Icon(Icons.home), Icon(Icons.auto_awesome_mosaic), Icon(Icons.person_4_rounded)]),
+        '/home': (_) => CustomNavbar(pages: [PlantListView(), DeviceSetupListView(), ProfileView()], icons: [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)]),
       },
     );
   }

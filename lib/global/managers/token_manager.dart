@@ -109,4 +109,24 @@ class TokenManager {
     if (groupStr == null || groupStr.isEmpty) return [];
     return groupStr.split(',').where((e) => e.isNotEmpty).toList();
   }
+
+  // TokenManager sınıfına bu metodu ekleyin
+  static Future<List<String>> getRoles() async {
+    final accessToken = await _storage.read(key: 'access_token');
+    if (accessToken == null) return [];
+
+    try {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
+      if (decodedToken.containsKey('realm_access') && decodedToken['realm_access'] is Map) {
+        final realmAccess = decodedToken['realm_access'] as Map;
+        if (realmAccess.containsKey('roles') && realmAccess['roles'] is List) {
+          return List<String>.from(realmAccess['roles']);
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error decoding roles: $e');
+      return [];
+    }
+  }
 }

@@ -3,6 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../pages/login/models/token_response.dart';
 import '../../pages/login/services/auth_service.dart';
+import '../../pages/profile/model/user_model.dart';
+import '../../pages/profile/service/user_service.dart';
 
 class TokenManager {
   static const _storage = FlutterSecureStorage();
@@ -126,6 +128,19 @@ class TokenManager {
       return [];
     } catch (e) {
       debugPrint('Error decoding roles: $e');
+      return [];
+    }
+  }
+
+  static Future<List<UserPlantDto>> getAdminPlants() async {
+    final isAdmin = await getIsAdmin();
+    if (!isAdmin) return [];
+
+    try {
+      final currentUser = await UserService().getCurrentUser();
+      return currentUser.plants.where((plant) => plant.role == 'admin' || plant.role == 'superadmin').toList();
+    } catch (e) {
+      debugPrint('Error getting admin plants: $e');
       return [];
     }
   }

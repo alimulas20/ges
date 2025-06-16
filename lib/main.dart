@@ -12,6 +12,8 @@ import 'global/managers/token_manager.dart';
 
 import 'pages/login/views/login_view.dart';
 import 'pages/login/viewmodels/login_view_model.dart';
+import 'pages/profile/service/user_service.dart';
+import 'pages/profile/viewmodel/user_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,9 +26,23 @@ class MyApp extends StatelessWidget {
   Future<Widget> getInitialPage() async {
     final auth = await TokenManager.getAuth();
     if (auth != null) {
-      return CustomNavbar(pages: [PlantListView(), DeviceSetupListView(), UserListView()], icons: [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)]);
+      return MultiProvider(
+        providers: [
+          // Tüm uygulama boyunca kullanılacak Provider'ları burada tanımlayın
+          ChangeNotifierProvider(create: (_) => UserViewModel(UserService())),
+          // Diğer ViewModel'ler...
+        ],
+        child: CustomNavbar(
+          pages: [
+            PlantListView(),
+            DeviceSetupListView(),
+            UserListView(), // Artık UserViewModel'e erişebilir
+          ],
+          icons: [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
+        ),
+      );
     } else {
-      return LoginView();
+      return ChangeNotifierProvider(create: (_) => LoginViewModel(), child: LoginView());
     }
   }
 
@@ -34,6 +50,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final materialTheme = MaterialTheme(ThemeData.light().textTheme);
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'PV Monitoring',
       theme: materialTheme.light(),
       home: FutureBuilder<Widget>(
@@ -43,11 +60,7 @@ class MyApp extends StatelessWidget {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           } else if (snapshot.hasData) {
             DioService.init(context);
-            final page = snapshot.data!;
-            if (page is LoginView) {
-              return ChangeNotifierProvider(create: (_) => LoginViewModel(), child: page);
-            }
-            return page;
+            return snapshot.data!; // Provider'lar zaten tanımlı
           } else {
             return const Scaffold(body: Center(child: Text("Bir hata oluştu")));
           }
@@ -55,7 +68,11 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/login': (_) => ChangeNotifierProvider(create: (_) => LoginViewModel(), child: LoginView()),
-        '/home': (_) => CustomNavbar(pages: [PlantListView(), DeviceSetupListView(), UserListView()], icons: [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)]),
+        '/home':
+            (_) => MultiProvider(
+              providers: [ChangeNotifierProvider(create: (_) => UserViewModel(UserService()))],
+              child: CustomNavbar(pages: [PlantListView(), DeviceSetupListView(), UserListView()], icons: [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)]),
+            ),
       },
     );
   }

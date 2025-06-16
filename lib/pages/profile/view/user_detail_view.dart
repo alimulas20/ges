@@ -16,6 +16,8 @@ class UserDetailView extends StatefulWidget {
 
 class _UserDetailViewState extends State<UserDetailView> {
   late UserDto _editedUser;
+  late bool _isLoading;
+
   late List<DropdownMenuItem<String>> _userRoles = [];
   @override
   void initState() {

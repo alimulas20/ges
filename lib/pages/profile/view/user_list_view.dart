@@ -25,41 +25,46 @@ class _UserListViewState extends State<UserListView> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _viewModel,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('User Management'),
-          actions: [
-            IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.refresh()),
-            if (_viewModel.isAdmin) IconButton(icon: const Icon(Icons.add), onPressed: () => _navigateToCreateUser(context)),
-          ],
-        ),
-        body: Consumer<UserViewModel>(
-          builder: (context, viewModel, child) {
-            if (viewModel.isLoading && viewModel.currentUser == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (viewModel.error != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [Text(viewModel.error!), const SizedBox(height: 16), ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Retry'))],
-                ),
-              );
-            }
-
-            if (!viewModel.isAdmin) {
-              return _buildCurrentUserCard(viewModel.currentUser!);
-            }
-
-            return _buildAdminView(viewModel);
-          },
-        ),
+      child: Consumer<UserViewModel>(
+        builder: (context, viewModel, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('User Management'),
+              actions: [
+                IconButton(icon: const Icon(Icons.refresh), onPressed: () => viewModel.refresh()),
+                if (viewModel.isAdmin) IconButton(icon: const Icon(Icons.add), onPressed: () => _navigateToCreateUser(context)),
+              ],
+            ),
+            body: _buildBody(viewModel),
+          );
+        },
       ),
     );
+  }
+
+  Widget _buildBody(UserViewModel viewModel) {
+    if (viewModel.isLoading && viewModel.currentUser == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (viewModel.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [Text(viewModel.error!), const SizedBox(height: 16), ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Retry'))],
+        ),
+      );
+    }
+
+    if (!viewModel.isAdmin) {
+      return _buildCurrentUserCard(viewModel.currentUser!);
+    }
+
+    return _buildAdminView(viewModel);
   }
 
   Widget _buildCurrentUserCard(UserDto user) {

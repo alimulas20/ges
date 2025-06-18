@@ -1,3 +1,4 @@
+// user_service.dart
 import 'package:smart_ges_360/global/managers/dio_service.dart';
 
 import '../model/user_model.dart';
@@ -6,6 +7,7 @@ class UserService {
   Future<UserDto> getCurrentUser() async {
     try {
       final response = await DioService.dio.get('/users/me');
+      print(response);
       return UserDto.fromJson(response.data);
     } catch (e) {
       throw Exception('Failed to get current user: $e');
@@ -41,6 +43,14 @@ class UserService {
   Future<void> deleteUser(String userId) async {
     try {
       await DioService.dio.delete('/users/$userId');
+    } catch (e) {
+      throw Exception('Failed to delete user: $e');
+    }
+  }
+
+  Future<void> getRoles() async {
+    try {
+      await DioService.dio.delete('/users/roles');
     } catch (e) {
       throw Exception('Failed to delete user: $e');
     }

@@ -1,3 +1,4 @@
+// user_viewmodel.dart
 import 'package:flutter/material.dart';
 import 'package:smart_ges_360/global/managers/token_manager.dart';
 
@@ -11,15 +12,19 @@ class UserViewModel with ChangeNotifier {
 
   bool _isLoading = false;
   bool _isAdmin = false;
+  bool _isSuperAdmin = false;
   String? _error;
   UserDto? _currentUser;
   List<PlantUsersDto> _plantUsers = [];
-  List<String> _userRoles = [];
+  final List<String> _userRoles = ['Viewer', 'Admin']; // Add more roles as needed
+
   bool get isLoading => _isLoading;
   bool get isAdmin => _isAdmin;
+  bool get isSuperAdmin => _isSuperAdmin;
   String? get error => _error;
   UserDto? get currentUser => _currentUser;
   List<PlantUsersDto> get plantUsers => _plantUsers;
+  List<String> get userRoles => _userRoles;
 
   Future<void> initialize() async {
     _isLoading = true;
@@ -28,11 +33,12 @@ class UserViewModel with ChangeNotifier {
 
     try {
       _currentUser = await _service.getCurrentUser();
-      _isAdmin = await TokenManager.getIsAdmin();
+      final roles = await TokenManager.getRoles();
+      _isAdmin = roles.contains('Admin');
+      _isSuperAdmin = roles.contains('SuperAdmin');
 
-      if (_isAdmin) {
+      if (_isAdmin || _isSuperAdmin) {
         _plantUsers = await _service.getUsers();
-        _userRoles = await TokenManager.getRoles();
       }
     } catch (e) {
       _error = e.toString();
@@ -55,6 +61,7 @@ class UserViewModel with ChangeNotifier {
       await refresh();
     } catch (e) {
       _error = e.toString();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -70,6 +77,7 @@ class UserViewModel with ChangeNotifier {
       await refresh();
     } catch (e) {
       _error = e.toString();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -85,6 +93,7 @@ class UserViewModel with ChangeNotifier {
       await refresh();
     } catch (e) {
       _error = e.toString();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();

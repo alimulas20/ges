@@ -138,7 +138,7 @@ class TokenManager {
 
     try {
       final currentUser = await UserService().getCurrentUser();
-      return currentUser.plants.where((plant) => plant.role == 'admin' || plant.role == 'superadmin').toList();
+      return currentUser.plants;
     } catch (e) {
       debugPrint('Error getting admin plants: $e');
       return [];

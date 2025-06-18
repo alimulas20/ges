@@ -1,3 +1,4 @@
+// user_list_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,7 +26,6 @@ class _UserListViewState extends State<UserListView> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _viewModel,
@@ -36,7 +36,7 @@ class _UserListViewState extends State<UserListView> {
               title: const Text('User Management'),
               actions: [
                 IconButton(icon: const Icon(Icons.refresh), onPressed: () => viewModel.refresh()),
-                if (viewModel.isAdmin) IconButton(icon: const Icon(Icons.add), onPressed: () => _navigateToCreateUser(context)),
+                if (viewModel.isAdmin || viewModel.isSuperAdmin) IconButton(icon: const Icon(Icons.add), onPressed: () => _navigateToCreateUser(context)),
               ],
             ),
             body: _buildBody(viewModel),
@@ -60,7 +60,7 @@ class _UserListViewState extends State<UserListView> {
       );
     }
 
-    if (!viewModel.isAdmin) {
+    if (!viewModel.isAdmin && !viewModel.isSuperAdmin) {
       return _buildCurrentUserCard(viewModel.currentUser!);
     }
 
@@ -80,8 +80,9 @@ class _UserListViewState extends State<UserListView> {
               Text('${user.firstName} ${user.lastName}', style: Theme.of(context).textTheme.titleLarge),
               Text(user.email),
               Text('Username: ${user.username}'),
+              Text('Role: ${user.role}'),
               const SizedBox(height: 16),
-              if (user.plants.isNotEmpty) ...[const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold)), ...user.plants.map((plant) => Text('${plant.plantName} (${plant.role})'))],
+              if (user.plants.isNotEmpty) ...[const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold)), ...user.plants.map((plant) => Text(plant.plantName ?? 'Unknown Plant'))],
             ],
           ),
         ),
@@ -107,7 +108,7 @@ class _UserListViewState extends State<UserListView> {
     return ListTile(
       leading: CircleAvatar(child: Text(user.firstName.substring(0, 1) + user.lastName.substring(0, 1))),
       title: Text('${user.firstName} ${user.lastName}'),
-      subtitle: Text(user.email),
+      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.email), Text('Role: ${user.role}')]),
       trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () => _navigateToUserDetail(context, user)),
       onTap: () => _navigateToUserDetail(context, user),
     );

@@ -1,3 +1,4 @@
+// user_create_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,11 +21,13 @@ class _UserCreateViewState extends State<UserCreateView> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  final List<UserPlantDto> _plants = [];
-  String _selectedRole = 'viewer';
+  String _selectedRole = 'Viewer';
+  final List<int> _selectedPlantIds = [];
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<UserViewModel>(context);
+    
     return Scaffold(
       appBar: AppBar(title: const Text('Create New User')),
       body: Padding(
@@ -33,15 +36,27 @@ class _UserCreateViewState extends State<UserCreateView> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Username'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              TextFormField(
+                controller: _usernameController,
+                decoration: const InputDecoration(labelText: 'Username'),
+                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+              ),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                 keyboardType: TextInputType.emailAddress,
               ),
-              TextFormField(controller: _firstNameController, decoration: const InputDecoration(labelText: 'First Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
-              TextFormField(controller: _lastNameController, decoration: const InputDecoration(labelText: 'Last Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              TextFormField(
+                controller: _firstNameController,
+                decoration: const InputDecoration(labelText: 'First Name'),
+                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+              ),
+              TextFormField(
+                controller: _lastNameController,
+                decoration: const InputDecoration(labelText: 'Last Name'),
+                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+              ),
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
@@ -59,13 +74,17 @@ class _UserCreateViewState extends State<UserCreateView> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text('Plant Role:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Role:', style: TextStyle(fontWeight: FontWeight.bold)),
               DropdownButtonFormField<String>(
                 value: _selectedRole,
-                items:
-                    ['admin', 'viewer'].map((String value) {
-                      return DropdownMenuItem<String>(value: value, child: Text(value));
-                    }).toList(),
+                items: viewModel.userRoles
+                    .where((role) => viewModel.isSuperAdmin || role != 'SuperAdmin')
+                    .map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
                 onChanged: (value) {
                   if (value != null) {
                     setState(() => _selectedRole = value);
@@ -73,7 +92,10 @@ class _UserCreateViewState extends State<UserCreateView> {
                 },
               ),
               const SizedBox(height: 24),
-              ElevatedButton(onPressed: _submitForm, child: const Text('Create User')),
+              ElevatedButton(
+                onPressed: _submitForm,
+                child: const Text('Create User'),
+              ),
             ],
           ),
         ),
@@ -89,7 +111,8 @@ class _UserCreateViewState extends State<UserCreateView> {
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         password: _passwordController.text,
-        plants: _plants,
+        role: _selectedRole,
+        plantIds: _selectedPlantIds,
       );
 
       final viewModel = Provider.of<UserViewModel>(context, listen: false);

@@ -26,7 +26,35 @@ class DioService {
           }
           handler.next(options);
         },
-        onError: (DioException e, handler) {
+        onError: (DioException e, handler) async {
+          if (e.response?.statusCode == 401) {
+            final auth = await TokenManager.getAuth();
+
+            if (auth?.refreshToken != null) {
+              final newAccessToken = await AuthService().refreshAccessToken();
+
+              if (newAccessToken != null) {
+                // Yeni token'ı ekle, isteği tekrar yap
+                final newRequest = e.requestOptions;
+                newRequest.headers['Authorization'] = 'Bearer $newAccessToken';
+
+                try {
+                  final retryResponse = await _dio.fetch(newRequest);
+                  return handler.resolve(retryResponse); // Yeni yanıtı döndür
+                } catch (err) {
+                  // Tekrar deneme de başarısız oldu
+                  await TokenManager.clearToken();
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                  return;
+                }
+              }
+            }
+
+            // refresh token de yoksa veya işe yaramadıysa
+            await TokenManager.clearToken();
+            Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            return;
+          }
           handler.next(e);
         },
       ),

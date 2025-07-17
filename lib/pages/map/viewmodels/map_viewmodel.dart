@@ -55,17 +55,17 @@ class MapViewModel with ChangeNotifier {
       case ColorMode.voltage:
         double minV = _pvStrings.map((e) => e.lastPVV ?? 0).reduce((a, b) => a < b ? a : b);
         double maxV = _pvStrings.map((e) => e.lastPVV ?? 0).reduce((a, b) => a > b ? a : b);
-        return _getColorByValue(string.lastPVV ?? 0, minV, maxV);
+        return _getColorByValue(string.lastPVV ?? 0, minV / 1.6, maxV);
 
       case ColorMode.current:
         double minC = _pvStrings.map((e) => e.lastPVA ?? 0).reduce((a, b) => a < b ? a : b);
         double maxC = _pvStrings.map((e) => e.lastPVA ?? 0).reduce((a, b) => a > b ? a : b);
-        return _getColorByValue(string.lastPVA ?? 0, minC, maxC);
+        return _getColorByValue(string.lastPVA ?? 0, minC / 1.6, maxC);
 
       case ColorMode.power:
         double minP = _pvStrings.map((e) => e.lastPower).reduce((a, b) => a < b ? a : b);
         double maxP = _pvStrings.map((e) => e.lastPower).reduce((a, b) => a > b ? a : b);
-        return _getColorByValue(string.lastPower, minP, maxP);
+        return _getColorByValue(string.lastPower, minP / 1.6, maxP);
     }
   }
 

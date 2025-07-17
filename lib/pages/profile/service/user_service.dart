@@ -7,7 +7,6 @@ class UserService {
   Future<UserDto> getCurrentUser() async {
     try {
       final response = await DioService.dio.get('/users/me');
-      print(response);
       return UserDto.fromJson(response.data);
     } catch (e) {
       throw Exception('Failed to get current user: $e');
@@ -48,11 +47,29 @@ class UserService {
     }
   }
 
-  Future<void> getRoles() async {
+  Future<void> setFirebaseToken(String token) async {
     try {
-      await DioService.dio.delete('/users/roles');
+      await DioService.dio.get('/users/setFirebaseToken/$token');
     } catch (e) {
       throw Exception('Failed to delete user: $e');
+    }
+  }
+
+  Future<List<RoleDto>> getRoles() async {
+    try {
+      final response = await DioService.dio.get('/users/roles');
+      return (response.data as List).map((roleJson) => RoleDto.fromJson(roleJson)).toList();
+    } catch (e) {
+      throw Exception('Failed to get current user: $e');
+    }
+  }
+
+  Future<UserDto> getUserById(String userId) async {
+    try {
+      final response = await DioService.dio.get('/users/$userId');
+      return UserDto.fromJson(response.data);
+    } catch (e) {
+      throw Exception('Failed to get current user: $e');
     }
   }
 }

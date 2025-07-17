@@ -21,13 +21,32 @@ class _UserCreateViewState extends State<UserCreateView> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  String _selectedRole = 'Viewer';
   final List<int> _selectedPlantIds = [];
+  late RoleDto _selectedRole;
+  @override
+  void initState() {
+    super.initState();
+    final viewModel = Provider.of<UserViewModel>(context, listen: false);
+    // Roller yüklenmişse ilk rolü seç, yoksa default bir değer ata
+    _selectedRole = viewModel.displayRoles.isNotEmpty ? viewModel.displayRoles.first : RoleDto(key: 'Viewer', value: 'Görüntüleme');
+  }
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<UserViewModel>(context);
-    
+    // Roller henüz yüklenmediyse loading göster
+    if (viewModel.roles.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Roller yüklendikten sonra ilk rolü seç (eğer daha önce seçili rol yoksa)
+    if (_selectedRole.key == 'Viewer' && viewModel.displayRoles.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _selectedRole = viewModel.displayRoles.first;
+        });
+      });
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('Create New User')),
       body: Padding(
@@ -36,27 +55,15 @@ class _UserCreateViewState extends State<UserCreateView> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username'),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-              ),
+              TextFormField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Username'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                 keyboardType: TextInputType.emailAddress,
               ),
-              TextFormField(
-                controller: _firstNameController,
-                decoration: const InputDecoration(labelText: 'First Name'),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: _lastNameController,
-                decoration: const InputDecoration(labelText: 'Last Name'),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-              ),
+              TextFormField(controller: _firstNameController, decoration: const InputDecoration(labelText: 'First Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              TextFormField(controller: _lastNameController, decoration: const InputDecoration(labelText: 'Last Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
@@ -75,27 +82,22 @@ class _UserCreateViewState extends State<UserCreateView> {
               ),
               const SizedBox(height: 16),
               const Text('Role:', style: TextStyle(fontWeight: FontWeight.bold)),
-              DropdownButtonFormField<String>(
+              DropdownButtonFormField<RoleDto>(
                 value: _selectedRole,
-                items: viewModel.userRoles
-                    .where((role) => viewModel.isSuperAdmin || role != 'SuperAdmin')
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedRole = value);
+                items:
+                    viewModel.displayRoles.map((RoleDto role) {
+                      return DropdownMenuItem<RoleDto>(value: role, child: Text(role.value));
+                    }).toList(),
+                onChanged: (RoleDto? selectedRole) {
+                  if (selectedRole != null) {
+                    setState(() {
+                      _selectedRole = selectedRole;
+                    });
                   }
                 },
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('Create User'),
-              ),
+              ElevatedButton(onPressed: _submitForm, child: const Text('Create User')),
             ],
           ),
         ),
@@ -111,7 +113,7 @@ class _UserCreateViewState extends State<UserCreateView> {
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         password: _passwordController.text,
-        role: _selectedRole,
+        role: _selectedRole.key,
         plantIds: _selectedPlantIds,
       );
 

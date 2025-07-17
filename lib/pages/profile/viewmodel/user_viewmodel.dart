@@ -16,15 +16,14 @@ class UserViewModel with ChangeNotifier {
   String? _error;
   UserDto? _currentUser;
   List<PlantUsersDto> _plantUsers = [];
-  final List<String> _userRoles = ['Viewer', 'Admin']; // Add more roles as needed
-
+  List<RoleDto> _roles = [];
   bool get isLoading => _isLoading;
   bool get isAdmin => _isAdmin;
   bool get isSuperAdmin => _isSuperAdmin;
   String? get error => _error;
   UserDto? get currentUser => _currentUser;
   List<PlantUsersDto> get plantUsers => _plantUsers;
-  List<String> get userRoles => _userRoles;
+  List<RoleDto> get roles => _roles;
 
   Future<void> initialize() async {
     _isLoading = true;
@@ -39,6 +38,7 @@ class UserViewModel with ChangeNotifier {
 
       if (_isAdmin || _isSuperAdmin) {
         _plantUsers = await _service.getUsers();
+        _roles = await _service.getRoles();
       }
     } catch (e) {
       _error = e.toString();
@@ -98,5 +98,27 @@ class UserViewModel with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<UserDto> getUserById(String userId) async {
+    try {
+      final user = await _service.getUserById(userId);
+      return user;
+    } catch (e) {
+      throw Exception('Failed to fetch user: $e');
+    }
+  }
+
+  List<RoleDto> get displayRoles {
+    return _roles.where((role) => isSuperAdmin || role.key != 'SuperAdmin').toList();
+  }
+
+  // Key'e göre RoleDto bulma
+  RoleDto getRoleByKey(String key) {
+    return _roles.firstWhere((role) => role.key == key, orElse: () => RoleDto(key: key, value: key));
+  }
+
+  RoleDto getDefaultRole() {
+    return _roles.first;
   }
 }

@@ -60,11 +60,17 @@ class _UserListViewState extends State<UserListView> {
       );
     }
 
+    if (viewModel.currentUser == null) {
+      return const Center(child: Text('No user information available'));
+    }
+
+    // Her durumda mevcut kullanıcı kartını göster
     if (!viewModel.isAdmin && !viewModel.isSuperAdmin) {
       return _buildCurrentUserCard(viewModel.currentUser!);
     }
 
-    return _buildAdminView(viewModel);
+    // Admin/SuperAdmin ise hem kart hem de liste
+    return Column(children: [_buildCurrentUserCard(viewModel.currentUser!), const SizedBox(height: 16), Expanded(child: _buildAdminView(viewModel))]);
   }
 
   Widget _buildCurrentUserCard(UserDto user) {
@@ -108,17 +114,25 @@ class _UserListViewState extends State<UserListView> {
     return ListTile(
       leading: CircleAvatar(child: Text(user.firstName.substring(0, 1) + user.lastName.substring(0, 1))),
       title: Text('${user.firstName} ${user.lastName}'),
-      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.email), Text('Role: ${user.role}')]),
+      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.email) /*Text('Role: ${user.role}')*/]),
       trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () => _navigateToUserDetail(context, user)),
       onTap: () => _navigateToUserDetail(context, user),
     );
   }
 
-  void _navigateToUserDetail(BuildContext context, UserDto user) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => UserDetailView(user: user)));
+  void _navigateToUserDetail(BuildContext context, UserDto user) async {
+    try {
+      // Detayları yeniden çek
+      final updatedUser = await _viewModel.getUserById(user.id);
+
+      // Yeni bilgilerle sayfayı aç
+      Navigator.push(context, MaterialPageRoute(builder: (_) => ChangeNotifierProvider.value(value: _viewModel, child: UserDetailView(user: updatedUser))));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to fetch user details: $e')));
+    }
   }
 
   void _navigateToCreateUser(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const UserCreateView())).then((_) => _viewModel.refresh());
+    Navigator.push(context, MaterialPageRoute(builder: (_) => ChangeNotifierProvider.value(value: _viewModel, child: const UserCreateView()))).then((_) => _viewModel.refresh());
   }
 }

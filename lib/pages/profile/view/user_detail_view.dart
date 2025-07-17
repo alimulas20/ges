@@ -26,17 +26,8 @@ class _UserDetailViewState extends State<UserDetailView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<UserViewModel>(context);
-    
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${_editedUser.firstName} ${_editedUser.lastName}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () => _saveChanges(context),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text('${_editedUser.firstName} ${_editedUser.lastName}'), actions: [IconButton(icon: const Icon(Icons.save), onPressed: () => _saveChanges(context))]),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
@@ -59,19 +50,17 @@ class _UserDetailViewState extends State<UserDetailView> {
             if (viewModel.isAdmin || viewModel.isSuperAdmin) ...[
               const SizedBox(height: 16),
               const Text('Role:', style: TextStyle(fontWeight: FontWeight.bold)),
-              DropdownButtonFormField<String>(
-                value: _editedUser.role,
-                items: viewModel.userRoles
-                    .where((role) => viewModel.isSuperAdmin || role != 'SuperAdmin')
-                    .map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _editedUser = _editedUser.copyWith(role: value));
+              DropdownButtonFormField<RoleDto>(
+                value: viewModel.getRoleByKey(_editedUser.role ?? ""),
+                items:
+                    viewModel.displayRoles.map((RoleDto role) {
+                      return DropdownMenuItem<RoleDto>(value: role, child: Text(role.value));
+                    }).toList(),
+                onChanged: (RoleDto? selectedRole) {
+                  if (selectedRole != null) {
+                    setState(() {
+                      _editedUser = _editedUser.copyWith(role: selectedRole.key);
+                    });
                   }
                 },
               ),
@@ -85,9 +74,7 @@ class _UserDetailViewState extends State<UserDetailView> {
                   icon: const Icon(Icons.delete),
                   onPressed: () {
                     setState(() {
-                      _editedUser = _editedUser.copyWith(
-                        plants: _editedUser.plants.where((p) => p.plantId != plant.plantId).toList(),
-                      );
+                      _editedUser = _editedUser.copyWith(plants: _editedUser.plants.where((p) => p.plantId != plant.plantId).toList());
                     });
                   },
                 ),

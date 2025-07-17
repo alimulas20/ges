@@ -12,7 +12,6 @@ class UserDto {
   UserDto({required this.id, required this.username, required this.email, required this.firstName, required this.lastName, required this.enabled, required this.role, required this.plants});
 
   factory UserDto.fromJson(Map<String, dynamic> json) {
-    print(json);
     return UserDto(
       id: json['id'],
       username: json['username'],
@@ -66,7 +65,6 @@ class PlantUsersDto {
   PlantUsersDto({required this.plantId, required this.plantName, required this.users});
 
   factory PlantUsersDto.fromJson(Map<String, dynamic> json) {
-    print("deneme");
     return PlantUsersDto(plantId: json['plantId'], plantName: json['plantName'], users: (json['users'] as List).map((e) => UserDto.fromJson(e)).toList());
   }
 }
@@ -84,5 +82,27 @@ class UserCreateDto {
 
   Map<String, dynamic> toJson() {
     return {'username': username, 'email': email, 'firstName': firstName, 'lastName': lastName, 'password': password, 'role': role, 'plantIds': plantIds};
+  }
+}
+
+class RoleDto {
+  final String key;
+  final String value;
+  @override
+  String toString() => value; // Dropdown'da görüntülenecek değer
+
+  @override
+  bool operator ==(Object other) => identical(this, other) || other is RoleDto && runtimeType == other.runtimeType && key == other.key;
+
+  @override
+  int get hashCode => key.hashCode;
+  RoleDto({required this.key, required this.value});
+
+  factory RoleDto.fromJson(Map<String, dynamic> json) {
+    return RoleDto(key: json['key'], value: json['value']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'key': key, 'value': value};
   }
 }

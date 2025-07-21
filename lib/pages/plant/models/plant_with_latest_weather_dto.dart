@@ -11,7 +11,9 @@ class PlantWithLatestWeatherDto {
   final double latitude;
   final double longitude;
   final double altitude;
+  final double dailyProduction;
   final WeatherDataDto? latestWeather;
+  final String? plantPictureUrl;
 
   PlantWithLatestWeatherDto({
     required this.id,
@@ -24,7 +26,9 @@ class PlantWithLatestWeatherDto {
     required this.latitude,
     required this.longitude,
     required this.altitude,
+    required this.dailyProduction,
     this.latestWeather,
+    this.plantPictureUrl,
   });
 
   factory PlantWithLatestWeatherDto.fromJson(Map<String, dynamic> json) {
@@ -39,7 +43,9 @@ class PlantWithLatestWeatherDto {
       latitude: json['latitude']?.toDouble() ?? 0.0,
       longitude: json['longitude']?.toDouble() ?? 0.0,
       altitude: json['altitude']?.toDouble() ?? 0.0,
+      dailyProduction: json['dailyProduction']?.toDouble() ?? 0.0,
       latestWeather: json['latestWeather'] != null ? WeatherDataDto.fromJson(json['latestWeather']) : null,
+      plantPictureUrl: json['plantPictureUrl'],
     );
   }
 
@@ -55,7 +61,9 @@ class PlantWithLatestWeatherDto {
       'latitude': latitude,
       'longitude': longitude,
       'altitude': altitude,
+      'dailyProduction': dailyProduction,
       'latestWeather': latestWeather?.toJson(),
+      'plantPictureUrl': plantPictureUrl,
     };
   }
 }

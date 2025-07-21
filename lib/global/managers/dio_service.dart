@@ -18,6 +18,9 @@ class DioService {
 
   static void init() {
     _dio.interceptors.clear();
+    _dio.options.validateStatus = (status) {
+      return status! < 500; // 500'den küçük tüm status kodlarına izin ver
+    };
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -28,29 +31,28 @@ class DioService {
           handler.next(options);
         },
         onError: (DioException e, handler) async {
-          if (e.response?.statusCode == 401) {
-            final auth = await TokenManager.getAuth();
+          // 401 Unauthorized hatası ve refresh denemesi yapılmamışsa
+          if (e.response?.statusCode == 401 && !e.requestOptions.path.contains('refresh')) {
+            // Orijinal isteği sakla
+            final originalRequest = e.requestOptions;
+            try {
+              final newToken = await AuthService().refreshAccessToken();
 
-            if (auth?.refreshToken != null) {
-              final newAccessToken = await AuthService().refreshAccessToken();
-
-              if (newAccessToken != null) {
-                final newRequest = e.requestOptions;
-                newRequest.headers['Authorization'] = 'Bearer $newAccessToken';
-
-                try {
-                  final retryResponse = await _dio.fetch(newRequest);
-                  return handler.resolve(retryResponse);
-                } catch (err) {
-                  await _handleTokenExpiration();
-                  return;
-                }
+              if (newToken != null) {
+                // Yeni token ile orijinal isteği tekrarla
+                originalRequest.headers['Authorization'] = 'Bearer $newToken';
+                final retryResponse = await _dio.fetch(originalRequest);
+                return handler.resolve(retryResponse);
               }
+            } catch (refreshError) {
+              debugPrint('Token refresh failed: $refreshError');
             }
 
+            // Refresh başarısız olduysa logout yap
             await _handleTokenExpiration();
-            return;
           }
+
+          // Diğer hataları veya başarısız refresh durumunu ileri taşı
           handler.next(e);
         },
       ),

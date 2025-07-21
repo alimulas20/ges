@@ -101,44 +101,10 @@ class _PlantListViewState extends State<PlantListView> {
               Text('Type: ${plant.plantType}'),
               Text('Capacity: ${plant.totalStringCapacityKWp} kWp'),
               Text('Location: ${plant.address}'),
-              //const SizedBox(height: 16),
-              // if (plant.latestWeather != null) ...[
-              //   const Divider(),
-              //   const Text('Latest Weather', style: TextStyle(fontWeight: FontWeight.bold)),
-              //   const SizedBox(height: 8),
-              //   Row(
-              //     children: [
-              //       Expanded(
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Text('Temperature: ${plant.latestWeather!.temperature}°C'),
-              //             Text('Wind Speed: ${plant.latestWeather!.windSpeed} m/s'),
-              //             Text('Humidity: ${plant.latestWeather!.humidity}%'),
-              //           ],
-              //         ),
-              //       ),
-              //       Expanded(
-              //         child: Column(
-              //           crossAxisAlignment: CrossAxisAlignment.start,
-              //           children: [
-              //             Text('Cloud Cover: ${plant.latestWeather!.cloudCover}%'),
-              //             Text('Code: ${plant.latestWeather!.weatherCode}'),
-              //             Text('Updated: ${_formatDateTime(plant.latestWeather!.measurementTime)}'),
-              //           ],
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ],
             ],
           ),
         ),
       ),
     );
   }
-
-  // String _formatDateTime(DateTime dateTime) {
-  //   return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute}';
-  // }
 }

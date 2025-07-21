@@ -20,6 +20,8 @@ import 'pages/profile/viewmodel/user_viewmodel.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  DioService.init();
+
   runApp(const MyApp());
 }
 
@@ -116,7 +118,6 @@ class MyApp extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           } else if (snapshot.hasData) {
-            DioService.init();
             _setupFirebaseToken();
             _setupFirebaseMessaging();
             return snapshot.data!; // Provider'lar zaten tanımlı

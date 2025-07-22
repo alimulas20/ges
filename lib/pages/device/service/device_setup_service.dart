@@ -80,4 +80,18 @@ class DeviceSetupService {
       throw Exception('Failed to load PV comparison: $e');
     }
   }
+
+  Future<InverterComparisonDTO> getInverterHistoryData(int deviceSetupId, DateTime date, List<String> attributeKeys) async {
+    try {
+      final response = await DioService.dio.post('/DeviceSetup/$deviceSetupId/inverter-comparison', data: {'date': date.toIso8601String(), 'attributeKeys': attributeKeys});
+
+      if (response.statusCode == 200) {
+        return InverterComparisonDTO.fromJson(response.data);
+      } else {
+        throw Exception('Failed to load inverter history: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load inverter history: $e');
+    }
+  }
 }

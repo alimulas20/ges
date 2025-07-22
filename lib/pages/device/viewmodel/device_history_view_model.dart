@@ -95,6 +95,7 @@ class DeviceHistoryViewModel with ChangeNotifier {
     }
   }
 
+  // viewmodels/device_history_view_model.dart
   Future<void> _fetchInverterData() async {
     if (_selectedAttribute == null) return;
 
@@ -102,11 +103,10 @@ class DeviceHistoryViewModel with ChangeNotifier {
       _isLoadingInverterData = true;
       notifyListeners();
 
-      // Burada API'den veri çekme işlemi olacak
-      // _inverterData = await _service.getInverterHistoryData(...);
-      // Şimdilik mock data koyalım
-      await Future.delayed(Duration(seconds: 1));
-      _inverterData = {'labels': List.generate(24, (i) => '$i:00'), 'data': List.generate(24, (i) => 100 + (i * 10) % 100)};
+      final data = await _service.getInverterHistoryData(deviceSetupId, _selectedDate, [_selectedAttribute!]);
+
+      _inverterData = data;
+      _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -114,6 +114,9 @@ class DeviceHistoryViewModel with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Add this to the view model class
+  InverterComparisonDTO? get inverterComparisonData => _inverterData;
 
   Future<void> _fetchPvComparisonData() async {
     if (_selectedPvStringIds.isEmpty) return;

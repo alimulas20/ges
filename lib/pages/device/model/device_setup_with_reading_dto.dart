@@ -194,3 +194,31 @@ extension PVMeasurementTypeExtension on PVMeasurementType {
     }
   }
 }
+
+// model/inverter_comparison_dto.dart
+class InverterComparisonDTO {
+  final int deviceSetupId;
+  final DateTime date;
+  final List<InverterComparisonDataPointDTO> dataPoints;
+
+  InverterComparisonDTO({required this.deviceSetupId, required this.date, required this.dataPoints});
+
+  factory InverterComparisonDTO.fromJson(Map<String, dynamic> json) {
+    return InverterComparisonDTO(
+      deviceSetupId: json['deviceSetupId'],
+      date: DateTime.parse(json['date']),
+      dataPoints: (json['dataPoints'] as List).map((point) => InverterComparisonDataPointDTO.fromJson(point)).toList(),
+    );
+  }
+}
+
+class InverterComparisonDataPointDTO {
+  final DateTime timestamp;
+  final Map<String, double> values;
+
+  InverterComparisonDataPointDTO({required this.timestamp, required this.values});
+
+  factory InverterComparisonDataPointDTO.fromJson(Map<String, dynamic> json) {
+    return InverterComparisonDataPointDTO(timestamp: DateTime.parse(json['timestamp']), values: (json['values'] as Map<String, dynamic>).map((key, value) => MapEntry(key, value.toDouble())));
+  }
+}

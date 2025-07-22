@@ -1,7 +1,7 @@
 // views/device_setup_list_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_ges_360/global/constant/AppConstants.dart';
+import 'package:smart_ges_360/global/constant/app_constants.dart';
 import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
 
 import '../model/device_setup_with_reading_dto.dart';

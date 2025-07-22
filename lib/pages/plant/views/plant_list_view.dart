@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/pages/map/views/map_view.dart';
 
-import '../../../global/constant/AppConstants.dart';
+import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
 import '../../../global/widgets/network_image_with_placeholder.dart';
 import '../models/plant_with_latest_weather_dto.dart';

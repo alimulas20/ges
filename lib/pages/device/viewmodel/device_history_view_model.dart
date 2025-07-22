@@ -8,21 +8,65 @@ class DeviceHistoryViewModel with ChangeNotifier {
   final DeviceSetupService _service;
   final int deviceSetupId;
 
+  // Inverter Attributes
   List<InverterAttributeDTO> _attributes = [];
-  final Set<String> _selectedAttributes = {};
+  String? _selectedAttribute;
+  DateTime _selectedDate = DateTime.now();
+
+  // PV Strings
+  List<PVStringInfoDTO> _pvStrings = [];
+  List<int> _selectedPvStringIds = [];
+  PVMeasurementType _selectedMeasurementType = PVMeasurementType.Power;
+
+  // Data
+  dynamic _inverterData; // Grafik verisi burada olacak
+  PVComparisonDTO? _pvComparisonData;
+
+  // States
   String? _errorMessage;
-  bool _isLoading = false;
+  bool _isLoadingAttributes = false;
+  bool _isLoadingPvStrings = false;
+  bool _isLoadingInverterData = false;
+  bool _isLoadingPvComparison = false;
 
-  DeviceHistoryViewModel(this._service, this.deviceSetupId);
-
+  DeviceHistoryViewModel(this._service, this.deviceSetupId) {
+    _initData();
+  }
+  bool get isLoadingPvComparison => _isLoadingPvComparison;
+  bool get isLoadingInverterData => _isLoadingInverterData;
+  // Getters
   List<InverterAttributeDTO> get attributes => _attributes;
-  Set<String> get selectedAttributes => _selectedAttributes;
-  String? get errorMessage => _errorMessage;
-  bool get isLoading => _isLoading;
+  String? get selectedAttribute => _selectedAttribute;
+  DateTime get selectedDate => _selectedDate;
 
-  Future<void> fetchAttributes() async {
+  List<PVStringInfoDTO> get pvStrings => _pvStrings;
+  List<int> get selectedPvStringIds => _selectedPvStringIds;
+  PVMeasurementType get selectedMeasurementType => _selectedMeasurementType;
+
+  dynamic get inverterData => _inverterData;
+  PVComparisonDTO? get pvComparisonData => _pvComparisonData;
+
+  String? get errorMessage => _errorMessage;
+  bool get isLoading => _isLoadingAttributes || _isLoadingPvStrings || _isLoadingInverterData || _isLoadingPvComparison;
+
+  Future<void> _initData() async {
+    await Future.wait([_fetchAttributes(), _fetchPvStrings()]);
+
+    // Varsayılan seçimleri yap
+    if (_attributes.isNotEmpty) {
+      _selectedAttribute = _attributes.first.key;
+      _fetchInverterData();
+    }
+
+    if (_pvStrings.isNotEmpty) {
+      _selectedPvStringIds = [_pvStrings.first.id];
+      _fetchPvComparisonData();
+    }
+  }
+
+  Future<void> _fetchAttributes() async {
     try {
-      _isLoading = true;
+      _isLoadingAttributes = true;
       notifyListeners();
 
       _attributes = await _service.getInverterAttributes(deviceSetupId);
@@ -30,19 +74,81 @@ class DeviceHistoryViewModel with ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      _isLoading = false;
+      _isLoadingAttributes = false;
       notifyListeners();
     }
   }
 
-  void selectAttribute(String key) {
-    _selectedAttributes.add(key);
-    notifyListeners();
-    // Here you would also fetch the historical data for this attribute
+  Future<void> _fetchPvStrings() async {
+    try {
+      _isLoadingPvStrings = true;
+      notifyListeners();
+
+      _pvStrings = await _service.getDevicePVStrings(deviceSetupId);
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoadingPvStrings = false;
+      notifyListeners();
+    }
   }
 
-  void deselectAttribute(String key) {
-    _selectedAttributes.remove(key);
-    notifyListeners();
+  Future<void> _fetchInverterData() async {
+    if (_selectedAttribute == null) return;
+
+    try {
+      _isLoadingInverterData = true;
+      notifyListeners();
+
+      // Burada API'den veri çekme işlemi olacak
+      // _inverterData = await _service.getInverterHistoryData(...);
+      // Şimdilik mock data koyalım
+      await Future.delayed(Duration(seconds: 1));
+      _inverterData = {'labels': List.generate(24, (i) => '$i:00'), 'data': List.generate(24, (i) => 100 + (i * 10) % 100)};
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoadingInverterData = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _fetchPvComparisonData() async {
+    if (_selectedPvStringIds.isEmpty) return;
+
+    try {
+      _isLoadingPvComparison = true;
+      notifyListeners();
+
+      _pvComparisonData = await _service.getPVGenerationComparisonData(deviceSetupId, _selectedDate, _selectedMeasurementType, _selectedPvStringIds);
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoadingPvComparison = false;
+      notifyListeners();
+    }
+  }
+
+  void setSelectedAttribute(String? attributeKey) {
+    _selectedAttribute = attributeKey;
+    _fetchInverterData();
+  }
+
+  void setSelectedDate(DateTime date) {
+    _selectedDate = date;
+    _fetchInverterData();
+    _fetchPvComparisonData();
+  }
+
+  void setSelectedMeasurementType(PVMeasurementType type) {
+    _selectedMeasurementType = type;
+    _fetchPvComparisonData();
+  }
+
+  void setSelectedPvStrings(List<int> ids) {
+    _selectedPvStringIds = ids;
+    _fetchPvComparisonData();
   }
 }

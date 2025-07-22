@@ -62,4 +62,22 @@ class DeviceSetupService {
       throw Exception('Failed to load inverter attributes: $e');
     }
   }
+
+  Future<PVComparisonDTO> getPVGenerationComparisonData(int deviceSetupId, DateTime date, PVMeasurementType measurementType, List<int> pvStringIds) async {
+    try {
+      print("'date': ${date.toIso8601String()}, 'measurementType': ${measurementType.toString().split('.').last}, 'pvStringIds': $pvStringIds, devicesetupId:$deviceSetupId");
+      final response = await DioService.dio.post(
+        '/DeviceSetup/$deviceSetupId/pv-comparison',
+        data: {'date': date.toIso8601String(), 'measurementType': measurementType.value, 'pvStringIds': pvStringIds},
+      );
+
+      if (response.statusCode == 200) {
+        return PVComparisonDTO.fromJson(response.data);
+      } else {
+        throw Exception('Failed to load PV comparison: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load PV comparison: $e');
+    }
+  }
 }

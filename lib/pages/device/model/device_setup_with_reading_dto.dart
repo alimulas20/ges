@@ -150,3 +150,47 @@ class InverterAttributeDTO {
     return InverterAttributeDTO(key: json['key'], name: json['name'], unit: json['unit'], description: json['description']);
   }
 }
+
+class PVComparisonDTO {
+  final int deviceSetupId;
+  final DateTime date;
+  final PVMeasurementType measurementType;
+  final List<PVComparisonDataPointDTO> dataPoints;
+
+  PVComparisonDTO({required this.deviceSetupId, required this.date, required this.measurementType, required this.dataPoints});
+
+  factory PVComparisonDTO.fromJson(Map<String, dynamic> json) {
+    return PVComparisonDTO(
+      deviceSetupId: json['deviceSetupId'],
+      date: DateTime.parse(json['date']),
+      measurementType: PVMeasurementType.values[json['measurementType']],
+      dataPoints: (json['dataPoints'] as List).map((e) => PVComparisonDataPointDTO.fromJson(e)).toList(),
+    );
+  }
+}
+
+class PVComparisonDataPointDTO {
+  final DateTime timestamp;
+  final Map<String, double> values; // PVStringName -> Value
+
+  PVComparisonDataPointDTO({required this.timestamp, required this.values});
+
+  factory PVComparisonDataPointDTO.fromJson(Map<String, dynamic> json) {
+    return PVComparisonDataPointDTO(timestamp: DateTime.parse(json['timestamp']), values: (json['values'] as Map<String, dynamic>).map((k, v) => MapEntry(k, v.toDouble())));
+  }
+}
+
+enum PVMeasurementType { Voltage, Current, Power }
+
+extension PVMeasurementTypeExtension on PVMeasurementType {
+  int get value {
+    switch (this) {
+      case PVMeasurementType.Voltage:
+        return 0;
+      case PVMeasurementType.Current:
+        return 1;
+      case PVMeasurementType.Power:
+        return 2;
+    }
+  }
+}

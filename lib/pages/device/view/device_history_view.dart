@@ -139,6 +139,12 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
                 },
               ),
             ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Hide right titles
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Hide top titles
+            ),
           ),
           borderData: FlBorderData(show: true),
           minX: viewModel.inverterComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
@@ -239,6 +245,12 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
                   return Text(value.toStringAsFixed(1));
                 },
               ),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Hide right titles
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Hide top titles
             ),
           ),
           borderData: FlBorderData(show: true),

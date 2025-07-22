@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/constant/app_constants.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_history_view_model.dart';
 
@@ -144,44 +145,88 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
         const SizedBox(height: AppConstants.paddingExtraLarge),
 
         // PV Comparison Graph - FL Chart ile
-        if (viewModel.isLoadingPvComparison)
-          const Center(child: CircularProgressIndicator())
-        else if (viewModel.pvComparisonData != null)
-          Container(
-            height: 250,
-            padding: const EdgeInsets.all(AppConstants.paddingMedium),
-            decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
-            child: LineChart(
-              LineChartData(
-                lineTouchData: LineTouchData(enabled: true),
-                gridData: FlGridData(show: true),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 2,
-                      getTitlesWidget: (value, meta) {
-                        final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                        return Text('${date.hour}:${date.minute}');
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        return Text(value.toStringAsFixed(1));
-                      },
+        SizedBox(
+          height: 250,
+          child: Stack(
+            children: [
+              if (viewModel.pvComparisonData != null)
+                Container(
+                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                  decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+                  child: LineChart(
+                    LineChartData(
+                      lineTouchData: LineTouchData(enabled: true),
+                      gridData: FlGridData(show: true),
+                      titlesData: FlTitlesData(
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            interval: viewModel.calculateInterval(viewModel.pvComparisonData!),
+                            getTitlesWidget: (value, meta) {
+                              // Optimized timestamp handling
+                              final hour = (value / 3600000).floor() % 24;
+                              return Padding(padding: const EdgeInsets.only(top: 4.0), child: Text('$hour:00', style: const TextStyle(fontSize: 10)));
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            interval: viewModel.calculateValueInterval(viewModel.pvComparisonData!),
+                            getTitlesWidget: (value, meta) {
+                              return Text(value.toStringAsFixed(1), style: const TextStyle(fontSize: 10));
+                            },
+                          ),
+                        ),
+                      ),
+                      minX: viewModel.pvComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
+                      maxX: viewModel.pvComparisonData!.dataPoints.last.timestamp.millisecondsSinceEpoch.toDouble(),
+                      lineBarsData: _buildOptimizedPvComparisonLineBars(viewModel),
                     ),
                   ),
                 ),
-                borderData: FlBorderData(show: true),
-                lineBarsData: _buildPvComparisonLineBars(viewModel),
-              ),
-            ),
+              if (viewModel.isLoadingPvComparison) Center(child: CircularProgressIndicator()),
+            ],
           ),
+        ),
       ],
     );
+  }
+
+  List<LineChartBarData> _buildOptimizedPvComparisonLineBars(DeviceHistoryViewModel viewModel) {
+    if (viewModel.pvComparisonData == null) return [];
+
+    final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
+    final lineBars = <LineChartBarData>[];
+    var colorIndex = 0;
+
+    // Group data by PV string name
+    final pvStringNames = viewModel.pvComparisonData!.dataPoints.expand((point) => point.values.keys).toSet().toList();
+
+    for (final pvStringName in pvStringNames) {
+      final color = colors[colorIndex % colors.length];
+      colorIndex++;
+
+      final spots = <FlSpot>[];
+      for (final point in viewModel.pvComparisonData!.dataPoints) {
+        if (point.values.containsKey(pvStringName)) {
+          spots.add(FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[pvStringName]!));
+        }
+      }
+
+      lineBars.add(
+        LineChartBarData(
+          color: color,
+          barWidth: 2,
+          isCurved: true,
+          dotData: FlDotData(show: false), // Disable dots to improve performance
+          spots: spots,
+          belowBarData: BarAreaData(show: false),
+        ),
+      );
+    }
+
+    return lineBars;
   }
 
   List<LineChartBarData> _buildPvComparisonLineBars(DeviceHistoryViewModel viewModel) {

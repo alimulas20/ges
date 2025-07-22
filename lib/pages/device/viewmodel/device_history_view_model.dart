@@ -50,17 +50,18 @@ class DeviceHistoryViewModel with ChangeNotifier {
   bool get isLoading => _isLoadingAttributes || _isLoadingPvStrings || _isLoadingInverterData || _isLoadingPvComparison;
 
   Future<void> _initData() async {
-    await Future.wait([_fetchAttributes(), _fetchPvStrings()]);
-
-    // Varsayılan seçimleri yap
+    // Load attributes first
+    await _fetchAttributes();
     if (_attributes.isNotEmpty) {
       _selectedAttribute = _attributes.first.key;
-      _fetchInverterData();
+      await _fetchInverterData(); // Wait for inverter data to complete
     }
 
+    // Then load PV strings
+    await _fetchPvStrings();
     if (_pvStrings.isNotEmpty) {
       _selectedPvStringIds = [_pvStrings.first.id];
-      _fetchPvComparisonData();
+      await _fetchPvComparisonData(); // Wait for comparison data to complete
     }
   }
 
@@ -121,7 +122,10 @@ class DeviceHistoryViewModel with ChangeNotifier {
       _isLoadingPvComparison = true;
       notifyListeners();
 
-      _pvComparisonData = await _service.getPVGenerationComparisonData(deviceSetupId, _selectedDate, _selectedMeasurementType, _selectedPvStringIds);
+      final rawData = await _service.getPVGenerationComparisonData(deviceSetupId, _selectedDate, _selectedMeasurementType, _selectedPvStringIds);
+
+      // Process and limit the data points
+      _pvComparisonData = _processPvComparisonData(rawData);
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -129,6 +133,39 @@ class DeviceHistoryViewModel with ChangeNotifier {
       _isLoadingPvComparison = false;
       notifyListeners();
     }
+  }
+
+  PVComparisonDTO? _processPvComparisonData(PVComparisonDTO rawData) {
+    if (rawData.dataPoints.length > 48) {
+      // More than 48 points (2x hourly)
+      // Sample the data to reduce points
+      final step = (rawData.dataPoints.length / 48).ceil();
+      final sampledPoints = <PVComparisonDataPointDTO>[];
+
+      for (int i = 0; i < rawData.dataPoints.length; i += step) {
+        sampledPoints.add(rawData.dataPoints[i]);
+      }
+
+      return PVComparisonDTO(deviceSetupId: rawData.deviceSetupId, date: rawData.date, measurementType: rawData.measurementType, dataPoints: sampledPoints);
+    }
+    return rawData;
+  }
+
+  double calculateInterval(PVComparisonDTO data) {
+    final pointCount = data.dataPoints.length;
+    if (pointCount > 48) return 8; // Show every 8th point
+    if (pointCount > 24) return 4; // Show every 4th point
+    return 2; // Default
+  }
+
+  double calculateValueInterval(PVComparisonDTO data) {
+    double maxValue = 0;
+    for (final point in data.dataPoints) {
+      for (final value in point.values.values) {
+        if (value > maxValue) maxValue = value;
+      }
+    }
+    return (maxValue / 5).ceilToDouble();
   }
 
   void setSelectedAttribute(String? attributeKey) {

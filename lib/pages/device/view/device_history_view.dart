@@ -1,7 +1,6 @@
 // views/device_history_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_ges_360/global/constant/app_constants.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
@@ -33,17 +32,7 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     return ChangeNotifierProvider.value(
       value: _viewModel,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Geçmiş Veriler', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                _viewModel.setSelectedDate(DateTime.now());
-              },
-            ),
-          ],
-        ),
+        appBar: AppBar(title: const Text('Geçmiş Veriler'), actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.setSelectedDate(DateTime.now()))]),
         body: Consumer<DeviceHistoryViewModel>(
           builder: (context, viewModel, child) {
             if (viewModel.isLoading && viewModel.attributes.isEmpty) {
@@ -54,38 +43,25 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingSuperLarge), child: Text(viewModel.errorMessage!, textAlign: TextAlign.center)),
-                    const SizedBox(height: AppConstants.paddingExtraLarge),
-                    ElevatedButton(onPressed: () => _viewModel.setSelectedDate(DateTime.now()), child: const Text('Yenile')),
-                  ],
+                  children: [Text(viewModel.errorMessage!), const SizedBox(height: 16), ElevatedButton(onPressed: () => _viewModel.setSelectedDate(DateTime.now()), child: const Text('Yenile'))],
                 ),
               );
             }
 
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Inverter Data Section
-                        _buildInverterDataSection(context, viewModel),
-
-                        const SizedBox(height: AppConstants.paddingExtraLarge),
-                        const Divider(),
-                        const SizedBox(height: AppConstants.paddingExtraLarge),
-
-                        // PV Comparison Section
-                        _buildPvComparisonSection(context, viewModel),
-                      ],
-                    ),
-                  ),
-                );
-              },
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Inverter Data Section with Multi-Select
+                  _buildInverterSection(viewModel),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 24),
+                  // PV String Data Section
+                  _buildPvStringSection(viewModel),
+                ],
+              ),
             );
           },
         ),
@@ -93,110 +69,123 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     );
   }
 
-  Widget _buildInverterDataSection(BuildContext context, DeviceHistoryViewModel viewModel) {
+  Widget _buildInverterSection(DeviceHistoryViewModel viewModel) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Responsive row for smaller screens
-        LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < 600) {
-              return Column(children: [_buildAttributeDropdown(viewModel), const SizedBox(height: AppConstants.paddingMedium), _buildDatePicker(viewModel)]);
-            }
-            return Row(children: [Expanded(child: _buildAttributeDropdown(viewModel)), const SizedBox(width: AppConstants.paddingMedium), Expanded(child: _buildDatePicker(viewModel))]);
-          },
+        // Multi-select for Inverter Attributes
+        MultiSelectDropdown<String>(
+          options: viewModel.attributes.map((attr) => DropdownMenuItem(value: attr.key, child: Text(attr.name))).toList(),
+          selectedValues: viewModel.selectedAttributeKeys,
+          onChanged: (keys) => viewModel.setSelectedAttributeKeys(keys),
+          hint: 'Inverter Özellikleri Seçiniz',
         ),
-        const SizedBox(height: AppConstants.paddingExtraLarge),
+        const SizedBox(height: 16),
 
-        if (viewModel.isLoadingInverterData)
-          const Center(child: CircularProgressIndicator())
-        else if (viewModel.inverterComparisonData != null)
-          Container(
-            height: 250,
-            padding: const EdgeInsets.all(AppConstants.paddingMedium),
-            decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
-            child: LineChart(
-              LineChartData(
-                lineTouchData: LineTouchData(enabled: true),
-                gridData: FlGridData(show: true),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                        return Padding(padding: const EdgeInsets.only(top: 4.0), child: Text('${date.hour}:${date.minute.toString().padLeft(2, '0')}', style: const TextStyle(fontSize: 10)));
-                      },
-                    ),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        return Text(value.toStringAsFixed(0), style: const TextStyle(fontSize: 10));
-                      },
-                    ),
-                  ),
-                ),
-                borderData: FlBorderData(show: true),
-                minX: viewModel.inverterComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
-                maxX: viewModel.inverterComparisonData!.dataPoints.last.timestamp.millisecondsSinceEpoch.toDouble(),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots:
-                        viewModel.inverterComparisonData!.dataPoints
-                            .map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[viewModel.selectedAttribute!] ?? 0))
-                            .toList(),
-                    isCurved: true,
-                    dotData: FlDotData(show: false),
-                    belowBarData: BarAreaData(show: false),
-                  ),
-                ],
-              ),
-            ),
+        // Date Picker
+        _buildDatePicker(viewModel),
+        const SizedBox(height: 16),
+
+        // Selected Attributes Chips
+        if (viewModel.selectedAttributeKeys.isNotEmpty) ...[
+          Wrap(
+            spacing: 8,
+            children:
+                viewModel.selectedAttributeKeys.map((key) {
+                  final attr = viewModel.attributes.firstWhere((a) => a.key == key);
+                  return Chip(label: Text(attr.name), onDeleted: () => viewModel.setSelectedAttributeKeys(viewModel.selectedAttributeKeys.where((k) => k != key).toList()));
+                }).toList(),
           ),
+          const SizedBox(height: 16),
+        ],
+
+        // Inverter Chart
+        SizedBox(height: 250, child: _buildInverterChart(viewModel)),
       ],
     );
   }
 
-  Widget _buildAttributeDropdown(DeviceHistoryViewModel viewModel) {
-    return DropdownButtonFormField<String>(
-      value: viewModel.selectedAttribute,
-      items: viewModel.attributes.map((attr) => DropdownMenuItem(value: attr.key, child: Text(attr.name))).toList(),
-      onChanged: viewModel.setSelectedAttribute,
-      decoration: const InputDecoration(labelText: 'Inverter Özelliği', border: OutlineInputBorder()),
-    );
-  }
+  Widget _buildInverterChart(DeviceHistoryViewModel viewModel) {
+    if (viewModel.isLoadingInverterData) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-  Widget _buildDatePicker(DeviceHistoryViewModel viewModel) {
-    return InkWell(
-      onTap: () => _selectDate(context, viewModel),
-      child: InputDecorator(
-        decoration: const InputDecoration(labelText: 'Tarih', border: OutlineInputBorder()),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(DateFormat('dd/MM/yyyy').format(viewModel.selectedDate)), const Icon(Icons.calendar_today, size: 20)]),
+    if (viewModel.inverterComparisonData == null || viewModel.selectedAttributeKeys.isEmpty) {
+      return const Center(child: Text('Lütfen özellik seçiniz'));
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+      child: LineChart(
+        LineChartData(
+          lineTouchData: const LineTouchData(enabled: true),
+          gridData: const FlGridData(show: true),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+                  return Text(DateFormat('HH:mm').format(date), style: const TextStyle(fontSize: 10));
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  return Text(value.toStringAsFixed(0));
+                },
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: true),
+          minX: viewModel.inverterComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
+          maxX: viewModel.inverterComparisonData!.dataPoints.last.timestamp.millisecondsSinceEpoch.toDouble(),
+          lineBarsData: _buildInverterLines(viewModel),
+        ),
       ),
     );
   }
 
-  Widget _buildPvComparisonSection(BuildContext context, DeviceHistoryViewModel viewModel) {
+  List<LineChartBarData> _buildInverterLines(DeviceHistoryViewModel viewModel) {
+    final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
+    final lineBars = <LineChartBarData>[];
+
+    for (int i = 0; i < viewModel.selectedAttributeKeys.length; i++) {
+      final key = viewModel.selectedAttributeKeys[i];
+      final color = colors[i % colors.length];
+
+      final spots = viewModel.inverterComparisonData!.dataPoints.map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[key] ?? 0)).toList();
+
+      lineBars.add(LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: 2, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)));
+    }
+
+    return lineBars;
+  }
+
+  Widget _buildPvStringSection(DeviceHistoryViewModel viewModel) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Responsive row for smaller screens
-        LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < 600) {
-              return Column(children: [_buildMeasurementTypeDropdown(viewModel), const SizedBox(height: AppConstants.paddingMedium), _buildPvStringDropdown(viewModel)]);
-            }
-            return Row(children: [Expanded(child: _buildMeasurementTypeDropdown(viewModel)), const SizedBox(width: AppConstants.paddingMedium), Expanded(child: _buildPvStringDropdown(viewModel))]);
-          },
+        // First row - Measurement type and Date
+        Row(children: [Expanded(child: _buildMeasurementTypeDropdown(viewModel)), const SizedBox(width: 16), Expanded(child: _buildDatePicker(viewModel))]),
+        const SizedBox(height: 16),
+
+        // PV String multi-select
+        MultiSelectDropdown<int>(
+          options: viewModel.pvStrings.map((pv) => DropdownMenuItem(value: pv.id, child: Text(pv.name))).toList(),
+          selectedValues: viewModel.selectedPvStringIds,
+          onChanged: (ids) => viewModel.setSelectedPvStrings(ids),
+          hint: 'PV String Seçiniz',
         ),
-        const SizedBox(height: AppConstants.paddingMedium),
+        const SizedBox(height: 16),
 
         // Selected PV strings chips
         if (viewModel.selectedPvStringIds.isNotEmpty) ...[
           Wrap(
-            spacing: 8.0,
+            spacing: 8,
             children:
                 viewModel.selectedPvStringIds.map((id) {
                   final pvString = viewModel.pvStrings.firstWhere((pv) => pv.id == id);
@@ -208,64 +197,87 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
                   );
                 }).toList(),
           ),
-          const SizedBox(height: AppConstants.paddingMedium),
+          const SizedBox(height: 16),
         ],
 
-        const SizedBox(height: AppConstants.paddingExtraLarge),
-
         // PV Comparison Graph
-        SizedBox(
-          height: 250,
-          child: Stack(
-            children: [
-              if (viewModel.pvComparisonData != null && viewModel.selectedPvStringIds.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                  decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
-                  child: LineChart(
-                    LineChartData(
-                      lineTouchData: LineTouchData(enabled: true),
-                      gridData: FlGridData(show: true),
-                      titlesData: FlTitlesData(
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            interval: viewModel.calculateInterval(viewModel.pvComparisonData!),
-                            getTitlesWidget: (value, meta) {
-                              final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                              return Padding(padding: const EdgeInsets.only(top: 4.0), child: Text('${date.hour}:${date.minute.toString().padLeft(2, '0')}', style: const TextStyle(fontSize: 10)));
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            interval: viewModel.calculateValueInterval(viewModel.pvComparisonData!),
-                            getTitlesWidget: (value, meta) {
-                              return Text(value.toStringAsFixed(1), style: const TextStyle(fontSize: 10));
-                            },
-                          ),
-                        ),
-                      ),
-                      minX: viewModel.pvComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
-                      maxX: viewModel.pvComparisonData!.dataPoints.last.timestamp.millisecondsSinceEpoch.toDouble(),
-                      lineBarsData: _buildOptimizedPvComparisonLineBars(viewModel),
-                    ),
-                  ),
-                ),
-              if (viewModel.isLoadingPvComparison) const Center(child: CircularProgressIndicator()),
-              if (viewModel.pvComparisonData == null && !viewModel.isLoadingPvComparison) const Center(child: Text('Lütfen PV String seçiniz')),
-            ],
-          ),
-        ),
+        SizedBox(height: 250, child: _buildPvComparisonChart(viewModel)),
       ],
     );
+  }
+
+  Widget _buildPvComparisonChart(DeviceHistoryViewModel viewModel) {
+    if (viewModel.isLoadingPvComparison) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (viewModel.pvComparisonData == null || viewModel.selectedPvStringIds.isEmpty) {
+      return const Center(child: Text('Lütfen PV String seçiniz'));
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+      child: LineChart(
+        LineChartData(
+          lineTouchData: const LineTouchData(enabled: true),
+          gridData: const FlGridData(show: true),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+                  return Text(DateFormat('HH:mm').format(date), style: const TextStyle(fontSize: 10));
+                },
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  return Text(value.toStringAsFixed(1));
+                },
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: true),
+          minX: viewModel.pvComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
+          maxX: viewModel.pvComparisonData!.dataPoints.last.timestamp.millisecondsSinceEpoch.toDouble(),
+          lineBarsData: _buildPvComparisonLines(viewModel),
+        ),
+      ),
+    );
+  }
+
+  List<LineChartBarData> _buildPvComparisonLines(DeviceHistoryViewModel viewModel) {
+    final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
+    final lineBars = <LineChartBarData>[];
+
+    for (int i = 0; i < viewModel.selectedPvStringIds.length; i++) {
+      final pvStringId = viewModel.selectedPvStringIds[i];
+      final pvString = viewModel.pvStrings.firstWhere((pv) => pv.id == pvStringId);
+      final color = colors[i % colors.length];
+
+      final spots =
+          viewModel.pvComparisonData!.dataPoints
+              .where((point) => point.values.containsKey(pvString.name))
+              .map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[pvString.name]!))
+              .toList();
+
+      lineBars.add(LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: 2, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)));
+    }
+
+    return lineBars;
   }
 
   Widget _buildMeasurementTypeDropdown(DeviceHistoryViewModel viewModel) {
     return DropdownButtonFormField<PVMeasurementType>(
       value: viewModel.selectedMeasurementType,
-      items: PVMeasurementType.values.map((type) => DropdownMenuItem(value: type, child: Text(_getMeasurementTypeName(type)))).toList(),
+      items:
+          PVMeasurementType.values.map((type) {
+            return DropdownMenuItem(value: type, child: Text(_getMeasurementTypeName(type)));
+          }).toList(),
       onChanged: (type) => viewModel.setSelectedMeasurementType(type!),
       decoration: const InputDecoration(labelText: 'Ölçüm Türü', border: OutlineInputBorder()),
     );
@@ -284,12 +296,13 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     }
   }
 
-  Widget _buildPvStringDropdown(DeviceHistoryViewModel viewModel) {
-    return MultiSelectDropdown(
-      options: viewModel.pvStrings.map((pv) => DropdownMenuItem(value: pv.id, child: Text(pv.name))).toList(),
-      selectedValues: viewModel.selectedPvStringIds,
-      onChanged: (ids) => viewModel.setSelectedPvStrings(ids),
-      hint: 'PV String Seçiniz',
+  Widget _buildDatePicker(DeviceHistoryViewModel viewModel) {
+    return InkWell(
+      onTap: () => _selectDate(context, viewModel),
+      child: InputDecorator(
+        decoration: const InputDecoration(labelText: 'Tarih', border: OutlineInputBorder()),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(DateFormat('dd/MM/yyyy').format(viewModel.selectedDate)), const Icon(Icons.calendar_today, size: 20)]),
+      ),
     );
   }
 
@@ -298,32 +311,5 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     if (picked != null && picked != viewModel.selectedDate) {
       viewModel.setSelectedDate(picked);
     }
-  }
-
-  List<LineChartBarData> _buildOptimizedPvComparisonLineBars(DeviceHistoryViewModel viewModel) {
-    if (viewModel.pvComparisonData == null) return [];
-
-    final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
-    final lineBars = <LineChartBarData>[];
-    var colorIndex = 0;
-
-    // Get names of selected PV strings
-    final selectedPvStrings = viewModel.pvStrings.where((pv) => viewModel.selectedPvStringIds.contains(pv.id)).toList();
-
-    for (final pvString in selectedPvStrings) {
-      final color = colors[colorIndex % colors.length];
-      colorIndex++;
-
-      final spots = <FlSpot>[];
-      for (final point in viewModel.pvComparisonData!.dataPoints) {
-        if (point.values.containsKey(pvString.name)) {
-          spots.add(FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[pvString.name]!));
-        }
-      }
-
-      lineBars.add(LineChartBarData(color: color, barWidth: 2, isCurved: true, dotData: FlDotData(show: false), spots: spots, belowBarData: BarAreaData(show: false)));
-    }
-
-    return lineBars;
   }
 }

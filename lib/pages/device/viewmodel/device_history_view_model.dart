@@ -10,7 +10,7 @@ class DeviceHistoryViewModel with ChangeNotifier {
 
   // Inverter Attributes
   List<InverterAttributeDTO> _attributes = [];
-  String? _selectedAttribute;
+  List<String> _selectedAttributeKeys = [];
   DateTime _selectedDate = DateTime.now();
 
   // PV Strings
@@ -19,7 +19,7 @@ class DeviceHistoryViewModel with ChangeNotifier {
   PVMeasurementType _selectedMeasurementType = PVMeasurementType.Power;
 
   // Data
-  dynamic _inverterData; // Grafik verisi burada olacak
+  InverterComparisonDTO? _inverterComparisonData;
   PVComparisonDTO? _pvComparisonData;
 
   // States
@@ -32,37 +32,27 @@ class DeviceHistoryViewModel with ChangeNotifier {
   DeviceHistoryViewModel(this._service, this.deviceSetupId) {
     _initData();
   }
-  bool get isLoadingPvComparison => _isLoadingPvComparison;
-  bool get isLoadingInverterData => _isLoadingInverterData;
+
   // Getters
   List<InverterAttributeDTO> get attributes => _attributes;
-  String? get selectedAttribute => _selectedAttribute;
+  List<String> get selectedAttributeKeys => _selectedAttributeKeys;
   DateTime get selectedDate => _selectedDate;
 
   List<PVStringInfoDTO> get pvStrings => _pvStrings;
   List<int> get selectedPvStringIds => _selectedPvStringIds;
   PVMeasurementType get selectedMeasurementType => _selectedMeasurementType;
 
-  dynamic get inverterData => _inverterData;
+  InverterComparisonDTO? get inverterComparisonData => _inverterComparisonData;
   PVComparisonDTO? get pvComparisonData => _pvComparisonData;
 
-  String? get errorMessage => _errorMessage;
+  bool get isLoadingInverterData => _isLoadingInverterData;
+  bool get isLoadingPvComparison => _isLoadingPvComparison;
   bool get isLoading => _isLoadingAttributes || _isLoadingPvStrings || _isLoadingInverterData || _isLoadingPvComparison;
+  String? get errorMessage => _errorMessage;
 
   Future<void> _initData() async {
-    // Load attributes first
     await _fetchAttributes();
-    if (_attributes.isNotEmpty) {
-      _selectedAttribute = _attributes.first.key;
-      await _fetchInverterData(); // Wait for inverter data to complete
-    }
-
-    // Then load PV strings
     await _fetchPvStrings();
-    if (_pvStrings.isNotEmpty) {
-      _selectedPvStringIds = [_pvStrings.first.id];
-      await _fetchPvComparisonData(); // Wait for comparison data to complete
-    }
   }
 
   Future<void> _fetchAttributes() async {
@@ -71,9 +61,13 @@ class DeviceHistoryViewModel with ChangeNotifier {
       notifyListeners();
 
       _attributes = await _service.getInverterAttributes(deviceSetupId);
+      if (_attributes.isNotEmpty) {
+        _selectedAttributeKeys = [_attributes.first.key];
+        await _fetchInverterData();
+      }
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = 'Özellikler alınamadı: ${e.toString()}';
     } finally {
       _isLoadingAttributes = false;
       notifyListeners();
@@ -86,37 +80,35 @@ class DeviceHistoryViewModel with ChangeNotifier {
       notifyListeners();
 
       _pvStrings = await _service.getDevicePVStrings(deviceSetupId);
+      if (_pvStrings.isNotEmpty) {
+        _selectedPvStringIds = [_pvStrings.first.id];
+        await _fetchPvComparisonData();
+      }
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = 'PV Stringleri alınamadı: ${e.toString()}';
     } finally {
       _isLoadingPvStrings = false;
       notifyListeners();
     }
   }
 
-  // viewmodels/device_history_view_model.dart
   Future<void> _fetchInverterData() async {
-    if (_selectedAttribute == null) return;
+    if (_selectedAttributeKeys.isEmpty) return;
 
     try {
       _isLoadingInverterData = true;
       notifyListeners();
 
-      final data = await _service.getInverterHistoryData(deviceSetupId, _selectedDate, [_selectedAttribute!]);
-
-      _inverterData = data;
+      _inverterComparisonData = await _service.getInverterHistoryData(deviceSetupId, _selectedDate, _selectedAttributeKeys);
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = 'Inverter verisi alınamadı: ${e.toString()}';
     } finally {
       _isLoadingInverterData = false;
       notifyListeners();
     }
   }
-
-  // Add this to the view model class
-  InverterComparisonDTO? get inverterComparisonData => _inverterData;
 
   Future<void> _fetchPvComparisonData() async {
     if (_selectedPvStringIds.isEmpty) return;
@@ -127,52 +119,33 @@ class DeviceHistoryViewModel with ChangeNotifier {
 
       final rawData = await _service.getPVGenerationComparisonData(deviceSetupId, _selectedDate, _selectedMeasurementType, _selectedPvStringIds);
 
-      // Process and limit the data points
-      _pvComparisonData = _processPvComparisonData(rawData);
+      // Process the data to ensure it contains only selected PV strings
+      final selectedPvStringNames = _pvStrings.where((pv) => _selectedPvStringIds.contains(pv.id)).map((pv) => pv.name).toList();
+
+      final processedDataPoints =
+          rawData.dataPoints.map((point) {
+            final filteredValues = <String, double>{};
+            point.values.forEach((key, value) {
+              if (selectedPvStringNames.contains(key)) {
+                filteredValues[key] = value;
+              }
+            });
+            return PVComparisonDataPointDTO(timestamp: point.timestamp, values: filteredValues);
+          }).toList();
+
+      _pvComparisonData = PVComparisonDTO(deviceSetupId: rawData.deviceSetupId, date: rawData.date, measurementType: rawData.measurementType, dataPoints: processedDataPoints);
+
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = 'PV Karşılaştırma verisi alınamadı: ${e.toString()}';
     } finally {
       _isLoadingPvComparison = false;
       notifyListeners();
     }
   }
 
-  PVComparisonDTO? _processPvComparisonData(PVComparisonDTO rawData) {
-    if (rawData.dataPoints.length > 48) {
-      // More than 48 points (2x hourly)
-      // Sample the data to reduce points
-      final step = (rawData.dataPoints.length / 48).ceil();
-      final sampledPoints = <PVComparisonDataPointDTO>[];
-
-      for (int i = 0; i < rawData.dataPoints.length; i += step) {
-        sampledPoints.add(rawData.dataPoints[i]);
-      }
-
-      return PVComparisonDTO(deviceSetupId: rawData.deviceSetupId, date: rawData.date, measurementType: rawData.measurementType, dataPoints: sampledPoints);
-    }
-    return rawData;
-  }
-
-  double calculateInterval(PVComparisonDTO data) {
-    final pointCount = data.dataPoints.length;
-    if (pointCount > 48) return 8; // Show every 8th point
-    if (pointCount > 24) return 4; // Show every 4th point
-    return 2; // Default
-  }
-
-  double calculateValueInterval(PVComparisonDTO data) {
-    double maxValue = 0;
-    for (final point in data.dataPoints) {
-      for (final value in point.values.values) {
-        if (value > maxValue) maxValue = value;
-      }
-    }
-    return (maxValue / 5).ceilToDouble();
-  }
-
-  void setSelectedAttribute(String? attributeKey) {
-    _selectedAttribute = attributeKey;
+  void setSelectedAttributeKeys(List<String> keys) {
+    _selectedAttributeKeys = keys;
     _fetchInverterData();
   }
 

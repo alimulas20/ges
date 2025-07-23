@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
+import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/multi_select_dropdown.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
@@ -32,7 +33,11 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     return ChangeNotifierProvider.value(
       value: _viewModel,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Geçmiş Veriler'), actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.setSelectedDate(DateTime.now()))]),
+        appBar: AppBar(
+          title: const Text('Geçmiş Veriler'),
+          actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.setSelectedDate(DateTime.now()))],
+          toolbarHeight: AppConstants.appBarHeight,
+        ),
         body: Consumer<DeviceHistoryViewModel>(
           builder: (context, viewModel, child) {
             if (viewModel.isLoading && viewModel.attributes.isEmpty) {
@@ -43,21 +48,25 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [Text(viewModel.errorMessage!), const SizedBox(height: 16), ElevatedButton(onPressed: () => _viewModel.setSelectedDate(DateTime.now()), child: const Text('Yenile'))],
+                  children: [
+                    Text(viewModel.errorMessage!),
+                    const SizedBox(height: AppConstants.paddingExtraLarge),
+                    ElevatedButton(onPressed: () => _viewModel.setSelectedDate(DateTime.now()), child: const Text('Yenile')),
+                  ],
                 ),
               );
             }
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Inverter Data Section with Multi-Select
                   _buildInverterSection(viewModel),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppConstants.paddingUltraLarge),
                   const Divider(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppConstants.paddingUltraLarge),
                   // PV String Data Section
                   _buildPvStringSection(viewModel),
                 ],
@@ -80,23 +89,23 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
           onChanged: (keys) => viewModel.setSelectedAttributeKeys(keys),
           hint: 'Inverter Özellikleri Seçiniz',
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppConstants.paddingExtraLarge),
 
         // Date Picker
         _buildDatePicker(viewModel),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppConstants.paddingExtraLarge),
 
         // Selected Attributes Chips
         if (viewModel.selectedAttributeKeys.isNotEmpty) ...[
           Wrap(
-            spacing: 8,
+            spacing: AppConstants.paddingSmall,
             children:
                 viewModel.selectedAttributeKeys.map((key) {
                   final attr = viewModel.attributes.firstWhere((a) => a.key == key);
                   return Chip(label: Text(attr.name), onDeleted: () => viewModel.setSelectedAttributeKeys(viewModel.selectedAttributeKeys.where((k) => k != key).toList()));
                 }).toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppConstants.paddingExtraLarge),
         ],
 
         // Inverter Chart
@@ -115,8 +124,8 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+      padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
       child: LineChart(
         LineChartData(
           lineTouchData: const LineTouchData(enabled: true),
@@ -127,24 +136,21 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                  return Text(DateFormat('HH:mm').format(date), style: const TextStyle(fontSize: 10));
+                  return Text(DateFormat('HH:mm').format(date), style: const TextStyle(fontSize: AppConstants.fontSizeExtraSmall));
                 },
               ),
             ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                reservedSize: AppConstants.chartLeftAxisWidth,
                 getTitlesWidget: (value, meta) {
-                  return Text(value.toStringAsFixed(0));
+                  return Text(value.toStringAsFixed(0), style: const TextStyle(fontSize: AppConstants.fontSizeExtraSmall));
                 },
               ),
             ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide right titles
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide top titles
-            ),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(show: true),
           minX: viewModel.inverterComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
@@ -165,7 +171,9 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
 
       final spots = viewModel.inverterComparisonData!.dataPoints.map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[key] ?? 0)).toList();
 
-      lineBars.add(LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: 2, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)));
+      lineBars.add(
+        LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: AppConstants.chartLineThickness, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)),
+      );
     }
 
     return lineBars;
@@ -176,8 +184,8 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // First row - Measurement type and Date
-        Row(children: [Expanded(child: _buildMeasurementTypeDropdown(viewModel)), const SizedBox(width: 16), Expanded(child: _buildDatePicker(viewModel))]),
-        const SizedBox(height: 16),
+        Row(children: [Expanded(child: _buildMeasurementTypeDropdown(viewModel)), const SizedBox(width: AppConstants.paddingExtraLarge), Expanded(child: _buildDatePicker(viewModel))]),
+        const SizedBox(height: AppConstants.paddingExtraLarge),
 
         // PV String multi-select
         MultiSelectDropdown<int>(
@@ -186,12 +194,12 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
           onChanged: (ids) => viewModel.setSelectedPvStrings(ids),
           hint: 'PV String Seçiniz',
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppConstants.paddingExtraLarge),
 
         // Selected PV strings chips
         if (viewModel.selectedPvStringIds.isNotEmpty) ...[
           Wrap(
-            spacing: 8,
+            spacing: AppConstants.paddingSmall,
             children:
                 viewModel.selectedPvStringIds.map((id) {
                   final pvString = viewModel.pvStrings.firstWhere((pv) => pv.id == id);
@@ -203,7 +211,7 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
                   );
                 }).toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppConstants.paddingExtraLarge),
         ],
 
         // PV Comparison Graph
@@ -222,8 +230,8 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+      padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
       child: LineChart(
         LineChartData(
           lineTouchData: const LineTouchData(enabled: true),
@@ -234,24 +242,21 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                  return Text(DateFormat('HH:mm').format(date), style: const TextStyle(fontSize: 10));
+                  return Text(DateFormat('HH:mm').format(date), style: const TextStyle(fontSize: AppConstants.fontSizeExtraSmall));
                 },
               ),
             ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                reservedSize: AppConstants.chartLeftAxisWidth,
                 getTitlesWidget: (value, meta) {
-                  return Text(value.toStringAsFixed(1));
+                  return Text(value.toStringAsFixed(1), style: const TextStyle(fontSize: AppConstants.fontSizeExtraSmall));
                 },
               ),
             ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide right titles
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide top titles
-            ),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(show: true),
           minX: viewModel.pvComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
@@ -277,7 +282,9 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
               .map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[pvString.name]!))
               .toList();
 
-      lineBars.add(LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: 2, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)));
+      lineBars.add(
+        LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: AppConstants.chartLineThickness, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)),
+      );
     }
 
     return lineBars;
@@ -291,7 +298,11 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
             return DropdownMenuItem(value: type, child: Text(_getMeasurementTypeName(type)));
           }).toList(),
       onChanged: (type) => viewModel.setSelectedMeasurementType(type!),
-      decoration: const InputDecoration(labelText: 'Ölçüm Türü', border: OutlineInputBorder()),
+      decoration: const InputDecoration(
+        labelText: 'Ölçüm Türü',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: AppConstants.paddingMedium),
+      ),
     );
   }
 
@@ -312,8 +323,15 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     return InkWell(
       onTap: () => _selectDate(context, viewModel),
       child: InputDecorator(
-        decoration: const InputDecoration(labelText: 'Tarih', border: OutlineInputBorder()),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(DateFormat('dd/MM/yyyy').format(viewModel.selectedDate)), const Icon(Icons.calendar_today, size: 20)]),
+        decoration: const InputDecoration(
+          labelText: 'Tarih',
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: AppConstants.paddingMedium),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [Text(DateFormat('dd/MM/yyyy').format(viewModel.selectedDate)), const Icon(Icons.calendar_today, size: AppConstants.iconSizeMedium)],
+        ),
       ),
     );
   }

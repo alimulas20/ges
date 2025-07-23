@@ -57,4 +57,8 @@ class AppConstants {
   static const int maxLinesLarge = 3;
   static const int decimalPlaces = 2;
   static const int defaultPageSize = 10;
+
+  static const double chartLineThickness = 1.5;
+  static const double chartAxisFontSize = 8;
+  static const double chartLeftAxisWidth = 35; // Reduced width for left axis
 }

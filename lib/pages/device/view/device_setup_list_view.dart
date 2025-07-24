@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/constant/app_constants.dart';
 import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
+import 'package:smart_ges_360/pages/alarm/views/alarm_view.dart';
 
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
@@ -89,7 +90,7 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
                     pages: [
                       DeviceDetailsView(deviceSetupId: device.deviceSetupId),
                       DeviceHistoryView(deviceSetupId: device.deviceSetupId),
-                      Container(color: Colors.white), // PV Comparison page
+                      AlarmsPage(deviceSetupId: device.deviceSetupId), // PV Comparison page
                       Container(color: Colors.white), // Empty page 4
                     ],
                     icons: const [Icon(Icons.info), Icon(Icons.history), Icon(Icons.show_chart), Icon(Icons.settings)],

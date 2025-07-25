@@ -16,7 +16,7 @@ class DeviceHistoryViewModel with ChangeNotifier {
   // PV Strings
   List<PVStringInfoDTO> _pvStrings = [];
   List<int> _selectedPvStringIds = [];
-  PVMeasurementType _selectedMeasurementType = PVMeasurementType.Power;
+  PVMeasurementType _selectedMeasurementType = PVMeasurementType.power;
 
   // Data
   InverterComparisonDTO? _inverterComparisonData;

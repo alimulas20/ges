@@ -10,10 +10,10 @@ class MultiSelectDropdown<T> extends StatefulWidget {
   const MultiSelectDropdown({required this.options, required this.selectedValues, required this.onChanged, required this.hint, super.key});
 
   @override
-  _MultiSelectDropdownState<T> createState() => _MultiSelectDropdownState<T>();
+  MultiSelectDropdownState<T> createState() => MultiSelectDropdownState<T>();
 }
 
-class _MultiSelectDropdownState<T> extends State<MultiSelectDropdown<T>> {
+class MultiSelectDropdownState<T> extends State<MultiSelectDropdown<T>> {
   // Track if the dropdown is open to prevent multiple rapid selections
   bool _isDropdownOpen = false;
 

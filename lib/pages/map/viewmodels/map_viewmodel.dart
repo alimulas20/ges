@@ -95,7 +95,7 @@ class MapViewModel with ChangeNotifier {
   List<Color> getPolygonColors() {
     return _pvStrings.expand((string) {
       return string.locationSeries.map((_) {
-        return getStringColor(string).withOpacity(0.5);
+        return getStringColor(string).withAlpha(126);
       });
     }).toList();
   }

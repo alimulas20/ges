@@ -19,6 +19,21 @@ class DeviceSetupService {
     }
   }
 
+  Future<List<DeviceSetupWithReadingDTO>> getUserDeviceSetupsbyPlantId(int plantId) async {
+    try {
+      final response = await DioService.dio.get('/DeviceSetup/plant/$plantId');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => DeviceSetupWithReadingDTO.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load device setups: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load device setups: $e');
+    }
+  }
+
   Future<DeviceInfoDTO> getDeviceInfo(int deviceSetupId) async {
     try {
       final response = await DioService.dio.get('/DeviceSetup/$deviceSetupId/info');
@@ -77,7 +92,6 @@ class DeviceSetupService {
 
   Future<PVComparisonDTO> getPVGenerationComparisonData(int deviceSetupId, DateTime date, PVMeasurementType measurementType, List<int> pvStringIds) async {
     try {
-      print("'date': ${date.toIso8601String()}, 'measurementType': ${measurementType.toString().split('.').last}, 'pvStringIds': $pvStringIds, devicesetupId:$deviceSetupId");
       final response = await DioService.dio.post(
         '/DeviceSetup/$deviceSetupId/pv-comparison',
         data: {'date': date.toIso8601String(), 'measurementType': measurementType.value, 'pvStringIds': pvStringIds},

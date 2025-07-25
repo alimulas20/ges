@@ -328,11 +328,11 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
 
   String _getMeasurementTypeName(PVMeasurementType type) {
     switch (type) {
-      case PVMeasurementType.Power:
+      case PVMeasurementType.power:
         return 'Güç (W)';
-      case PVMeasurementType.Current:
+      case PVMeasurementType.current:
         return 'Akım (A)';
-      case PVMeasurementType.Voltage:
+      case PVMeasurementType.voltage:
         return 'Voltaj (V)';
     }
   }

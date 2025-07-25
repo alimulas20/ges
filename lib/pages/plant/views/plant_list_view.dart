@@ -5,6 +5,7 @@ import 'package:smart_ges_360/pages/map/views/map_view.dart';
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
 import '../../../global/widgets/network_image_with_placeholder.dart';
+import '../../device/view/device_setup_list_view.dart';
 import '../models/plant_with_latest_weather_dto.dart';
 import '../models/weather_code_utils.dart';
 import '../services/plant_service.dart';
@@ -84,14 +85,18 @@ class _PlantListViewState extends State<PlantListView> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => CustomNavbar(pages: [MapView(plantId: plant.id), Container(), Container()], icons: const [Icon(Icons.home), Icon(Icons.abc), Icon(Icons.person_4_rounded)]),
+              builder:
+                  (_) => CustomNavbar(
+                    pages: [MapView(plantId: plant.id), DeviceSetupListView(plantId: plant.id), Container()],
+                    icons: const [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
+                  ),
             ),
           );
         },
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.paddingLarge),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Plant image
               NetworkImageWithPlaceholder(imageUrl: plant.plantPictureUrl, width: AppConstants.imageThumbnailSize, height: AppConstants.imageThumbnailSize, placeholderType: 'plant'),

@@ -79,15 +79,6 @@ class MapViewState extends State<MapView> {
                 IconButton(icon: const Icon(Icons.zoom_in), onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 0.5)),
                 IconButton(icon: const Icon(Icons.zoom_out), onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 0.5)),
                 IconButton(icon: const Icon(Icons.center_focus_strong), onPressed: _centerMap),
-                // PopupMenuButton<ColorMode>(
-                //   onSelected: viewModel.setColorMode,
-                //   itemBuilder:
-                //       (context) => const [
-                //         PopupMenuItem(value: ColorMode.voltage, child: Text('Gerilim (V)')),
-                //         PopupMenuItem(value: ColorMode.current, child: Text('Akım (A)')),
-                //         PopupMenuItem(value: ColorMode.power, child: Text('Güç (W)')),
-                //       ],
-                // ),
               ],
             ),
             body: Stack(

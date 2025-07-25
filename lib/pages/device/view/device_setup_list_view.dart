@@ -13,7 +13,8 @@ import 'device_reading_view.dart';
 import 'device_history_view.dart';
 
 class DeviceSetupListView extends StatefulWidget {
-  const DeviceSetupListView({super.key});
+  const DeviceSetupListView({super.key, this.plantId});
+  final int? plantId;
 
   @override
   State<DeviceSetupListView> createState() => _DeviceSetupListViewState();
@@ -26,7 +27,8 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
   void initState() {
     super.initState();
     _viewModel = DeviceSetupListViewModel(DeviceSetupService());
-    _viewModel.fetchDevices();
+
+    _viewModel.fetchDevices(widget.plantId);
   }
 
   @override
@@ -36,7 +38,7 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Inverterler', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
-          actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.fetchDevices())],
+          actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.fetchDevices(widget.plantId))],
         ),
         body: Consumer<DeviceSetupListViewModel>(
           builder: (context, viewModel, child) {
@@ -51,7 +53,7 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
                   children: [
                     Padding(padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingSuperLarge), child: Text(viewModel.errorMessage!, textAlign: TextAlign.center)),
                     const SizedBox(height: AppConstants.paddingExtraLarge),
-                    ElevatedButton(onPressed: () => viewModel.fetchDevices(), child: const Text('Yenile')),
+                    ElevatedButton(onPressed: () => viewModel.fetchDevices(widget.plantId), child: const Text('Yenile')),
                   ],
                 ),
               );
@@ -108,7 +110,7 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(device.deviceName, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  Chip(label: Text(device.deviceType), backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1)),
+                  Chip(label: Text(device.deviceType), backgroundColor: Theme.of(context).primaryColor.withAlpha(26)),
                 ],
               ),
               const SizedBox(height: AppConstants.paddingMedium),

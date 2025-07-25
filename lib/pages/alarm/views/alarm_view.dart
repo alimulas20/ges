@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/constant/app_constants.dart';
-import 'package:smart_ges_360/global/managers/dio_service.dart';
 
 import '../model/alarm_dto.dart';
 import '../service/alarm_service.dart';
@@ -37,13 +36,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
   }
 
   Future<void> _loadAlarms() async {
-    await _viewModel.fetchAlarms(
-      plantId: _selectedPlantId,
-      deviceSetupId: _selectedDeviceSetupId,
-      selectedDate: _selectedDate,
-      activeOnly: _tabController.index == 0,
-      levels: _selectedLevels.toList(),
-    );
+    await _viewModel.fetchAlarms(deviceSetupId: _selectedDeviceSetupId, selectedDate: _selectedDate, activeOnly: _tabController.index == 0, levels: _selectedLevels.toList());
   }
 
   @override
@@ -189,7 +182,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                     });
                     _loadAlarms();
                   },
-                  selectedColor: _getLevelColor(level).withOpacity(0.2),
+                  selectedColor: _getLevelColor(level).withAlpha(51),
                   checkmarkColor: _getLevelColor(level),
                   labelStyle: TextStyle(color: isSelected ? _getLevelColor(level) : Colors.black),
                 );

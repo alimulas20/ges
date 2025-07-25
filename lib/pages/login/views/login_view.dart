@@ -36,7 +36,7 @@ class LoginView extends StatelessWidget {
                 // Welcome text
                 Text('Tekrar Hoşgeldiniz', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
                 const SizedBox(height: 8),
-                Text('Devam  etmek için lütfen giriş yapın', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7))),
+                Text('Devam  etmek için lütfen giriş yapın', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withAlpha(179))),
                 const SizedBox(height: 32),
 
                 // Custom text fields

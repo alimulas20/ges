@@ -260,16 +260,16 @@ class PVComparisonDataPointDTO {
   }
 }
 
-enum PVMeasurementType { Voltage, Current, Power }
+enum PVMeasurementType { voltage, current, power }
 
 extension PVMeasurementTypeExtension on PVMeasurementType {
   int get value {
     switch (this) {
-      case PVMeasurementType.Voltage:
+      case PVMeasurementType.voltage:
         return 0;
-      case PVMeasurementType.Current:
+      case PVMeasurementType.current:
         return 1;
-      case PVMeasurementType.Power:
+      case PVMeasurementType.power:
         return 2;
     }
   }

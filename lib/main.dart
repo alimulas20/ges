@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/constant/theme.dart';
 import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
+import 'package:smart_ges_360/pages/alarm/views/alarm_view.dart';
 import 'package:smart_ges_360/pages/device/view/device_setup_list_view.dart';
 import 'package:smart_ges_360/pages/plant/views/plant_list_view.dart';
 import 'package:smart_ges_360/pages/profile/view/user_list_view.dart';
@@ -131,7 +132,10 @@ class MyApp extends StatelessWidget {
         '/home':
             (_) => MultiProvider(
               providers: [ChangeNotifierProvider(create: (_) => UserViewModel(UserService()))],
-              child: CustomNavbar(pages: [PlantListView(), DeviceSetupListView(), UserListView()], icons: [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)]),
+              child: CustomNavbar(
+                pages: [PlantListView(), AlarmsPage(), DeviceSetupListView(), UserListView()],
+                icons: [Icon(Icons.home), Icon(Icons.error), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
+              ),
             ),
       },
     );

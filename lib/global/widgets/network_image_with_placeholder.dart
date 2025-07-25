@@ -11,7 +11,13 @@ class NetworkImageWithPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: width, height: height, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.grey[200]), child: _buildImageContent());
+    return Container(
+      width: width,
+      height: height,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.grey[200]),
+      child: _buildImageContent(),
+    );
   }
 
   Widget _buildImageContent() {

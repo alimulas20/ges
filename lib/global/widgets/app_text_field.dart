@@ -26,11 +26,11 @@ class _AppTextFieldState extends State<AppTextField> {
       obscureText: widget.isPassword && _obscureText,
       decoration: InputDecoration(
         labelText: widget.labelText,
-        prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon, color: theme.colorScheme.onSurface.withOpacity(0.6)) : null,
+        prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon, color: theme.colorScheme.onSurface.withAlpha(153)) : null,
         suffixIcon:
             widget.isPassword
                 ? IconButton(
-                  icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                  icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: theme.colorScheme.onSurface.withAlpha(153)),
                   onPressed: () {
                     setState(() {
                       _obscureText = !_obscureText;
@@ -41,7 +41,7 @@ class _AppTextFieldState extends State<AppTextField> {
                 ? Icon(widget.suffixIcon)
                 : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.borderRadius), borderSide: BorderSide(color: theme.colorScheme.outline)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.borderRadius), borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.5))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.borderRadius), borderSide: BorderSide(color: theme.colorScheme.outline.withAlpha(126))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.borderRadius), borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5)),
         filled: true,
         fillColor: theme.colorScheme.surface,

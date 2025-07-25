@@ -1,6 +1,7 @@
 // views/device_info_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_ges_360/global/extensions/date_time_extensions.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../service/device_setup_service.dart';
@@ -66,7 +67,7 @@ class _DeviceInfoViewState extends State<DeviceInfoView> {
                       _buildInfoRow('Santral Adı', deviceInfo.plantName, context),
                       _buildInfoRow('Adres', deviceInfo.plantAddress, context),
                       _buildInfoRow('Slave No', deviceInfo.slaveNumber.toString(), context),
-                      if (deviceInfo.warrantyExpirationDate != null) _buildInfoRow('Garanti Bitiş', deviceInfo.warrantyExpirationDate!.toLocal().toString(), context),
+                      if (deviceInfo.warrantyExpirationDate != null) _buildInfoRow('Garanti Bitiş', deviceInfo.warrantyExpirationDate!.fullDate, context),
                       _buildInfoRow('Cihaz Türü', deviceInfo.deviceType, context),
                       _buildInfoRow('Yazılım Versiyonu', deviceInfo.softwareVersion, context),
                     ],

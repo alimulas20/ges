@@ -16,12 +16,16 @@ class DeviceSetupListViewModel with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchDevices() async {
+  Future<void> fetchDevices(int? plantId) async {
     try {
       _isLoading = true;
       notifyListeners();
+      if (plantId == null) {
+        _devices = await _service.getUserDeviceSetups();
+      } else {
+        _devices = await _service.getUserDeviceSetupsbyPlantId(plantId);
+      }
 
-      _devices = await _service.getUserDeviceSetups();
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();

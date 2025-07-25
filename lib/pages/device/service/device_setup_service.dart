@@ -19,17 +19,31 @@ class DeviceSetupService {
     }
   }
 
-  Future<DeviceDetailsDTO> getDeviceDetails(int deviceSetupId) async {
+  Future<DeviceInfoDTO> getDeviceInfo(int deviceSetupId) async {
     try {
-      final response = await DioService.dio.get('/DeviceSetup/$deviceSetupId/details');
+      final response = await DioService.dio.get('/DeviceSetup/$deviceSetupId/info');
 
       if (response.statusCode == 200) {
-        return DeviceDetailsDTO.fromJson(response.data);
+        return DeviceInfoDTO.fromJson(response.data);
       } else {
-        throw Exception('Failed to load device details: ${response.statusCode}');
+        throw Exception('Failed to load device info: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Failed to load device details: $e');
+      throw Exception('Failed to load device info: $e');
+    }
+  }
+
+  Future<DeviceReadingsDTO> getDeviceReadings(int deviceSetupId) async {
+    try {
+      final response = await DioService.dio.get('/DeviceSetup/$deviceSetupId/reading');
+
+      if (response.statusCode == 200) {
+        return DeviceReadingsDTO.fromJson(response.data);
+      } else {
+        throw Exception('Failed to load device readings: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load device readings: $e');
     }
   }
 

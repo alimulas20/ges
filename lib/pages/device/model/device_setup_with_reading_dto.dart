@@ -60,61 +60,141 @@ class InverterReadingDTO {
   }
 }
 
-// models/device_details_dto.dart
-class DeviceDetailsDTO {
+class DeviceInfoDTO {
   final int deviceSetupId;
   final String deviceName;
   final String setupName;
   final String plantName;
+  final String plantAddress;
   final int slaveNumber;
   final DateTime? warrantyExpirationDate;
   final String deviceType;
   final String softwareVersion;
-  final InverterReadingDTO? latestReading;
-  final PVGenerationDTO? pvGenerations;
 
-  DeviceDetailsDTO({
+  DeviceInfoDTO({
     required this.deviceSetupId,
     required this.deviceName,
     required this.setupName,
     required this.plantName,
+    required this.plantAddress,
     required this.slaveNumber,
     this.warrantyExpirationDate,
     required this.deviceType,
     required this.softwareVersion,
-    this.latestReading,
-    this.pvGenerations,
   });
 
-  factory DeviceDetailsDTO.fromJson(Map<String, dynamic> json) {
-    return DeviceDetailsDTO(
+  factory DeviceInfoDTO.fromJson(Map<String, dynamic> json) {
+    return DeviceInfoDTO(
       deviceSetupId: json['deviceSetupId'],
       deviceName: json['deviceName'],
       setupName: json['setupName'],
       plantName: json['plantName'],
+      plantAddress: json['plantAddress'],
       slaveNumber: json['slaveNumber'],
       warrantyExpirationDate: json['warrantyExpirationDate'] != null ? DateTime.parse(json['warrantyExpirationDate']) : null,
       deviceType: json['deviceType'],
       softwareVersion: json['softwareVersion'],
-      latestReading: json['latestReading'] != null ? InverterReadingDTO.fromJson(json['latestReading']) : null,
-      pvGenerations: json['pvGenerations'] != null ? PVGenerationDTO.fromJson(json['pvGenerations']) : null,
+    );
+  }
+}
+
+// models/device_readings_dto.dart
+class DeviceReadingsDTO {
+  final InverterReadingDetailDTO? latestReading;
+  final List<PVGenerationDTO> pvGenerations;
+
+  DeviceReadingsDTO({this.latestReading, required this.pvGenerations});
+
+  factory DeviceReadingsDTO.fromJson(Map<String, dynamic> json) {
+    return DeviceReadingsDTO(
+      latestReading: json['latestReading'] != null ? InverterReadingDetailDTO.fromJson(json['latestReading']) : null,
+      pvGenerations: json['pvGenerations'] != null ? (json['pvGenerations'] as List).map((e) => PVGenerationDTO.fromJson(e)).toList() : [],
+    );
+  }
+}
+
+// models/inverter_reading_detail_dto.dart
+class InverterReadingDetailDTO {
+  final DateTime createdDate;
+  final String type;
+  final double phaseAV;
+  final double phaseAA;
+  final double phaseBV;
+  final double phaseBA;
+  final double phaseCV;
+  final double phaseCA;
+  final int deviceStatus;
+  final double yieldToday;
+  final double totalYield;
+  final double activePower;
+  final double reactivePower;
+  final double powerFactor;
+  final double gridFrequency;
+  final DateTime startupTime;
+  final DateTime shutDownTime;
+  final double internalTemperature;
+  final double insulationResistance;
+
+  InverterReadingDetailDTO({
+    required this.createdDate,
+    required this.type,
+    required this.phaseAV,
+    required this.phaseAA,
+    required this.phaseBV,
+    required this.phaseBA,
+    required this.phaseCV,
+    required this.phaseCA,
+    required this.deviceStatus,
+    required this.yieldToday,
+    required this.totalYield,
+    required this.activePower,
+    required this.reactivePower,
+    required this.powerFactor,
+    required this.gridFrequency,
+    required this.startupTime,
+    required this.shutDownTime,
+    required this.internalTemperature,
+    required this.insulationResistance,
+  });
+
+  factory InverterReadingDetailDTO.fromJson(Map<String, dynamic> json) {
+    return InverterReadingDetailDTO(
+      createdDate: DateTime.parse(json['createdDate']),
+      type: json['type'],
+      phaseAV: json['phaseAV'].toDouble(),
+      phaseAA: json['phaseAA'].toDouble(),
+      phaseBV: json['phaseBV'].toDouble(),
+      phaseBA: json['phaseBA'].toDouble(),
+      phaseCV: json['phaseCV'].toDouble(),
+      phaseCA: json['phaseCA'].toDouble(),
+      deviceStatus: json['deviceStatus'],
+      yieldToday: json['yieldToday'].toDouble(),
+      totalYield: json['totalYield'].toDouble(),
+      activePower: json['activePower'].toDouble(),
+      reactivePower: json['reactivePower'].toDouble(),
+      powerFactor: json['powerFactor'].toDouble(),
+      gridFrequency: json['gridFrequency'].toDouble(),
+      startupTime: DateTime.parse(json['startupTime']),
+      shutDownTime: DateTime.parse(json['shutDownTime']),
+      internalTemperature: json['internalTemperature'].toDouble(),
+      insulationResistance: json['insulationResistance'].toDouble(),
     );
   }
 }
 
 // models/pv_generation_dto.dart
 class PVGenerationDTO {
-  final String pvStringName;
+  final String pvStringTechnicalName;
   final double voltage;
   final double current;
   final double power;
   final DateTime createdDate;
 
-  PVGenerationDTO({required this.pvStringName, required this.voltage, required this.current, required this.power, required this.createdDate});
+  PVGenerationDTO({required this.pvStringTechnicalName, required this.voltage, required this.current, required this.power, required this.createdDate});
 
   factory PVGenerationDTO.fromJson(Map<String, dynamic> json) {
     return PVGenerationDTO(
-      pvStringName: json['pvStringName'],
+      pvStringTechnicalName: json['pvStringTechnicalName'],
       voltage: json['voltage'].toDouble(),
       current: json['current'].toDouble(),
       power: json['power'].toDouble(),

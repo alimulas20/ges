@@ -4,11 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/constant/app_constants.dart';
 import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
 import 'package:smart_ges_360/pages/alarm/views/alarm_view.dart';
+import 'package:smart_ges_360/pages/device/view/device_info_view.dart';
 
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_setup_list_view_model.dart';
-import 'device_details_view.dart';
+import 'device_reading_view.dart';
 import 'device_history_view.dart';
 
 class DeviceSetupListView extends StatefulWidget {
@@ -88,10 +89,10 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
               builder:
                   (_) => CustomNavbar(
                     pages: [
-                      DeviceDetailsView(deviceSetupId: device.deviceSetupId),
+                      DeviceReadingsView(deviceSetupId: device.deviceSetupId),
                       DeviceHistoryView(deviceSetupId: device.deviceSetupId),
                       AlarmsPage(deviceSetupId: device.deviceSetupId), // PV Comparison page
-                      Container(color: Colors.white), // Empty page 4
+                      DeviceInfoView(deviceSetupId: device.deviceSetupId), // Empty page 4
                     ],
                     icons: const [Icon(Icons.info), Icon(Icons.history), Icon(Icons.show_chart), Icon(Icons.settings)],
                   ),

@@ -11,9 +11,7 @@ class DeviceInfoViewModel with ChangeNotifier {
   DeviceInfoDTO? _deviceInfo;
   String? _errorMessage;
   bool _isLoading = false;
-  DeviceInfoViewModel(this._service, this.deviceSetupId) {
-    fetchDeviceInfo(); // Call fetch on initialization
-  }
+  DeviceInfoViewModel(this._service, this.deviceSetupId);
 
   DeviceInfoDTO? get deviceInfo => _deviceInfo;
   String? get errorMessage => _errorMessage;

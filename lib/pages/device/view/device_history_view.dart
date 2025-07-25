@@ -334,8 +334,6 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
         return 'Akım (A)';
       case PVMeasurementType.Voltage:
         return 'Voltaj (V)';
-      default:
-        return type.toString().split('.').last;
     }
   }
 

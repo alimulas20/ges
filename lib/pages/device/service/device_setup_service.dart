@@ -22,7 +22,7 @@ class DeviceSetupService {
   Future<DeviceInfoDTO> getDeviceInfo(int deviceSetupId) async {
     try {
       final response = await DioService.dio.get('/DeviceSetup/$deviceSetupId/info');
-
+      print(response);
       if (response.statusCode == 200) {
         return DeviceInfoDTO.fromJson(response.data);
       } else {
@@ -36,7 +36,7 @@ class DeviceSetupService {
   Future<DeviceReadingsDTO> getDeviceReadings(int deviceSetupId) async {
     try {
       final response = await DioService.dio.get('/DeviceSetup/$deviceSetupId/reading');
-
+      print(response);
       if (response.statusCode == 200) {
         return DeviceReadingsDTO.fromJson(response.data);
       } else {

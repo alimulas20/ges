@@ -12,7 +12,9 @@ class DeviceReadingsViewModel with ChangeNotifier {
   String? _errorMessage;
   bool _isLoading = false;
 
-  DeviceReadingsViewModel(this._service, this.deviceSetupId);
+  DeviceReadingsViewModel(this._service, this.deviceSetupId) {
+    fetchDeviceReadings(); // Call fetch on initialization
+  }
 
   DeviceReadingsDTO? get deviceReadings => _deviceReadings;
   String? get errorMessage => _errorMessage;

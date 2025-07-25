@@ -6,15 +6,20 @@ import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_reading_view_model.dart';
 
-class DeviceReadingsView extends StatelessWidget {
+class DeviceReadingsView extends StatefulWidget {
   final int deviceSetupId;
 
   const DeviceReadingsView({super.key, required this.deviceSetupId});
 
   @override
+  State<DeviceReadingsView> createState() => _DeviceReadingsViewState();
+}
+
+class _DeviceReadingsViewState extends State<DeviceReadingsView> {
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => DeviceReadingsViewModel(DeviceSetupService(), deviceSetupId),
+      create: (_) => DeviceReadingsViewModel(DeviceSetupService(), widget.deviceSetupId),
       child: Consumer<DeviceReadingsViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.isLoading) {

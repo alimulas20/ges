@@ -119,8 +119,12 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (viewModel.inverterComparisonData == null || viewModel.selectedAttributeKeys.isEmpty) {
+    if (viewModel.selectedAttributeKeys.isEmpty) {
       return const Center(child: Text('Lütfen özellik seçiniz'));
+    }
+
+    if (viewModel.inverterComparisonData == null || viewModel.inverterComparisonData!.dataPoints.isEmpty) {
+      return const Center(child: Text('Görüntülenecek veri bulunamadı'));
     }
 
     return Container(
@@ -161,6 +165,7 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     );
   }
 
+  // _buildInverterLines fonksiyonunu şu şekilde güncelleyin:
   List<LineChartBarData> _buildInverterLines(DeviceHistoryViewModel viewModel) {
     final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
     final lineBars = <LineChartBarData>[];
@@ -169,11 +174,18 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
       final key = viewModel.selectedAttributeKeys[i];
       final color = colors[i % colors.length];
 
-      final spots = viewModel.inverterComparisonData!.dataPoints.map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[key] ?? 0)).toList();
+      final spots =
+          viewModel.inverterComparisonData!.dataPoints
+              .where((point) => point.values[key] != null) // Null değerleri filtrele
+              .map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[key] ?? 0))
+              .toList();
 
-      lineBars.add(
-        LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: AppConstants.chartLineThickness, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)),
-      );
+      if (spots.isNotEmpty) {
+        // Sadece spots doluysa ekle
+        lineBars.add(
+          LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: AppConstants.chartLineThickness, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)),
+        );
+      }
     }
 
     return lineBars;
@@ -225,8 +237,12 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (viewModel.pvComparisonData == null || viewModel.selectedPvStringIds.isEmpty) {
+    if (viewModel.selectedPvStringIds.isEmpty) {
       return const Center(child: Text('Lütfen PV String seçiniz'));
+    }
+
+    if (viewModel.pvComparisonData == null || viewModel.pvComparisonData!.dataPoints.isEmpty) {
+      return const Center(child: Text('Görüntülenecek veri bulunamadı'));
     }
 
     return Container(
@@ -267,6 +283,7 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     );
   }
 
+  // _buildPvComparisonLines fonksiyonunu şu şekilde güncelleyin:
   List<LineChartBarData> _buildPvComparisonLines(DeviceHistoryViewModel viewModel) {
     final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
     final lineBars = <LineChartBarData>[];
@@ -278,13 +295,16 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
 
       final spots =
           viewModel.pvComparisonData!.dataPoints
-              .where((point) => point.values.containsKey(pvString.name))
+              .where((point) => point.values[pvString.name] != null) // Null değerleri filtrele
               .map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[pvString.name]!))
               .toList();
 
-      lineBars.add(
-        LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: AppConstants.chartLineThickness, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)),
-      );
+      if (spots.isNotEmpty) {
+        // Sadece spots doluysa ekle
+        lineBars.add(
+          LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: AppConstants.chartLineThickness, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)),
+        );
+      }
     }
 
     return lineBars;

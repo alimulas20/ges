@@ -11,7 +11,6 @@ class TokenManager {
   static const _storage = FlutterSecureStorage();
   static final _authService = AuthService();
 
-  // Reference to the global navigator key
   static GlobalKey<NavigatorState> get navigatorKey => DioService.navigatorKey;
 
   /// Saves tokens and user data securely
@@ -41,6 +40,10 @@ class TokenManager {
       }
     }
 
+    // Calculate expiration times (convert seconds to milliseconds)
+    final expiresAt = DateTime.now().add(Duration(seconds: token.expiresIn)).millisecondsSinceEpoch;
+    final refreshExpiresAt = DateTime.now().add(Duration(seconds: token.refreshExpiresIn)).millisecondsSinceEpoch;
+
     // Save all data
     await Future.wait([
       _storage.write(key: 'user_groups', value: groups.join(',')),
@@ -51,7 +54,8 @@ class TokenManager {
       _storage.write(key: 'token_type', value: token.tokenType),
       _storage.write(key: 'session_state', value: token.sessionState),
       _storage.write(key: 'scope', value: token.scope.join(' ')),
-      _storage.write(key: 'expires_at', value: (DateTime.now().millisecondsSinceEpoch + token.expiresIn * 1000).toString()),
+      _storage.write(key: 'expires_at', value: expiresAt.toString()),
+      _storage.write(key: 'refresh_expires_at', value: refreshExpiresAt.toString()),
       _storage.write(key: 'user_id', value: userId),
       _storage.write(key: 'is_admin', value: isAdmin.toString()),
     ]);
@@ -89,13 +93,7 @@ class TokenManager {
 
   /// Gets access token, handles refresh if needed, or redirects to login
   static Future<String?> getAccessToken() async {
-    final token = await _authService.getToken();
-    if (token != null) {
-      return token;
-    } else {
-      _redirectToLogin();
-      return null;
-    }
+    return await _storage.read(key: 'access_token');
   }
 
   /// Checks if user is admin

@@ -21,7 +21,7 @@ class AuthService {
       await TokenManager.saveToken(token);
       return token;
     } else {
-      throw Exception('Login failed');
+      throw Exception('Login failed: ${response.statusCode}');
     }
   }
 
@@ -30,6 +30,17 @@ class AuthService {
   }
 
   Future<String?> getToken() async {
+    // Check if refresh token is expired
+    final refreshExpiresAtStr = await _storage.read(key: 'refresh_expires_at');
+    if (refreshExpiresAtStr == null) return null;
+
+    final refreshExpiresAt = int.tryParse(refreshExpiresAtStr) ?? 0;
+    if (DateTime.now().millisecondsSinceEpoch > refreshExpiresAt) {
+      await logout();
+      return null;
+    }
+
+    // Check if access token is expired
     final expiresAtStr = await _storage.read(key: 'expires_at');
     if (expiresAtStr == null) return null;
 
@@ -45,7 +56,11 @@ class AuthService {
 
     if (refreshToken == null) return null;
 
-    final response = await http.post(Uri.parse('$_baseUrl/auth/refresh'), body: jsonEncode({'refreshToken': refreshToken}), headers: {'Content-Type': 'application/x-www-form-urlencoded'});
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/refresh'),
+      body: {'refresh_token': refreshToken}, // http package will encode this properly
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    );
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);

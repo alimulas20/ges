@@ -8,6 +8,10 @@ class PVStringModel {
   final List<LocationSeries> locationSeries;
   final double? lastPVV;
   final double? lastPVA;
+  final double? lastPower;
+
+  final double? maxPVV;
+  final double? maxPVA;
   final double? maxPower;
 
   PVStringModel({
@@ -19,14 +23,16 @@ class PVStringModel {
     required this.locationSeries,
     this.lastPVV,
     this.lastPVA,
+    this.lastPower,
+
+    this.maxPVA,
+    this.maxPVV,
     this.maxPower,
   });
 
-  double get lastPower => (lastPVV ?? 0) * (lastPVA ?? 0);
-
   factory PVStringModel.fromJson(Map<String, dynamic> json) {
     final lastGen = json['lastGeneration'];
-
+    final maxGen = json['todayMaxGeneration'];
     return PVStringModel(
       id: json['id'],
       technicalName: json['technicalName'],
@@ -36,7 +42,10 @@ class PVStringModel {
       locationSeries: (json['locationSeries'] as List<dynamic>).map((ls) => LocationSeries.fromJson(ls)).toList(),
       lastPVV: lastGen?['pvv']?.toDouble(),
       lastPVA: lastGen?['pva']?.toDouble(),
-      maxPower: json['todayMaxPower']?.toDouble(),
+      lastPower: lastGen?['power']?.toDouble(),
+      maxPVV: maxGen?['pvv']?.toDouble(),
+      maxPVA: maxGen?['pva']?.toDouble(),
+      maxPower: maxGen?['power']?.toDouble(),
     );
   }
 }

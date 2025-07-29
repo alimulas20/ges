@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_ges_360/global/constant/app_constants.dart';
 import '../services/map_service.dart';
 import '../viewmodels/map_viewmodel.dart';
 import '../models/pv_string_model.dart';
@@ -21,26 +22,6 @@ class MapViewState extends State<MapView> {
   final MapController _mapController = MapController();
   final LatLng _initialTopLeft = const LatLng(39.808451, 32.453752);
   final LatLng _initialBottomRight = const LatLng(39.805106, 32.461504);
-
-  // final LatLng _initialTopLeft = const LatLng(39.808560, 32.453596);
-  // final LatLng _initialBottomRight = const LatLng(39.805100, 32.461398);
-
-  // ToggleButtons(
-  //         isSelected: isSelectedTab,
-  //         color: MyColors.grey_60,
-  //         selectedBorderColor: MyColors.primary,
-  //         borderRadius: BorderRadius.circular(30),
-  //         children: [
-  //           Container(padding: EdgeInsets.symmetric(horizontal: 25), child: Text("BUTTON 1", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500))),
-  //           Container(padding: EdgeInsets.symmetric(horizontal: 25), child: Text("BUTTON 2", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500))),
-  //           Container(padding: EdgeInsets.symmetric(horizontal: 25), child: Text("BUTTON 3", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500))),
-  //         ],
-  //         onPressed: (int index) {
-  //           isSelectedTab = List.generate(3, (index) => false);
-  //           isSelectedTab[index] = true;
-  //           setState(() {});
-  //         },
-  //       ),
 
   @override
   void initState() {
@@ -131,35 +112,71 @@ class MapViewState extends State<MapView> {
                 ),
                 Align(
                   alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: AnimatedToggleSwitch<ColorMode>.size(
-                      current: viewModel.colorMode,
-                      style: ToggleStyle(
-                        // backgroundColor: const Color(0xFF919191),
-                        // indicatorColor: const Color(0xFFEC3345),
-                        borderColor: Colors.transparent,
-                        borderRadius: BorderRadius.circular(10.0),
-                        indicatorBorderRadius: BorderRadius.zero,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: AnimatedToggleSwitch<ColorMode>.size(
+                          current: viewModel.colorMode,
+                          style: ToggleStyle(
+                            // backgroundColor: const Color(0xFF919191),
+                            // indicatorColor: const Color(0xFFEC3345),
+                            borderColor: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10.0),
+                            indicatorBorderRadius: BorderRadius.zero,
+                          ),
+                          values: const [ColorMode.voltage, ColorMode.current, ColorMode.power],
+                          iconOpacity: 1.0,
+                          selectedIconScale: 1.0,
+                          indicatorSize: const Size.fromWidth(75),
+                          iconAnimationType: AnimationType.onHover,
+                          styleAnimationType: AnimationType.onHover,
+                          spacing: 1.0,
+                          customSeparatorBuilder: (context, local, global) {
+                            final opacity = ((global.position - local.position).abs() - 0.5).clamp(0.0, 1.0);
+                            return VerticalDivider(indent: 10.0, endIndent: 10.0, color: Colors.white38.withValues(alpha: opacity));
+                          },
+                          customIconBuilder: (context, local, global) {
+                            final text = const ['Gerilim (V)', 'Akım (A)', 'Güç (W)'][local.index];
+                            return Center(child: Text(text, style: TextStyle(color: Color.lerp(Colors.black, Colors.white, local.animationValue))));
+                          },
+                          borderWidth: 0.0,
+                          onChanged: (i) => setState(() => viewModel.setColorMode(i)),
+                        ),
                       ),
-                      values: const [ColorMode.voltage, ColorMode.current, ColorMode.power],
-                      iconOpacity: 1.0,
-                      selectedIconScale: 1.0,
-                      indicatorSize: const Size.fromWidth(100),
-                      iconAnimationType: AnimationType.onHover,
-                      styleAnimationType: AnimationType.onHover,
-                      spacing: 2.0,
-                      customSeparatorBuilder: (context, local, global) {
-                        final opacity = ((global.position - local.position).abs() - 0.5).clamp(0.0, 1.0);
-                        return VerticalDivider(indent: 10.0, endIndent: 10.0, color: Colors.white38.withValues(alpha: opacity));
-                      },
-                      customIconBuilder: (context, local, global) {
-                        final text = const ['Gerilim (V)', 'Akım (A)', 'Güç (W)'][local.index];
-                        return Center(child: Text(text, style: TextStyle(color: Color.lerp(Colors.black, Colors.white, local.animationValue))));
-                      },
-                      borderWidth: 0.0,
-                      onChanged: (i) => setState(() => viewModel.setColorMode(i)),
-                    ),
+                      SizedBox(width: AppConstants.paddingSmall),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: AnimatedToggleSwitch<ShowMode>.size(
+                          current: viewModel.showMode,
+                          style: ToggleStyle(
+                            // backgroundColor: const Color(0xFF919191),
+                            // indicatorColor: const Color(0xFFEC3345),
+                            borderColor: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10.0),
+                            indicatorBorderRadius: BorderRadius.zero,
+                          ),
+                          values: const [ShowMode.last, ShowMode.max],
+                          iconOpacity: 1.0,
+                          selectedIconScale: 1.0,
+                          indicatorSize: const Size.fromWidth(75),
+                          iconAnimationType: AnimationType.onHover,
+                          styleAnimationType: AnimationType.onHover,
+                          spacing: 1.0,
+                          customSeparatorBuilder: (context, local, global) {
+                            final opacity = ((global.position - local.position).abs() - 0.5).clamp(0.0, 1.0);
+                            return VerticalDivider(indent: 5.0, endIndent: 5.0, color: Colors.white38.withValues(alpha: opacity));
+                          },
+                          customIconBuilder: (context, local, global) {
+                            final text = const ['Son', 'Maksimum'][local.index];
+                            return Center(child: Text(text, style: TextStyle(color: Color.lerp(Colors.black, Colors.white, local.animationValue))));
+                          },
+                          borderWidth: 0.0,
+                          onChanged: (i) => setState(() => viewModel.setShowMOde(i)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if (viewModel.isLoading) const Center(child: CircularProgressIndicator()),
@@ -216,7 +233,7 @@ class MapViewState extends State<MapView> {
               Text('Son Üretim Bilgileri', style: Theme.of(context).textTheme.titleMedium),
               Text('Gerilim: ${pvString.lastPVV?.toStringAsFixed(2) ?? 'N/A'} V'),
               Text('Akım: ${pvString.lastPVA?.toStringAsFixed(2) ?? 'N/A'} A'),
-              Text('Güç: ${pvString.lastPower.toStringAsFixed(2)} W'),
+              Text('Güç: ${pvString.lastPower?.toStringAsFixed(2)} W'),
               if (pvString.maxPower != null) Text('Maksimum Güç(Bugün): ${pvString.maxPower?.toStringAsFixed(2)} W'),
             ],
           ),

@@ -39,12 +39,8 @@ class MyApp extends StatelessWidget {
           // Diğer ViewModel'ler...
         ],
         child: CustomNavbar(
-          pages: [
-            PlantListView(),
-            DeviceSetupListView(),
-            UserListView(), // Artık UserViewModel'e erişebilir
-          ],
-          icons: [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
+          pages: [PlantListView(), AlarmsPage(), DeviceSetupListView(), UserListView()],
+          icons: [Icon(Icons.home), Icon(Icons.error), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
         ),
       );
     } else {

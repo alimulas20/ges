@@ -18,9 +18,6 @@ class DioService {
 
   static void init() {
     _dio.interceptors.clear();
-    _dio.options.validateStatus = (status) {
-      return status! < 500; // 500'den küçük tüm status kodlarına izin ver
-    };
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {

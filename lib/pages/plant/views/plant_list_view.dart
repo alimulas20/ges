@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/pages/map/views/map_view.dart';
+import 'package:smart_ges_360/pages/plant/views/plant_production_view.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
@@ -87,7 +88,7 @@ class _PlantListViewState extends State<PlantListView> {
             MaterialPageRoute(
               builder:
                   (_) => CustomNavbar(
-                    pages: [MapView(plantId: plant.id), DeviceSetupListView(plantId: plant.id), Container()],
+                    pages: [MapView(plantId: plant.id), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
                     icons: const [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
                   ),
             ),

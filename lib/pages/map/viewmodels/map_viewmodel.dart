@@ -5,16 +5,20 @@ import '../services/map_service.dart';
 
 enum ColorMode { voltage, current, power }
 
+enum ShowMode { last, max }
+
 class MapViewModel with ChangeNotifier {
   final MapService _apiService;
   List<PVStringModel> _pvStrings = [];
   ColorMode _colorMode = ColorMode.power;
+  ShowMode _showMode = ShowMode.last;
   PVStringModel? _selectedString;
   bool _isLoading = false;
   String? _errorMessage;
 
   List<PVStringModel> get pvStrings => _pvStrings;
   ColorMode get colorMode => _colorMode;
+  ShowMode get showMode => _showMode;
   PVStringModel? get selectedString => _selectedString;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -45,27 +49,51 @@ class MapViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void setShowMOde(ShowMode mode) {
+    _showMode = mode;
+    notifyListeners();
+  }
+
   void selectString(PVStringModel? string) {
     _selectedString = string;
     notifyListeners();
   }
 
   Color getStringColor(PVStringModel string) {
-    switch (_colorMode) {
-      case ColorMode.voltage:
-        double minV = _pvStrings.map((e) => e.lastPVV ?? 0).reduce((a, b) => a < b ? a : b);
-        double maxV = _pvStrings.map((e) => e.lastPVV ?? 0).reduce((a, b) => a > b ? a : b);
-        return _getColorByValue(string.lastPVV ?? 0, minV / 1.6, maxV);
+    if (_showMode == ShowMode.last) {
+      switch (_colorMode) {
+        case ColorMode.voltage:
+          double minV = _pvStrings.map((e) => e.lastPVV ?? 0).reduce((a, b) => a < b ? a : b);
+          double maxV = _pvStrings.map((e) => e.lastPVV ?? 0).reduce((a, b) => a > b ? a : b);
+          return _getColorByValue(string.lastPVV ?? 0, minV / 1.6, maxV);
 
-      case ColorMode.current:
-        double minC = _pvStrings.map((e) => e.lastPVA ?? 0).reduce((a, b) => a < b ? a : b);
-        double maxC = _pvStrings.map((e) => e.lastPVA ?? 0).reduce((a, b) => a > b ? a : b);
-        return _getColorByValue(string.lastPVA ?? 0, minC / 1.6, maxC);
+        case ColorMode.current:
+          double minC = _pvStrings.map((e) => e.lastPVA ?? 0).reduce((a, b) => a < b ? a : b);
+          double maxC = _pvStrings.map((e) => e.lastPVA ?? 0).reduce((a, b) => a > b ? a : b);
+          return _getColorByValue(string.lastPVA ?? 0, minC / 1.6, maxC);
 
-      case ColorMode.power:
-        double minP = _pvStrings.map((e) => e.lastPower).reduce((a, b) => a < b ? a : b);
-        double maxP = _pvStrings.map((e) => e.lastPower).reduce((a, b) => a > b ? a : b);
-        return _getColorByValue(string.lastPower, minP / 1.6, maxP);
+        case ColorMode.power:
+          double minP = _pvStrings.map((e) => e.lastPower ?? 0).reduce((a, b) => a < b ? a : b);
+          double maxP = _pvStrings.map((e) => e.lastPower ?? 0).reduce((a, b) => a > b ? a : b);
+          return _getColorByValue(string.lastPower ?? 0, minP / 1.6, maxP);
+      }
+    } else {
+      switch (_colorMode) {
+        case ColorMode.voltage:
+          double minV = _pvStrings.map((e) => e.maxPVV ?? 0).reduce((a, b) => a < b ? a : b);
+          double maxV = _pvStrings.map((e) => e.maxPVV ?? 0).reduce((a, b) => a > b ? a : b);
+          return _getColorByValue(string.maxPVV ?? 0, minV / 1.6, maxV);
+
+        case ColorMode.current:
+          double minC = _pvStrings.map((e) => e.maxPVA ?? 0).reduce((a, b) => a < b ? a : b);
+          double maxC = _pvStrings.map((e) => e.maxPVA ?? 0).reduce((a, b) => a > b ? a : b);
+          return _getColorByValue(string.maxPVA ?? 0, minC / 1.6, maxC);
+
+        case ColorMode.power:
+          double minP = _pvStrings.map((e) => e.maxPower ?? 0).reduce((a, b) => a < b ? a : b);
+          double maxP = _pvStrings.map((e) => e.maxPower ?? 0).reduce((a, b) => a > b ? a : b);
+          return _getColorByValue(string.maxPower ?? 0, minP / 1.6, maxP);
+      }
     }
   }
 

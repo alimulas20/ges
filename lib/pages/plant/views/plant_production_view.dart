@@ -58,8 +58,7 @@ class _PlantProductionViewState extends State<PlantProductionView> {
                   const SizedBox(height: AppConstants.paddingUltraLarge),
 
                   // Production chart
-                  if (viewModel.productionData != null)
-                    ProductionChart(dataPoints: viewModel.productionData!.dataPoints, getBottomTitle: _buildBottomTitle, bottomDescription: viewModel.bottomDescription),
+                  if (viewModel.productionData != null) ProductionChart(dataPoints: viewModel.productionData!.dataPoints, bottomDescription: viewModel.bottomDescription),
                 ],
               ),
             );
@@ -109,19 +108,6 @@ class _PlantProductionViewState extends State<PlantProductionView> {
     final DateTime? picked = await showDatePicker(context: context, initialDate: viewModel.selectedDate, firstDate: DateTime(2000), lastDate: DateTime.now());
     if (picked != null && picked != viewModel.selectedDate) {
       viewModel.setSelectedDate(picked);
-    }
-  }
-
-  String _buildBottomTitle(DateTime date) {
-    switch (_viewModel.selectedTimePeriod) {
-      case ProductionTimePeriod.daily:
-        return DateFormat('HH:mm').format(date);
-      case ProductionTimePeriod.monthly:
-        return DateFormat('dd').format(date);
-      case ProductionTimePeriod.yearly:
-        return DateFormat('MMM').format(date);
-      case ProductionTimePeriod.lifetime:
-        return DateFormat('yyyy').format(date);
     }
   }
 }

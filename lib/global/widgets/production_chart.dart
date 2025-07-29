@@ -14,24 +14,30 @@ class ProductionChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (dataPoints.isEmpty) {
-      return const Center(child: Text('Üretim verisi bulunamadı', style: TextStyle(color: Colors.grey)));
+      return const Center(child: Text('Üretim verisi bulunamadı', style: TextStyle(color: Colors.grey, fontSize: AppConstants.fontSizeMedium)));
     }
 
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6, offset: const Offset(0, 2))],
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(25), // ~10% opacity
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
           SizedBox(
             height: 250,
             child: Padding(
-              padding: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.only(top: AppConstants.paddingLarge),
               child: LineChart(
                 LineChartData(
                   lineTouchData: LineTouchData(
@@ -39,7 +45,7 @@ class ProductionChart extends StatelessWidget {
                     touchTooltipData: LineTouchTooltipData(
                       getTooltipItems: (touchedSpots) {
                         return touchedSpots.map((spot) {
-                          return LineTooltipItem('${spot.y.toStringAsFixed(1)} kWh', const TextStyle(fontWeight: FontWeight.bold, color: Colors.white));
+                          return LineTooltipItem('${spot.y.toStringAsFixed(1)} kWh', const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: AppConstants.fontSizeSmall));
                         }).toList();
                       },
                     ),
@@ -53,7 +59,10 @@ class ProductionChart extends StatelessWidget {
                         getTitlesWidget: (value, meta) {
                           final index = value.toInt();
                           if (index >= 0 && index < dataPoints.length) {
-                            return Padding(padding: const EdgeInsets.only(top: 8), child: Text(dataPoints[index].timeLabel, style: const TextStyle(fontSize: 10, color: Colors.grey)));
+                            return Padding(
+                              padding: const EdgeInsets.only(top: AppConstants.paddingMedium),
+                              child: Text(dataPoints[index].timeLabel, style: TextStyle(fontSize: AppConstants.fontSizeExtraSmall, color: Colors.grey)),
+                            );
                           }
                           return const Text('');
                         },
@@ -62,9 +71,9 @@ class ProductionChart extends StatelessWidget {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 40,
+                        reservedSize: AppConstants.chartLeftAxisWidth,
                         getTitlesWidget: (value, meta) {
-                          return Text(value.toInt().toString(), style: const TextStyle(fontSize: 10, color: Colors.grey));
+                          return Text(value.toInt().toString(), style: TextStyle(fontSize: AppConstants.fontSizeExtraSmall, color: Colors.grey));
                         },
                       ),
                     ),
@@ -84,11 +93,18 @@ class ProductionChart extends StatelessWidget {
                           }).toList(),
                       isCurved: true,
                       color: lineColor,
-                      barWidth: 3,
+                      barWidth: AppConstants.chartLineThickness,
                       dotData: const FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
-                        gradient: LinearGradient(colors: [lineColor.withOpacity(0.3), lineColor.withOpacity(0.1)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+                        gradient: LinearGradient(
+                          colors: [
+                            lineColor.withAlpha(76), // ~30% opacity (255 * 0.3 ≈ 76)
+                            lineColor.withAlpha(25), // ~10% opacity (255 * 0.1 ≈ 25)
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
                       ),
                     ),
                   ],

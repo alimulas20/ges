@@ -112,16 +112,16 @@ class _PlantProductionViewState extends State<PlantProductionView> {
     }
   }
 
-  Widget _buildBottomTitle(DateTime date) {
+  String _buildBottomTitle(DateTime date) {
     switch (_viewModel.selectedTimePeriod) {
       case ProductionTimePeriod.daily:
-        return Text(DateFormat('HH:mm').format(date));
+        return DateFormat('HH:mm').format(date);
       case ProductionTimePeriod.monthly:
-        return Text(DateFormat('dd').format(date));
+        return DateFormat('dd').format(date);
       case ProductionTimePeriod.yearly:
-        return Text(DateFormat('MMM').format(date));
+        return DateFormat('MMM').format(date);
       case ProductionTimePeriod.lifetime:
-        return Text(DateFormat('yyyy').format(date));
+        return DateFormat('yyyy').format(date);
     }
   }
 }

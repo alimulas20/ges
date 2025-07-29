@@ -61,4 +61,5 @@ class AppConstants {
   static const double chartLineThickness = 1.5;
   static const double chartAxisFontSize = 8;
   static const double chartLeftAxisWidth = 35; // Reduced width for left axis
+  static const double chartLeftAxisWidthLarge = 50; // Reduced width for left axis
 }

@@ -58,7 +58,8 @@ class _PlantProductionViewState extends State<PlantProductionView> {
                   const SizedBox(height: AppConstants.paddingUltraLarge),
 
                   // Production chart
-                  if (viewModel.productionData != null) ProductionChart(dataPoints: viewModel.productionData!.dataPoints, bottomDescription: viewModel.bottomDescription),
+                  if (viewModel.productionData != null)
+                    ProductionChart(dataPoints: viewModel.productionData!.dataPoints, bottomDescription: viewModel.bottomDescription, timePeriod: viewModel.selectedTimePeriod),
                 ],
               ),
             );

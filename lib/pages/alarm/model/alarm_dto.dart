@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class AlarmDto {
   final int id;
   final String level;
@@ -59,8 +61,15 @@ class AlarmDetailDto extends AlarmDto {
 class PlantDto {
   final int id;
   final String name;
+  static List<PlantDto> parsePlantList(String jsonString) {
+    final List<dynamic> parsedList = jsonDecode(jsonString);
+    return parsedList.map((item) => PlantDto.fromJson(item)).toList();
+  }
 
   PlantDto({required this.id, required this.name});
+  factory PlantDto.fromJson(Map<String, dynamic> json) {
+    return PlantDto(id: json['id'], name: json['name']);
+  }
 }
 
 class DeviceDto {

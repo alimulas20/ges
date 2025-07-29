@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/multi_line_chart.dart';
 import '../../../global/widgets/multi_select_dropdown.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
@@ -127,68 +128,26 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
       return const Center(child: Text('Görüntülenecek veri bulunamadı'));
     }
 
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
-      child: LineChart(
-        LineChartData(
-          lineTouchData: const LineTouchData(enabled: true),
-          gridData: const FlGridData(show: true),
-          titlesData: FlTitlesData(
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                  return Text(DateFormat('HH:mm').format(date), style: const TextStyle(fontSize: AppConstants.fontSizeExtraSmall));
-                },
-              ),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: AppConstants.chartLeftAxisWidth,
-                getTitlesWidget: (value, meta) {
-                  return Text(value.toStringAsFixed(0), style: const TextStyle(fontSize: AppConstants.fontSizeExtraSmall));
-                },
-              ),
-            ),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          borderData: FlBorderData(show: true),
-          minX: viewModel.inverterComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
-          maxX: viewModel.inverterComparisonData!.dataPoints.last.timestamp.millisecondsSinceEpoch.toDouble(),
-          lineBarsData: _buildInverterLines(viewModel),
-        ),
-      ),
-    );
+    final seriesList =
+        viewModel.selectedAttributeKeys.map((key) {
+          final attr = viewModel.attributes.firstWhere((a) => a.key == key);
+          return ChartSeries(
+            dataPoints:
+                viewModel.inverterComparisonData!.dataPoints.map((point) {
+                  return ChartDataPoint(value: point.values[key] ?? 0, timeLabel: DateFormat('HH:mm').format(point.timestamp));
+                }).toList(),
+            color: _getColorForAttribute(key),
+            label: attr.name,
+            unit: attr.unit,
+          );
+        }).toList();
+
+    return MultiLineChart(seriesList: seriesList, bottomDescription: 'Inverter Verileri - ${DateFormat('dd/MM/yyyy').format(viewModel.selectedDate)}');
   }
 
-  // _buildInverterLines fonksiyonunu şu şekilde güncelleyin:
-  List<LineChartBarData> _buildInverterLines(DeviceHistoryViewModel viewModel) {
+  Color _getColorForAttribute(String key) {
     final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
-    final lineBars = <LineChartBarData>[];
-
-    for (int i = 0; i < viewModel.selectedAttributeKeys.length; i++) {
-      final key = viewModel.selectedAttributeKeys[i];
-      final color = colors[i % colors.length];
-
-      final spots =
-          viewModel.inverterComparisonData!.dataPoints
-              .where((point) => point.values[key] != null) // Null değerleri filtrele
-              .map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[key] ?? 0))
-              .toList();
-
-      if (spots.isNotEmpty) {
-        // Sadece spots doluysa ekle
-        lineBars.add(
-          LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: AppConstants.chartLineThickness, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)),
-        );
-      }
-    }
-
-    return lineBars;
+    return colors[key.hashCode % colors.length];
   }
 
   Widget _buildPvStringSection(DeviceHistoryViewModel viewModel) {
@@ -245,69 +204,32 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
       return const Center(child: Text('Görüntülenecek veri bulunamadı'));
     }
 
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
-      child: LineChart(
-        LineChartData(
-          lineTouchData: const LineTouchData(enabled: true),
-          gridData: const FlGridData(show: true),
-          titlesData: FlTitlesData(
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                  return Text(DateFormat('HH:mm').format(date), style: const TextStyle(fontSize: AppConstants.fontSizeExtraSmall));
-                },
-              ),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: AppConstants.chartLeftAxisWidth,
-                getTitlesWidget: (value, meta) {
-                  return Text(value.toStringAsFixed(1), style: const TextStyle(fontSize: AppConstants.fontSizeExtraSmall));
-                },
-              ),
-            ),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          borderData: FlBorderData(show: true),
-          minX: viewModel.pvComparisonData!.dataPoints.first.timestamp.millisecondsSinceEpoch.toDouble(),
-          maxX: viewModel.pvComparisonData!.dataPoints.last.timestamp.millisecondsSinceEpoch.toDouble(),
-          lineBarsData: _buildPvComparisonLines(viewModel),
-        ),
-      ),
-    );
+    final seriesList =
+        viewModel.selectedPvStringIds.map((id) {
+          final pvString = viewModel.pvStrings.firstWhere((pv) => pv.id == id);
+          return ChartSeries(
+            dataPoints:
+                viewModel.pvComparisonData!.dataPoints.map((point) {
+                  return ChartDataPoint(value: point.values[pvString.name] ?? 0, timeLabel: DateFormat('HH:mm').format(point.timestamp));
+                }).toList(),
+            color: _getColorForPvString(id),
+            label: pvString.name,
+            unit: _getUnitForMeasurementType(viewModel.selectedMeasurementType),
+          );
+        }).toList();
+
+    return MultiLineChart(seriesList: seriesList, bottomDescription: 'PV String Karşılaştırması - ${_getMeasurementTypeName(viewModel.selectedMeasurementType)}');
   }
 
-  // _buildPvComparisonLines fonksiyonunu şu şekilde güncelleyin:
-  List<LineChartBarData> _buildPvComparisonLines(DeviceHistoryViewModel viewModel) {
-    final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
-    final lineBars = <LineChartBarData>[];
-
-    for (int i = 0; i < viewModel.selectedPvStringIds.length; i++) {
-      final pvStringId = viewModel.selectedPvStringIds[i];
-      final pvString = viewModel.pvStrings.firstWhere((pv) => pv.id == pvStringId);
-      final color = colors[i % colors.length];
-
-      final spots =
-          viewModel.pvComparisonData!.dataPoints
-              .where((point) => point.values[pvString.name] != null) // Null değerleri filtrele
-              .map((point) => FlSpot(point.timestamp.millisecondsSinceEpoch.toDouble(), point.values[pvString.name]!))
-              .toList();
-
-      if (spots.isNotEmpty) {
-        // Sadece spots doluysa ekle
-        lineBars.add(
-          LineChartBarData(spots: spots, isCurved: true, color: color, barWidth: AppConstants.chartLineThickness, dotData: const FlDotData(show: false), belowBarData: BarAreaData(show: false)),
-        );
-      }
+  String _getUnitForMeasurementType(PVMeasurementType type) {
+    switch (type) {
+      case PVMeasurementType.power:
+        return 'W';
+      case PVMeasurementType.current:
+        return 'A';
+      case PVMeasurementType.voltage:
+        return 'V';
     }
-
-    return lineBars;
   }
 
   Widget _buildMeasurementTypeDropdown(DeviceHistoryViewModel viewModel) {
@@ -335,6 +257,14 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
       case PVMeasurementType.voltage:
         return 'Voltaj (V)';
     }
+  }
+
+  Color _getColorForPvString(int id) {
+    // PV String'ler için sabit renk paleti
+    final colors = [Colors.blueAccent, Colors.greenAccent, Colors.redAccent, Colors.orangeAccent, Colors.purpleAccent, Colors.tealAccent, Colors.pinkAccent, Colors.indigoAccent];
+
+    // ID'ye göre sabit bir renk ataması yapıyoruz
+    return colors[id % colors.length];
   }
 
   Widget _buildDatePicker(DeviceHistoryViewModel viewModel) {

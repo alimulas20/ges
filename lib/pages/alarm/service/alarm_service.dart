@@ -35,8 +35,17 @@ class AlarmService {
   }
 
   Future<List<PlantDto>> getPlants() async {
-    // Implement plant fetching logic
-    return [];
+    try {
+      final response = await DioService.dio.get('/plant/dropdown');
+
+      if (response.statusCode == 200) {
+        return PlantDto.parsePlantList(response.data);
+      } else {
+        throw Exception('Failed to load alarm details: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load alarm details: $e');
+    }
   }
 
   Future<List<DeviceDto>> getDevices() async {

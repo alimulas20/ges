@@ -1,13 +1,13 @@
+import 'package:smart_ges_360/global/dtos/dropdown_dto.dart';
+
 import '../../../global/managers/dio_service.dart';
 import '../model/alarm_dto.dart';
 
 class AlarmService {
   Future<List<AlarmDto>> getAlarms({int? plantId, int? deviceSetupId, DateTime? selectedDate, bool activeOnly = false, List<String> levels = const ['Major', 'Minor', 'Warning']}) async {
     try {
-      final response = await DioService.dio.get(
-        '/Alarms',
-        queryParameters: {'plantId': plantId, 'deviceSetupId': deviceSetupId, 'selectedDate': selectedDate?.toIso8601String(), 'activeOnly': activeOnly, 'levels': levels.join(',')},
-      );
+      final requestDto = GetAlarmsRequestDto(plantId: plantId, deviceSetupId: deviceSetupId, selectedDate: selectedDate, activeOnly: activeOnly, levels: levels);
+      final response = await DioService.dio.post('/Alarms', data: requestDto.toJson());
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
@@ -34,22 +34,29 @@ class AlarmService {
     }
   }
 
-  Future<List<PlantDto>> getPlants() async {
+  Future<List<DropdownDto>> getPlants() async {
     try {
-      final response = await DioService.dio.get('/plant/dropdown');
-
+      final response = await DioService.dio.get('/Plant/Dropdown');
       if (response.statusCode == 200) {
-        return PlantDto.parsePlantList(response.data);
+        return (response.data as List).map((item) => DropdownDto.fromJson(item)).toList();
       } else {
-        throw Exception('Failed to load alarm details: ${response.statusCode}');
+        throw Exception('Failed to load plant list: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Failed to load alarm details: $e');
+      throw Exception('Failed to load plant list: $e');
     }
   }
 
-  Future<List<DeviceDto>> getDevices() async {
-    // Implement device fetching logic
-    return [];
+  Future<List<DropdownWithParentDto>> getDevices() async {
+    try {
+      final response = await DioService.dio.get('/DeviceSetup/dropdown');
+      if (response.statusCode == 200) {
+        return (response.data as List).map((item) => DropdownWithParentDto.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load device list: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load device list: $e');
+    }
   }
 }

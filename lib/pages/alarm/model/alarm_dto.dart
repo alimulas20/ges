@@ -61,10 +61,6 @@ class AlarmDetailDto extends AlarmDto {
 class PlantDto {
   final int id;
   final String name;
-  static List<PlantDto> parsePlantList(String jsonString) {
-    final List<dynamic> parsedList = jsonDecode(jsonString);
-    return parsedList.map((item) => PlantDto.fromJson(item)).toList();
-  }
 
   PlantDto({required this.id, required this.name});
   factory PlantDto.fromJson(Map<String, dynamic> json) {
@@ -78,4 +74,16 @@ class DeviceDto {
   final int plantId;
 
   DeviceDto({required this.id, required this.name, required this.plantId});
+}
+
+class GetAlarmsRequestDto {
+  final int? plantId;
+  final int? deviceSetupId;
+  final DateTime? selectedDate;
+  final bool activeOnly;
+  final List<String> levels;
+
+  GetAlarmsRequestDto({this.plantId, this.deviceSetupId, this.selectedDate, this.activeOnly = false, this.levels = const ['Major', 'Minor', 'Warning']});
+
+  Map<String, dynamic> toJson() => {'plantId': plantId, 'deviceSetupId': deviceSetupId, 'selectedDate': selectedDate?.toIso8601String(), 'activeOnly': activeOnly, 'levels': levels};
 }

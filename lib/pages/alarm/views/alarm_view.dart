@@ -23,7 +23,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
   final Set<String> _selectedLevels = {'Major', 'Minor', 'Warning'};
   int? _selectedPlantId;
   int? _selectedDeviceSetupId;
-  DateTime? _selectedDate;
+  DateTime? _selectedDate = DateTime.now();
   late final AlarmsViewModel _viewModel;
 
   @override
@@ -102,12 +102,14 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
               decoration: const InputDecoration(labelText: 'Tesis Seçiniz', border: OutlineInputBorder()),
               value: _selectedPlantId,
               items: _viewModel.plants.map((plant) => DropdownMenuItem(value: plant.id, child: Text(plant.name))).toList(),
-              onChanged: (value) {
+              onChanged: (value) async {
                 setState(() {
                   _selectedPlantId = value;
-                  _selectedDeviceSetupId = null;
+                  _selectedDeviceSetupId = null; // Reset device selection when plant changes
                 });
-                _loadAlarms();
+                // Fetch devices for the selected plant
+                await _viewModel.fetchAlarms(plantId: value);
+                setState(() {}); // Trigger rebuild to update device dropdown
               },
             ),
             const SizedBox(height: AppConstants.paddingMedium),
@@ -116,7 +118,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
               value: _selectedDeviceSetupId,
               items:
                   _viewModel.devices
-                      .where((device) => _selectedPlantId == null || device.plantId == _selectedPlantId)
+                      .where((device) => _selectedPlantId == null || device.parentId == _selectedPlantId)
                       .map((device) => DropdownMenuItem(value: device.id, child: Text(device.name)))
                       .toList(),
               onChanged: (value) {

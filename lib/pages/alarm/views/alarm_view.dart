@@ -7,7 +7,6 @@ import '../model/alarm_dto.dart';
 import '../service/alarm_service.dart';
 import '../viewmodels/alarm_viewmodel.dart';
 
-// Main Alarms Page
 class AlarmsPage extends StatefulWidget {
   final int? deviceSetupId;
 
@@ -36,7 +35,13 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
   }
 
   Future<void> _loadAlarms() async {
-    await _viewModel.fetchAlarms(deviceSetupId: _selectedDeviceSetupId, selectedDate: _selectedDate, activeOnly: _tabController.index == 0, levels: _selectedLevels.toList());
+    await _viewModel.fetchAlarms(
+      deviceSetupId: _selectedDeviceSetupId,
+      plantId: _selectedPlantId,
+      selectedDate: _selectedDate,
+      activeOnly: _tabController.index == 0,
+      levels: _selectedLevels.toList(),
+    );
   }
 
   @override
@@ -46,81 +51,71 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
         title: const Text('Alarmlar', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
         bottom: TabBar(controller: _tabController, tabs: const [Tab(text: 'Aktif Alarmlar'), Tab(text: 'Geçmiş Alarmlar')], onTap: (index) => _loadAlarms()),
       ),
-      body: Column(
-        children: [
-          _buildFilters(),
-          Expanded(
-            child: ChangeNotifierProvider.value(
-              value: _viewModel,
-              child: Consumer<AlarmsViewModel>(
-                builder: (context, viewModel, child) {
-                  if (viewModel.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (viewModel.errorMessage != null) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [Text(viewModel.errorMessage!), const SizedBox(height: AppConstants.paddingExtraLarge), ElevatedButton(onPressed: _loadAlarms, child: const Text('Yenile'))],
-                      ),
-                    );
-                  }
-
-                  if (viewModel.alarms.isEmpty) {
-                    return const Center(child: Text('Alarm bulunamadı'));
-                  }
-
-                  return RefreshIndicator(
-                    onRefresh: _loadAlarms,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                      itemCount: viewModel.alarms.length,
-                      itemBuilder: (context, index) {
-                        final alarm = viewModel.alarms[index];
-                        return _buildAlarmCard(alarm, context);
-                      },
+      body: ChangeNotifierProvider.value(
+        value: _viewModel,
+        child: Consumer<AlarmsViewModel>(
+          builder: (context, viewModel, child) {
+            return Column(
+              children: [
+                _buildFilters(viewModel),
+                if (viewModel.isLoading)
+                  const LinearProgressIndicator()
+                else if (viewModel.errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                    child: Column(children: [Text(viewModel.errorMessage!), const SizedBox(height: AppConstants.paddingLarge), ElevatedButton(onPressed: _loadAlarms, child: const Text('Yenile'))]),
+                  )
+                else
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: _loadAlarms,
+                      child:
+                          viewModel.alarms.isEmpty
+                              ? const Center(child: Text('Alarm bulunamadı'))
+                              : ListView.builder(
+                                padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                                itemCount: viewModel.alarms.length,
+                                itemBuilder: (context, index) {
+                                  final alarm = viewModel.alarms[index];
+                                  return _buildAlarmCard(alarm, context);
+                                },
+                              ),
                     ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(AlarmsViewModel viewModel) {
     return Padding(
       padding: const EdgeInsets.all(AppConstants.paddingMedium),
       child: Column(
         children: [
           if (widget.deviceSetupId == null) ...[
-            // Only show plant and inverter filters when not coming from device details
             DropdownButtonFormField<int>(
               decoration: const InputDecoration(labelText: 'Tesis Seçiniz', border: OutlineInputBorder()),
               value: _selectedPlantId,
-              items: _viewModel.plants.map((plant) => DropdownMenuItem(value: plant.id, child: Text(plant.name))).toList(),
+              items: [const DropdownMenuItem<int>(value: null, child: Text('Tümü')), ...viewModel.plants.map((plant) => DropdownMenuItem(value: plant.id, child: Text(plant.name)))],
               onChanged: (value) async {
                 setState(() {
                   _selectedPlantId = value;
-                  _selectedDeviceSetupId = null; // Reset device selection when plant changes
+                  _selectedDeviceSetupId = null;
                 });
-                // Fetch devices for the selected plant
-                await _viewModel.fetchAlarms(plantId: value);
-                setState(() {}); // Trigger rebuild to update device dropdown
+                await _loadAlarms();
               },
             ),
             const SizedBox(height: AppConstants.paddingMedium),
             DropdownButtonFormField<int>(
               decoration: const InputDecoration(labelText: 'Inverter Seçiniz', border: OutlineInputBorder()),
               value: _selectedDeviceSetupId,
-              items:
-                  _viewModel.devices
-                      .where((device) => _selectedPlantId == null || device.parentId == _selectedPlantId)
-                      .map((device) => DropdownMenuItem(value: device.id, child: Text(device.name)))
-                      .toList(),
+              items: [
+                const DropdownMenuItem<int>(value: null, child: Text('Tümü')),
+                ...viewModel.devices.where((device) => _selectedPlantId == null || device.parentId == _selectedPlantId).map((device) => DropdownMenuItem(value: device.id, child: Text(device.name))),
+              ],
               onChanged: (value) {
                 setState(() => _selectedDeviceSetupId = value);
                 _loadAlarms();

@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../pages/login/models/token_response.dart';
-import '../../pages/login/services/auth_service.dart';
 import '../../pages/profile/model/user_model.dart';
 import '../../pages/profile/service/user_service.dart';
 import 'dio_service.dart';
 
 class TokenManager {
   static const _storage = FlutterSecureStorage();
-  static final _authService = AuthService();
 
   static GlobalKey<NavigatorState> get navigatorKey => DioService.navigatorKey;
 
@@ -144,10 +142,5 @@ class TokenManager {
       debugPrint('Error getting admin plants: $e');
       return [];
     }
-  }
-
-  /// Helper method to redirect to login page
-  static void _redirectToLogin() {
-    navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
   }
 }

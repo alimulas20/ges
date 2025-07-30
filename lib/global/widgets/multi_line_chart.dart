@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 import 'package:smart_ges_360/global/extensions/context_extention.dart';
 
 import '../constant/app_constants.dart';

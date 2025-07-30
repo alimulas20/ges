@@ -1,7 +1,6 @@
 // views/device_history_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
 import '../../../global/constant/app_constants.dart';

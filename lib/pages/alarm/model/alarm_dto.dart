@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class AlarmDto {
   final int id;
   final String level;

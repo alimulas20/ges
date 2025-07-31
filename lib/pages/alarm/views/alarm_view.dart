@@ -207,37 +207,35 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
       margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
       child: InkWell(
         onTap: () => _showAlarmDetails(alarm.id, context),
-        child: Padding(
-          padding: const EdgeInsets.all(AppConstants.paddingLarge),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(width: 8, height: 40, color: _getLevelColor(alarm.level), margin: const EdgeInsets.only(right: AppConstants.paddingMedium)),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(alarm.name, style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: AppConstants.paddingSmall),
-                        Text(alarm.plantName, style: Theme.of(context).textTheme.bodySmall),
-                        if (alarm.deviceSetupName != null) Text(alarm.deviceSetupName!, style: Theme.of(context).textTheme.bodySmall),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+        child: IntrinsicHeight(
+          child: Padding(
+            padding: const EdgeInsets.all(AppConstants.paddingLarge),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch, // Bu satır önemli
+              children: [
+                Container(width: 8, color: _getLevelColor(alarm.level), margin: const EdgeInsets.only(right: AppConstants.paddingMedium)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(alarm.level, style: TextStyle(color: _getLevelColor(alarm.level), fontWeight: FontWeight.bold)),
+                      Text(alarm.name, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: AppConstants.paddingSmall),
-                      Text(DateFormat('dd.MM.yyyy HH:mm').format(alarm.occuredAt), style: Theme.of(context).textTheme.bodySmall),
-                      if (alarm.clearedAt != null) Text('Temizlenme: ${DateFormat('dd.MM.yyyy HH:mm').format(alarm.clearedAt!)}', style: Theme.of(context).textTheme.bodySmall),
+                      Text(alarm.plantName, style: Theme.of(context).textTheme.bodySmall),
+                      if (alarm.deviceSetupName != null) Text(alarm.deviceSetupName!, style: Theme.of(context).textTheme.bodySmall),
                     ],
                   ),
-                ],
-              ),
-            ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(alarm.level, style: TextStyle(color: _getLevelColor(alarm.level), fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppConstants.paddingSmall),
+                    Text(DateFormat('dd.MM.yyyy HH:mm').format(alarm.occuredAt), style: Theme.of(context).textTheme.bodySmall),
+                    if (alarm.clearedAt != null) Text('Temizlenme: ${DateFormat('dd.MM.yyyy HH:mm').format(alarm.clearedAt!)}', style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

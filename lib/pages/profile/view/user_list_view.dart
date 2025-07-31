@@ -33,7 +33,7 @@ class _UserListViewState extends State<UserListView> {
         builder: (context, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('User Management'),
+              title: const Text('Profil'),
               actions: [
                 IconButton(icon: const Icon(Icons.refresh), onPressed: () => viewModel.refresh()),
                 if (viewModel.isAdmin || viewModel.isSuperAdmin) IconButton(icon: const Icon(Icons.add), onPressed: () => _navigateToCreateUser(context)),

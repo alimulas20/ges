@@ -3,13 +3,12 @@ class PVStringModel {
   final int id;
   final String technicalName;
   final String inverterName;
-  final String panelType;
+  final PanelType panelType;
   final int panelCount;
   final List<LocationSeries> locationSeries;
   final double? lastPVV;
   final double? lastPVA;
   final double? lastPower;
-
   final double? maxPVV;
   final double? maxPVA;
   final double? maxPower;
@@ -24,9 +23,8 @@ class PVStringModel {
     this.lastPVV,
     this.lastPVA,
     this.lastPower,
-
-    this.maxPVA,
     this.maxPVV,
+    this.maxPVA,
     this.maxPower,
   });
 
@@ -37,7 +35,7 @@ class PVStringModel {
       id: json['id'],
       technicalName: json['technicalName'],
       inverterName: json['inverterName'],
-      panelType: json['panelType'],
+      panelType: PanelType.fromJson(json['panelType']),
       panelCount: json['panelCount'],
       locationSeries: (json['locationSeries'] as List<dynamic>).map((ls) => LocationSeries.fromJson(ls)).toList(),
       lastPVV: lastGen?['pvv']?.toDouble(),
@@ -50,7 +48,29 @@ class PVStringModel {
   }
 }
 
-//http://78.187.86.118:8083/UPLOAD/mistav.png
+class PanelType {
+  final String brand;
+  final String model;
+  final double maxPower;
+  final double voltageAtMaxPower;
+  final double currentAtMaxPower;
+
+  PanelType({required this.brand, required this.model, required this.maxPower, required this.voltageAtMaxPower, required this.currentAtMaxPower});
+
+  factory PanelType.fromJson(Map<String, dynamic> json) {
+    return PanelType(
+      brand: json['brand'] as String,
+      model: json['model'] as String,
+      maxPower: json['maxPower']?.toDouble() ?? 0.0,
+      voltageAtMaxPower: json['voltageAtMaxPower']?.toDouble() ?? 0.0,
+      currentAtMaxPower: json['currentAtMaxPower']?.toDouble() ?? 0.0,
+    );
+  }
+
+  String get displayName => '$brand $model';
+  String get specs => '${maxPower}W (${voltageAtMaxPower}V/${currentAtMaxPower}A)';
+}
+
 class LocationSeries {
   final int id;
   final String name;

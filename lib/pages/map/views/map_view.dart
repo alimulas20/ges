@@ -169,7 +169,7 @@ class MapViewState extends State<MapView> {
                             return VerticalDivider(indent: 5.0, endIndent: 5.0, color: Colors.white38.withValues(alpha: opacity));
                           },
                           customIconBuilder: (context, local, global) {
-                            final text = const ['Son', 'Maksimum'][local.index];
+                            final text = const ['Anlık', 'Nominal'][local.index];
                             return Center(child: Text(text, style: TextStyle(color: Color.lerp(Colors.black, Colors.white, local.animationValue))));
                           },
                           borderWidth: 0.0,
@@ -227,14 +227,23 @@ class MapViewState extends State<MapView> {
               ),
               const SizedBox(height: 8),
               Text('Inverter: ${pvString.inverterName}'),
-              Text('Panel Tipi: ${pvString.panelType}'),
+              Text('Panel: ${pvString.panelType.displayName}'),
+              Text('Panel Özellikleri: ${pvString.panelType.specs}'),
               Text('Panel Sayısı: ${pvString.panelCount}'),
+              Text('Beklenen Maksimum Voltaj: ${pvString.panelCount * pvString.panelType.voltageAtMaxPower}'),
+              Text('Toplam Kapasite: ${(pvString.panelCount * pvString.panelType.maxPower).toStringAsFixed(0)} W'),
               const Divider(),
-              Text('Son Üretim Bilgileri', style: Theme.of(context).textTheme.titleMedium),
-              Text('Gerilim: ${pvString.lastPVV?.toStringAsFixed(2) ?? 'N/A'} V'),
+              Text('Son Üretim', style: Theme.of(context).textTheme.titleMedium),
+              Text('Voltaj: ${pvString.lastPVV?.toStringAsFixed(2) ?? 'N/A'} V'),
               Text('Akım: ${pvString.lastPVA?.toStringAsFixed(2) ?? 'N/A'} A'),
-              Text('Güç: ${pvString.lastPower?.toStringAsFixed(2)} W'),
-              if (pvString.maxPower != null) Text('Maksimum Güç(Bugün): ${pvString.maxPower?.toStringAsFixed(2)} W'),
+              Text('Güç: ${pvString.lastPower?.toStringAsFixed(2) ?? 'N/A'} W'),
+              if (pvString.maxPower != null) ...[
+                const Divider(),
+                Text('Günlük Maksimum Üretim', style: Theme.of(context).textTheme.titleMedium),
+                Text('Voltaj: ${pvString.maxPVV?.toStringAsFixed(2)} W'),
+                Text('Akım: ${pvString.maxPVA?.toStringAsFixed(2)} W'),
+                Text('Güç: ${pvString.maxPower?.toStringAsFixed(2)} W'),
+              ],
             ],
           ),
         ),

@@ -63,8 +63,8 @@ class MapViewModel with ChangeNotifier {
     if (_showMode == ShowMode.last) {
       switch (_colorMode) {
         case ColorMode.voltage:
-          double minV = _pvStrings.map((e) => e.lastPVV ?? 0).reduce((a, b) => a < b ? a : b);
-          double maxV = _pvStrings.map((e) => e.lastPVV ?? 0).reduce((a, b) => a > b ? a : b);
+          double minV = _pvStrings.map((e) => (e.lastPVV ?? 0) / e.panelCount).reduce((a, b) => a < b ? a : b);
+          double maxV = _pvStrings.map((e) => (e.lastPVV ?? 0) / e.panelCount).reduce((a, b) => a > b ? a : b);
           return _getColorByValue(string.lastPVV ?? 0, minV / 1.6, maxV);
 
         case ColorMode.current:
@@ -73,26 +73,20 @@ class MapViewModel with ChangeNotifier {
           return _getColorByValue(string.lastPVA ?? 0, minC / 1.6, maxC);
 
         case ColorMode.power:
-          double minP = _pvStrings.map((e) => e.lastPower ?? 0).reduce((a, b) => a < b ? a : b);
-          double maxP = _pvStrings.map((e) => e.lastPower ?? 0).reduce((a, b) => a > b ? a : b);
+          double minP = _pvStrings.map((e) => (e.lastPower ?? 0) / e.panelCount).reduce((a, b) => a < b ? a : b);
+          double maxP = _pvStrings.map((e) => (e.lastPower ?? 0) / e.panelCount).reduce((a, b) => a > b ? a : b);
           return _getColorByValue(string.lastPower ?? 0, minP / 1.6, maxP);
       }
     } else {
       switch (_colorMode) {
         case ColorMode.voltage:
-          double minV = _pvStrings.map((e) => e.maxPVV ?? 0).reduce((a, b) => a < b ? a : b);
-          double maxV = _pvStrings.map((e) => e.maxPVV ?? 0).reduce((a, b) => a > b ? a : b);
-          return _getColorByValue(string.maxPVV ?? 0, minV / 1.6, maxV);
+          return _getColorByValue(string.maxPVV ?? 0, 0, string.panelCount * string.panelType.voltageAtMaxPower);
 
         case ColorMode.current:
-          double minC = _pvStrings.map((e) => e.maxPVA ?? 0).reduce((a, b) => a < b ? a : b);
-          double maxC = _pvStrings.map((e) => e.maxPVA ?? 0).reduce((a, b) => a > b ? a : b);
-          return _getColorByValue(string.maxPVA ?? 0, minC / 1.6, maxC);
+          return _getColorByValue(string.maxPVA ?? 0, 0, string.panelType.currentAtMaxPower);
 
         case ColorMode.power:
-          double minP = _pvStrings.map((e) => e.maxPower ?? 0).reduce((a, b) => a < b ? a : b);
-          double maxP = _pvStrings.map((e) => e.maxPower ?? 0).reduce((a, b) => a > b ? a : b);
-          return _getColorByValue(string.maxPower ?? 0, minP / 1.6, maxP);
+          return _getColorByValue(string.maxPower ?? 0, 0, string.panelCount * string.panelType.maxPower);
       }
     }
   }

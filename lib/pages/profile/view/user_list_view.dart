@@ -84,19 +84,97 @@ class _UserListViewState extends State<UserListView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
-                  child: user.profilePictureUrl.isEmpty ? Text('${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}', style: const TextStyle(fontSize: 30)) : null,
-                ),
+              Stack(
+                children: [
+                  Center(
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
+                      child: user.profilePictureUrl.isEmpty ? Text('${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}', style: const TextStyle(fontSize: 30)) : null,
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(20)),
+                      child: IconButton(icon: const Icon(Icons.edit, color: Colors.white, size: 20), onPressed: () => _navigateToUserDetail(context, user)),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Center(child: Text('${user.firstName} ${user.lastName}', style: Theme.of(context).textTheme.titleLarge)),
-              // ... rest of the card ...
+              const SizedBox(height: 8),
+              Center(child: Text(user.email, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]))),
+              const Divider(height: 24, thickness: 1),
+
+              // User Details Section
+              _buildDetailRow(Icons.person_outline, 'Username', user.username),
+              if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Phone', user.phone!),
+              _buildDetailRow(Icons.verified_user_outlined, 'Status', user.enabled ? 'Active' : 'Disabled', statusColor: user.enabled ? Colors.green : Colors.red),
+              if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Role', user.role!),
+
+              const SizedBox(height: 8),
+              const Divider(height: 24, thickness: 1),
+
+              // Notification Preferences
+              const Text('Notification Preferences', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              _buildNotificationPreference('Push Notifications', user.receivePush),
+              _buildNotificationPreference('Email Notifications', user.receiveMail),
+              _buildNotificationPreference('SMS Notifications', user.receiveSMS),
+
+              // Associated Plants
+              if (user.plants.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Divider(height: 24, thickness: 1),
+                const Text('Associated Plants', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children:
+                      user.plants.map((plant) {
+                        return Chip(label: Text(plant.plantName ?? 'Plant ${plant.plantId}'), backgroundColor: Colors.blue[50]);
+                      }).toList(),
+                ),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Helper widget for detail rows
+  Widget _buildDetailRow(IconData icon, String label, String value, {Color? statusColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700])),
+          const Spacer(),
+          Text(value, style: TextStyle(color: statusColor ?? Colors.grey[600], fontWeight: statusColor != null ? FontWeight.bold : FontWeight.normal)),
+        ],
+      ),
+    );
+  }
+
+  // Helper widget for notification preferences
+  Widget _buildNotificationPreference(String label, bool isActive) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(isActive ? Icons.notifications_active : Icons.notifications_off, size: 20, color: isActive ? Colors.green : Colors.grey),
+          const SizedBox(width: 12),
+          Text(label),
+          const Spacer(),
+          Icon(isActive ? Icons.check_circle : Icons.remove_circle_outline, color: isActive ? Colors.green : Colors.grey),
+        ],
       ),
     );
   }

@@ -42,35 +42,158 @@ class _UserDetailViewState extends State<UserDetailView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<UserViewModel>(context);
+    final isCurrentUser = viewModel.currentUser?.id == _editedUser.id;
+    final canEdit = isCurrentUser || viewModel.isAdmin || viewModel.isSuperAdmin;
 
     return Scaffold(
-      // ... existing code ...
+      appBar: AppBar(
+        title: Text('${_editedUser.firstName} ${_editedUser.lastName}'),
+        actions: [if (canEdit && _hasChanges()) IconButton(icon: const Icon(Icons.save), onPressed: () => _saveChanges(context))],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            // ... existing fields ...
+            Center(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundImage: _editedUser.profilePictureUrl.isNotEmpty ? NetworkImage(_editedUser.profilePictureUrl) : null,
+                    child: _editedUser.profilePictureUrl.isEmpty ? Text('${_editedUser.firstName.substring(0, 1)}${_editedUser.lastName.substring(0, 1)}', style: const TextStyle(fontSize: 40)) : null,
+                  ),
+                  if (canEdit)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(20)),
+                        child: IconButton(icon: const Icon(Icons.edit, color: Colors.white), onPressed: _pickImage),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (canEdit) ...[
+              TextFormField(
+                initialValue: _editedUser.firstName,
+                decoration: const InputDecoration(labelText: 'First Name'),
+                onChanged:
+                    (value) => setState(() {
+                      _editedUser = _editedUser.copyWith(firstName: value);
+                    }),
+              ),
+              TextFormField(
+                initialValue: _editedUser.lastName,
+                decoration: const InputDecoration(labelText: 'Last Name'),
+                onChanged:
+                    (value) => setState(() {
+                      _editedUser = _editedUser.copyWith(lastName: value);
+                    }),
+              ),
+              TextFormField(
+                initialValue: _editedUser.email,
+                decoration: const InputDecoration(labelText: 'Email'),
+                onChanged:
+                    (value) => setState(() {
+                      _editedUser = _editedUser.copyWith(email: value);
+                    }),
+              ),
+              if (viewModel.isAdmin || viewModel.isSuperAdmin) ...[
+                DropdownButtonFormField<String>(
+                  value: _editedUser.role,
+                  items: viewModel.displayRoles.map((role) => DropdownMenuItem(value: role.key, child: Text(role.value))).toList(),
+                  onChanged:
+                      (value) => setState(() {
+                        _editedUser = _editedUser.copyWith(role: value);
+                      }),
+                  decoration: const InputDecoration(labelText: 'Role'),
+                ),
+              ],
+              TextFormField(
+                initialValue: _editedUser.phone,
+                decoration: const InputDecoration(labelText: 'Phone'),
+                onChanged:
+                    (value) => setState(() {
+                      _editedUser = _editedUser.copyWith(phone: value);
+                    }),
+              ),
+              SwitchListTile(
+                title: const Text('Receive Push Notifications'),
+                value: _editedUser.receivePush,
+                onChanged:
+                    (value) => setState(() {
+                      _editedUser = _editedUser.copyWith(receivePush: value);
+                    }),
+              ),
+              SwitchListTile(
+                title: const Text('Receive Email Notifications'),
+                value: _editedUser.receiveMail,
+                onChanged:
+                    (value) => setState(() {
+                      _editedUser = _editedUser.copyWith(receiveMail: value);
+                    }),
+              ),
+              SwitchListTile(
+                title: const Text('Receive SMS Notifications'),
+                value: _editedUser.receiveSMS,
+                onChanged:
+                    (value) => setState(() {
+                      _editedUser = _editedUser.copyWith(receiveSMS: value);
+                    }),
+              ),
+            ] else ...[
+              // Display mode for non-editable users
+              ListTile(title: const Text('First Name'), subtitle: Text(_editedUser.firstName)),
+              ListTile(title: const Text('Last Name'), subtitle: Text(_editedUser.lastName)),
+              ListTile(title: const Text('Email'), subtitle: Text(_editedUser.email)),
+              if (_editedUser.phone != null && _editedUser.phone!.isNotEmpty) ListTile(title: const Text('Phone'), subtitle: Text(_editedUser.phone!)),
+            ],
             const SizedBox(height: 16),
             const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold)),
             ..._editedUser.plants.map(
               (plant) => ListTile(
                 title: Text(viewModel.getPlantNameById(plant.plantId)),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    setState(() {
-                      _editedUser = _editedUser.copyWith(plants: _editedUser.plants.where((p) => p.plantId != plant.plantId).toList());
-                    });
-                  },
-                ),
+                trailing:
+                    canEdit
+                        ? IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              _editedUser = _editedUser.copyWith(plants: _editedUser.plants.where((p) => p.plantId != plant.plantId).toList());
+                            });
+                          },
+                        )
+                        : null,
               ),
             ),
-            // Add button to add more plants
-            ElevatedButton(onPressed: () => _addPlants(context), child: const Text('Add Plants')),
+            if (canEdit) ElevatedButton(onPressed: () => _addPlants(context), child: const Text('Add Plants')),
           ],
         ),
       ),
     );
+  }
+
+  // Add this helper method to check for changes
+  bool _hasChanges() {
+    return _editedUser.firstName != widget.user.firstName ||
+        _editedUser.lastName != widget.user.lastName ||
+        _editedUser.email != widget.user.email ||
+        _editedUser.role != widget.user.role ||
+        _editedUser.phone != widget.user.phone ||
+        _editedUser.receivePush != widget.user.receivePush ||
+        _editedUser.receiveMail != widget.user.receiveMail ||
+        _editedUser.receiveSMS != widget.user.receiveSMS ||
+        !_arePlantsEqual(_editedUser.plants, widget.user.plants);
+  }
+
+  bool _arePlantsEqual(List<UserPlantDto> a, List<UserPlantDto> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].plantId != b[i].plantId) return false;
+    }
+    return true;
   }
 
   Future<void> _addPlants(BuildContext context) async {
@@ -123,7 +246,9 @@ class _UserDetailViewState extends State<UserDetailView> {
   void _saveChanges(BuildContext context) {
     final viewModel = Provider.of<UserViewModel>(context, listen: false);
     viewModel.updateUser(_editedUser).then((_) {
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     });
   }
 }

@@ -145,6 +145,59 @@ class UserCreateDto {
   }
 }
 
+// Add to user_model.dart
+class UserUpdateDto {
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String? role;
+  final List<int> plantIds;
+  final String? phone;
+  final bool receivePush;
+  final bool receiveMail;
+  final bool receiveSMS;
+
+  UserUpdateDto({
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    this.role,
+    required this.plantIds,
+    this.phone,
+    required this.receivePush,
+    required this.receiveMail,
+    required this.receiveSMS,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      if (role != null) 'role': role,
+      'plantIds': plantIds,
+      if (phone != null) 'phone': phone,
+      'receivePush': receivePush,
+      'receiveMail': receiveMail,
+      'receiveSMS': receiveSMS,
+    };
+  }
+
+  factory UserUpdateDto.fromUser(UserDto user) {
+    return UserUpdateDto(
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      plantIds: user.plants.map((e) => e.plantId).toList(),
+      phone: user.phone,
+      receivePush: user.receivePush,
+      receiveMail: user.receiveMail,
+      receiveSMS: user.receiveSMS,
+    );
+  }
+}
+
 // Add this new class for file upload
 class FileUploadDto {
   final dynamic file; // This will be a MultipartFile in the service

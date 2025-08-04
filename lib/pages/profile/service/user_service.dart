@@ -2,7 +2,6 @@
 import 'package:dio/dio.dart';
 import 'package:smart_ges_360/global/managers/dio_service.dart';
 
-import '../../../global/dtos/dropdown_dto.dart';
 import '../model/user_model.dart';
 
 class UserService {
@@ -33,7 +32,8 @@ class UserService {
     }
   }
 
-  Future<void> updateUser(String userId, UserDto dto) async {
+  // In UserService
+  Future<void> updateUser(String userId, UserUpdateDto dto) async {
     try {
       await DioService.dio.put('/users/$userId', data: dto.toJson());
     } catch (e) {

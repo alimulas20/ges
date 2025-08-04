@@ -73,12 +73,14 @@ class UserViewModel with ChangeNotifier {
     }
   }
 
+  // In UserViewModel
   Future<void> updateUser(UserDto dto) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await _service.updateUser(dto.id, dto);
+      final updateDto = UserUpdateDto.fromUser(dto);
+      await _service.updateUser(dto.id, updateDto);
       await refresh();
     } catch (e) {
       _error = e.toString();

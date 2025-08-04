@@ -1,6 +1,8 @@
+// user_create_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../global/constant/app_constants.dart';
 import '../model/user_model.dart';
 import '../viewmodel/user_viewmodel.dart';
 
@@ -69,18 +71,20 @@ class _UserCreateViewState extends State<UserCreateView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final viewModel = Provider.of<UserViewModel>(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Create New User')),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
               TextFormField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Username'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
@@ -91,11 +95,11 @@ class _UserCreateViewState extends State<UserCreateView> {
                 },
                 keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(controller: _firstNameController, decoration: const InputDecoration(labelText: 'First Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(controller: _lastNameController, decoration: const InputDecoration(labelText: 'Last Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
@@ -106,7 +110,7 @@ class _UserCreateViewState extends State<UserCreateView> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(
                 controller: _confirmPasswordController,
                 decoration: const InputDecoration(labelText: 'Confirm Password'),
@@ -117,15 +121,15 @@ class _UserCreateViewState extends State<UserCreateView> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Phone'), keyboardType: TextInputType.phone),
-              const SizedBox(height: 16),
-              const Text('Notification Preferences:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
+              const Text('Notification Preferences:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
               CheckboxListTile(title: const Text('Receive Push Notifications'), value: _receivePush, onChanged: (value) => setState(() => _receivePush = value ?? true)),
               CheckboxListTile(title: const Text('Receive Email Notifications'), value: _receiveMail, onChanged: (value) => setState(() => _receiveMail = value ?? true)),
               CheckboxListTile(title: const Text('Receive SMS Notifications'), value: _receiveSMS, onChanged: (value) => setState(() => _receiveSMS = value ?? false)),
-              const SizedBox(height: 16),
-              const Text('Role:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
+              const Text('Role:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
               DropdownButtonFormField<RoleDto>(
                 value: _selectedRole,
                 items:
@@ -139,37 +143,37 @@ class _UserCreateViewState extends State<UserCreateView> {
                     });
                   }
                 },
-                decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: AppConstants.paddingMedium)),
               ),
-              const SizedBox(height: 16),
-              const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
+              const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
               if (_loadingPlants)
-                const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Center(child: CircularProgressIndicator()))
+                const Padding(padding: EdgeInsets.symmetric(vertical: AppConstants.paddingExtraLarge), child: Center(child: CircularProgressIndicator()))
               else if (viewModel.plantsDropdown.isEmpty)
                 const Text('No plants available', style: TextStyle(color: Colors.grey))
               else
                 Column(
                   children: [
-                    ElevatedButton(onPressed: _selectPlants, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)), child: const Text('Select Plants')),
+                    ElevatedButton(onPressed: _selectPlants, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, AppConstants.buttonHeight)), child: const Text('Select Plants')),
                     if (_selectedPlantIds.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text('Selected Plants: ${_selectedPlantIds.length}', style: const TextStyle(fontSize: 14)),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: AppConstants.paddingMedium),
+                      Text('Selected Plants: ${_selectedPlantIds.length}', style: const TextStyle(fontSize: AppConstants.fontSizeMedium)),
+                      const SizedBox(height: AppConstants.paddingMedium),
                       ..._selectedPlantIds.map((plantId) {
                         final plantName = viewModel.getPlantNameById(plantId);
                         return ListTile(
-                          leading: const Icon(Icons.eco, color: Colors.green),
+                          leading: Icon(Icons.eco, color: colorScheme.tertiary),
                           title: Text(plantName),
-                          trailing: IconButton(icon: const Icon(Icons.close, color: Colors.red), onPressed: () => _removePlant(plantId)),
+                          trailing: IconButton(icon: Icon(Icons.close, color: colorScheme.error), onPressed: () => _removePlant(plantId)),
                         );
                       }),
                     ],
                   ],
                 ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppConstants.paddingUltraLarge),
               ElevatedButton(
                 onPressed: _submitForm,
-                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50), backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, AppConstants.buttonHeight), backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
                 child: const Text('Create User'),
               ),
             ],

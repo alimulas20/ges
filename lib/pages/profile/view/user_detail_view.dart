@@ -1,7 +1,9 @@
+// user_detail_view.dart
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../../global/constant/app_constants.dart';
 import '../model/user_model.dart';
 import '../viewmodel/user_viewmodel.dart';
 
@@ -41,6 +43,8 @@ class _UserDetailViewState extends State<UserDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final viewModel = Provider.of<UserViewModel>(context);
     final isCurrentUser = viewModel.currentUser?.id == _editedUser.id;
     final canEdit = isCurrentUser || viewModel.isAdmin || viewModel.isSuperAdmin;
@@ -51,30 +55,33 @@ class _UserDetailViewState extends State<UserDetailView> {
         actions: [if (canEdit && _hasChanges()) IconButton(icon: const Icon(Icons.save), onPressed: () => _saveChanges(context))],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
         child: ListView(
           children: [
             Center(
               child: Stack(
                 children: [
                   CircleAvatar(
-                    radius: 60,
+                    radius: AppConstants.imageMediumSize / 2,
                     backgroundImage: _editedUser.profilePictureUrl.isNotEmpty ? NetworkImage(_editedUser.profilePictureUrl) : null,
-                    child: _editedUser.profilePictureUrl.isEmpty ? Text('${_editedUser.firstName.substring(0, 1)}${_editedUser.lastName.substring(0, 1)}', style: const TextStyle(fontSize: 40)) : null,
+                    child:
+                        _editedUser.profilePictureUrl.isEmpty
+                            ? Text('${_editedUser.firstName.substring(0, 1)}${_editedUser.lastName.substring(0, 1)}', style: TextStyle(fontSize: AppConstants.fontSizeHeadline))
+                            : null,
                   ),
                   if (canEdit)
                     Positioned(
                       bottom: 0,
                       right: 0,
                       child: Container(
-                        decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(20)),
-                        child: IconButton(icon: const Icon(Icons.edit, color: Colors.white), onPressed: _pickImage),
+                        decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
+                        child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary), onPressed: _pickImage),
                       ),
                     ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppConstants.paddingExtraLarge),
             if (canEdit) ...[
               TextFormField(
                 initialValue: _editedUser.firstName,
@@ -144,13 +151,12 @@ class _UserDetailViewState extends State<UserDetailView> {
                     }),
               ),
             ] else ...[
-              // Display mode for non-editable users
               ListTile(title: const Text('First Name'), subtitle: Text(_editedUser.firstName)),
               ListTile(title: const Text('Last Name'), subtitle: Text(_editedUser.lastName)),
               ListTile(title: const Text('Email'), subtitle: Text(_editedUser.email)),
               if (_editedUser.phone != null && _editedUser.phone!.isNotEmpty) ListTile(title: const Text('Phone'), subtitle: Text(_editedUser.phone!)),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: AppConstants.paddingExtraLarge),
             const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold)),
             ..._editedUser.plants.map(
               (plant) => ListTile(
@@ -158,7 +164,7 @@ class _UserDetailViewState extends State<UserDetailView> {
                 trailing:
                     canEdit
                         ? IconButton(
-                          icon: const Icon(Icons.delete),
+                          icon: Icon(Icons.delete, color: colorScheme.error),
                           onPressed: () {
                             setState(() {
                               _editedUser = _editedUser.copyWith(plants: _editedUser.plants.where((p) => p.plantId != plant.plantId).toList());
@@ -175,7 +181,6 @@ class _UserDetailViewState extends State<UserDetailView> {
     );
   }
 
-  // Add this helper method to check for changes
   bool _hasChanges() {
     return _editedUser.firstName != widget.user.firstName ||
         _editedUser.lastName != widget.user.lastName ||

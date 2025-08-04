@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
 
+import '../../../global/constant/app_constants.dart';
 import '../model/user_model.dart';
 import '../service/user_service.dart';
 import '../viewmodel/user_viewmodel.dart';
@@ -28,6 +29,9 @@ class _UserListViewState extends State<UserListView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return ChangeNotifierProvider.value(
       value: _viewModel,
       child: Consumer<UserViewModel>(
@@ -40,14 +44,14 @@ class _UserListViewState extends State<UserListView> {
                 if (viewModel.isAdmin || viewModel.isSuperAdmin) IconButton(icon: const Icon(Icons.add), onPressed: () => _navigateToCreateUser(context)),
               ],
             ),
-            body: _buildBody(viewModel),
+            body: _buildBody(viewModel, theme, colorScheme),
           );
         },
       ),
     );
   }
 
-  Widget _buildBody(UserViewModel viewModel) {
+  Widget _buildBody(UserViewModel viewModel, ThemeData theme, ColorScheme colorScheme) {
     if (viewModel.isLoading && viewModel.currentUser == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -56,7 +60,7 @@ class _UserListViewState extends State<UserListView> {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [Text(viewModel.error!), const SizedBox(height: 16), ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Retry'))],
+          children: [Text(viewModel.error!), const SizedBox(height: AppConstants.paddingExtraLarge), ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Retry'))],
         ),
       );
     }
@@ -65,21 +69,25 @@ class _UserListViewState extends State<UserListView> {
       return const Center(child: Text('No user information available'));
     }
 
-    // Her durumda mevcut kullanıcı kartını göster
     if (!viewModel.isAdmin && !viewModel.isSuperAdmin) {
-      return _buildCurrentUserCard(viewModel.currentUser!);
+      return _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme);
     }
 
-    // Admin/SuperAdmin ise hem kart hem de liste
-    return Column(children: [_buildCurrentUserCard(viewModel.currentUser!), const SizedBox(height: 16), Expanded(child: _buildAdminView(viewModel))]);
+    return Column(
+      children: [
+        _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
+        const SizedBox(height: AppConstants.paddingExtraLarge),
+        Expanded(child: _buildAdminView(viewModel, theme, colorScheme)),
+      ],
+    );
   }
 
-  Widget _buildCurrentUserCard(UserDto user) {
+  Widget _buildCurrentUserCard(UserDto user, ThemeData theme, ColorScheme colorScheme) {
     return Center(
       child: Card(
-        margin: const EdgeInsets.all(16),
+        margin: const EdgeInsets.all(AppConstants.paddingExtraLarge),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,55 +96,55 @@ class _UserListViewState extends State<UserListView> {
                 children: [
                   Center(
                     child: CircleAvatar(
-                      radius: 40,
+                      radius: AppConstants.iconSizeExtraLarge,
                       backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
-                      child: user.profilePictureUrl.isEmpty ? Text('${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}', style: const TextStyle(fontSize: 30)) : null,
+                      child: user.profilePictureUrl.isEmpty ? Text('${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}', style: TextStyle(fontSize: AppConstants.fontSizeTitle)) : null,
                     ),
                   ),
                   Positioned(
                     top: 0,
                     right: 0,
                     child: Container(
-                      decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(20)),
-                      child: IconButton(icon: const Icon(Icons.edit, color: Colors.white, size: 20), onPressed: () => _navigateToUserDetail(context, user)),
+                      decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
+                      child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary, size: AppConstants.iconSizeSmall), onPressed: () => _navigateToUserDetail(context, user)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Center(child: Text('${user.firstName} ${user.lastName}', style: Theme.of(context).textTheme.titleLarge)),
-              const SizedBox(height: 8),
-              Center(child: Text(user.email, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]))),
-              const Divider(height: 24, thickness: 1),
+              const SizedBox(height: AppConstants.paddingExtraLarge),
+              Center(child: Text('${user.firstName} ${user.lastName}', style: theme.textTheme.titleLarge)),
+              const SizedBox(height: AppConstants.paddingMedium),
+              Center(child: Text(user.email, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant))),
+              const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
 
               // User Details Section
-              _buildDetailRow(Icons.person_outline, 'Username', user.username),
-              if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Phone', user.phone!),
-              _buildDetailRow(Icons.verified_user_outlined, 'Status', user.enabled ? 'Active' : 'Disabled', statusColor: user.enabled ? Colors.green : Colors.red),
-              if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Role', user.role!),
+              _buildDetailRow(Icons.person_outline, 'Username', user.username, theme, colorScheme),
+              if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Phone', user.phone!, theme, colorScheme),
 
-              const SizedBox(height: 8),
-              const Divider(height: 24, thickness: 1),
+              if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Role', user.role!, theme, colorScheme),
+
+              const SizedBox(height: AppConstants.paddingMedium),
+              const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
 
               // Notification Preferences
-              const Text('Notification Preferences', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 8),
-              _buildNotificationPreference('Push Notifications', user.receivePush),
-              _buildNotificationPreference('Email Notifications', user.receiveMail),
-              _buildNotificationPreference('SMS Notifications', user.receiveSMS),
+              Text('Notification Preferences', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+              const SizedBox(height: AppConstants.paddingMedium),
+              _buildNotificationPreference('Push Notifications', user.receivePush, theme, colorScheme),
+              _buildNotificationPreference('Email Notifications', user.receiveMail, theme, colorScheme),
+              _buildNotificationPreference('SMS Notifications', user.receiveSMS, theme, colorScheme),
 
               // Associated Plants
               if (user.plants.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                const Divider(height: 24, thickness: 1),
-                const Text('Associated Plants', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppConstants.paddingMedium),
+                const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
+                Text('Associated Plants', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+                const SizedBox(height: AppConstants.paddingMedium),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: AppConstants.paddingMedium,
+                  runSpacing: AppConstants.paddingMedium,
                   children:
                       user.plants.map((plant) {
-                        return Chip(label: Text(plant.plantName ?? 'Plant ${plant.plantId}'), backgroundColor: Colors.blue[50]);
+                        return Chip(label: Text(plant.plantName ?? 'Plant ${plant.plantId}'), backgroundColor: colorScheme.primaryContainer);
                       }).toList(),
                 ),
               ],
@@ -147,39 +155,37 @@ class _UserListViewState extends State<UserListView> {
     );
   }
 
-  // Helper widget for detail rows
-  Widget _buildDetailRow(IconData icon, String label, String value, {Color? statusColor}) {
+  Widget _buildDetailRow(IconData icon, String label, String value, ThemeData theme, ColorScheme colorScheme, {Color? statusColor}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingSmall),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700])),
+          Icon(icon, size: AppConstants.iconSizeMedium, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: AppConstants.paddingLarge),
+          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
           const Spacer(),
-          Text(value, style: TextStyle(color: statusColor ?? Colors.grey[600], fontWeight: statusColor != null ? FontWeight.bold : FontWeight.normal)),
+          Text(value, style: TextStyle(color: statusColor ?? colorScheme.onSurfaceVariant, fontWeight: statusColor != null ? FontWeight.bold : FontWeight.normal)),
         ],
       ),
     );
   }
 
-  // Helper widget for notification preferences
-  Widget _buildNotificationPreference(String label, bool isActive) {
+  Widget _buildNotificationPreference(String label, bool isActive, ThemeData theme, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingSmall),
       child: Row(
         children: [
-          Icon(isActive ? Icons.notifications_active : Icons.notifications_off, size: 20, color: isActive ? Colors.green : Colors.grey),
-          const SizedBox(width: 12),
+          Icon(isActive ? Icons.notifications_active : Icons.notifications_off, size: AppConstants.iconSizeMedium, color: isActive ? colorScheme.tertiary : colorScheme.outline),
+          const SizedBox(width: AppConstants.paddingLarge),
           Text(label),
           const Spacer(),
-          Icon(isActive ? Icons.check_circle : Icons.remove_circle_outline, color: isActive ? Colors.green : Colors.grey),
+          Icon(isActive ? Icons.check_circle : Icons.remove_circle_outline, color: isActive ? colorScheme.tertiary : colorScheme.outline),
         ],
       ),
     );
   }
 
-  Widget _buildAdminView(UserViewModel viewModel) {
+  Widget _buildAdminView(UserViewModel viewModel, ThemeData theme, ColorScheme colorScheme) {
     if (viewModel.plantUsers.isEmpty) {
       return const Center(child: Text('No users found'));
     }
@@ -188,30 +194,31 @@ class _UserListViewState extends State<UserListView> {
       itemCount: viewModel.plantUsers.length,
       itemBuilder: (context, index) {
         final plantUsers = viewModel.plantUsers[index];
-        return ExpansionTile(title: Text(plantUsers.plantName), subtitle: Text('${plantUsers.users.length} users'), children: plantUsers.users.map((user) => _buildUserTile(user)).toList());
+        return ExpansionTile(
+          title: Text(plantUsers.plantName),
+          subtitle: Text('${plantUsers.users.length} users'),
+          children: plantUsers.users.map((user) => _buildUserTile(user, theme, colorScheme)).toList(),
+        );
       },
     );
   }
 
-  Widget _buildUserTile(UserDto user) {
+  Widget _buildUserTile(UserDto user, ThemeData theme, ColorScheme colorScheme) {
     return ListTile(
       leading:
           user.profilePictureUrl.isNotEmpty
               ? CircleAvatar(backgroundImage: NetworkImage(user.profilePictureUrl))
               : CircleAvatar(child: Text(user.firstName.substring(0, 1) + user.lastName.substring(0, 1))),
       title: Text('${user.firstName} ${user.lastName}'),
-      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.email) /*Text('Role: ${user.role}')*/]),
-      trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () => _navigateToUserDetail(context, user)),
+      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.email)]),
+      trailing: IconButton(icon: Icon(Icons.edit, color: colorScheme.primary), onPressed: () => _navigateToUserDetail(context, user)),
       onTap: () => _navigateToUserDetail(context, user),
     );
   }
 
   void _navigateToUserDetail(BuildContext context, UserDto user) async {
     try {
-      // Detayları yeniden çek
       final updatedUser = await _viewModel.getUserById(user.id);
-
-      // Yeni bilgilerle sayfayı aç
       Navigator.push(context, MaterialPageRoute(builder: (_) => ChangeNotifierProvider.value(value: _viewModel, child: UserDetailView(user: updatedUser))));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to fetch user details: $e')));

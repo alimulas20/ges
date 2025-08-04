@@ -2,10 +2,11 @@
 import 'package:smart_ges_360/global/managers/dio_service.dart';
 import 'package:smart_ges_360/pages/plant/models/plant_with_latest_weather_dto.dart';
 
+import '../../../global/dtos/dropdown_dto.dart';
 import '../models/plant_production_model.dart';
 
 class PlantService {
-  Future<List<PlantWithLatestWeatherDto>> getPlants() async {
+  Future<List<PlantWithLatestWeatherDto>> getPlantswithWeather() async {
     try {
       final response = await DioService.dio.get('/plant');
 
@@ -31,6 +32,19 @@ class PlantService {
       }
     } catch (e) {
       throw Exception('Failed to load plant production: $e');
+    }
+  }
+
+  Future<List<DropdownDto>> getPlantsDropdown() async {
+    try {
+      final response = await DioService.dio.get('/Plant/Dropdown');
+      if (response.statusCode == 200) {
+        return (response.data as List).map((item) => DropdownDto.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load plant list: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load plant list: $e');
     }
   }
 }

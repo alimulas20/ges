@@ -34,29 +34,5 @@ class AlarmService {
     }
   }
 
-  Future<List<DropdownDto>> getPlants() async {
-    try {
-      final response = await DioService.dio.get('/Plant/Dropdown');
-      if (response.statusCode == 200) {
-        return (response.data as List).map((item) => DropdownDto.fromJson(item)).toList();
-      } else {
-        throw Exception('Failed to load plant list: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load plant list: $e');
-    }
-  }
-
-  Future<List<DropdownWithParentDto>> getDevices() async {
-    try {
-      final response = await DioService.dio.get('/DeviceSetup/dropdown');
-      if (response.statusCode == 200) {
-        return (response.data as List).map((item) => DropdownWithParentDto.fromJson(item)).toList();
-      } else {
-        throw Exception('Failed to load device list: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load device list: $e');
-    }
-  }
+  
 }

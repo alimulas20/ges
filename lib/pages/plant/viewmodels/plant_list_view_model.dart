@@ -21,7 +21,7 @@ class PlantListViewModel with ChangeNotifier {
     notifyListeners();
 
     try {
-      _plants = await _plantService.getPlants();
+      _plants = await _plantService.getPlantswithWeather();
       _errorMessage = null;
     } catch (e) {
       _plants = [];

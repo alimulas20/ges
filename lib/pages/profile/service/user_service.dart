@@ -1,6 +1,8 @@
 // user_service.dart
+import 'package:dio/dio.dart';
 import 'package:smart_ges_360/global/managers/dio_service.dart';
 
+import '../../../global/dtos/dropdown_dto.dart';
 import '../model/user_model.dart';
 
 class UserService {
@@ -70,6 +72,15 @@ class UserService {
       return UserDto.fromJson(response.data);
     } catch (e) {
       throw Exception('Failed to get current user: $e');
+    }
+  }
+
+  Future<void> setProfilePicture(dynamic file) async {
+    try {
+      FormData formData = FormData.fromMap({'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last)});
+      await DioService.dio.post('/users/setProfileImage', data: formData);
+    } catch (e) {
+      throw Exception('Failed to set profile picture: $e');
     }
   }
 }

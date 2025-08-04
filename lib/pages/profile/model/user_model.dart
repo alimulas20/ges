@@ -1,6 +1,7 @@
 // user_model.dart
 class UserDto {
   final String id;
+  final int localId;
   final String username;
   final String email;
   final String firstName;
@@ -8,12 +9,33 @@ class UserDto {
   final bool enabled;
   final String? role;
   final List<UserPlantDto> plants;
+  final String? phone;
+  final bool receivePush;
+  final bool receiveMail;
+  final bool receiveSMS;
+  final String profilePictureUrl;
 
-  UserDto({required this.id, required this.username, required this.email, required this.firstName, required this.lastName, required this.enabled, required this.role, required this.plants});
+  UserDto({
+    required this.id,
+    required this.localId,
+    required this.username,
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+    required this.enabled,
+    required this.role,
+    required this.plants,
+    this.phone,
+    this.receivePush = true,
+    this.receiveMail = true,
+    this.receiveSMS = false,
+    this.profilePictureUrl = '',
+  });
 
   factory UserDto.fromJson(Map<String, dynamic> json) {
     return UserDto(
       id: json['id'],
+      localId: json['localId'] ?? 0,
       username: json['username'],
       email: json['email'],
       firstName: json['firstName'],
@@ -21,16 +43,48 @@ class UserDto {
       enabled: json['enabled'],
       role: json['role'],
       plants: (json['plants'] as List).map((e) => UserPlantDto.fromJson(e)).toList(),
+      phone: json['phone'],
+      receivePush: json['receivePush'] ?? true,
+      receiveMail: json['receiveMail'] ?? true,
+      receiveSMS: json['receiveSMS'] ?? false,
+      profilePictureUrl: json['profilePictureUrl'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'username': username, 'email': email, 'firstName': firstName, 'lastName': lastName, 'enabled': enabled, 'role': role, 'plants': plants.map((e) => e.toJson()).toList()};
+    return {
+      'id': id,
+      'localId': localId,
+      'username': username,
+      'email': email,
+      'firstName': firstName,
+      'lastName': lastName,
+      'enabled': enabled,
+      'role': role,
+      'plants': plants.map((e) => e.toJson()).toList(),
+      'phone': phone,
+      'receivePush': receivePush,
+      'receiveMail': receiveMail,
+      'receiveSMS': receiveSMS,
+      'profilePictureUrl': profilePictureUrl,
+    };
   }
 
-  UserDto copyWith({String? firstName, String? lastName, String? email, String? role, List<UserPlantDto>? plants}) {
+  UserDto copyWith({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? role,
+    List<UserPlantDto>? plants,
+    String? phone,
+    bool? receivePush,
+    bool? receiveMail,
+    bool? receiveSMS,
+    String? profilePictureUrl,
+  }) {
     return UserDto(
       id: id,
+      localId: localId,
       username: username,
       email: email ?? this.email,
       firstName: firstName ?? this.firstName,
@@ -38,8 +92,64 @@ class UserDto {
       enabled: enabled,
       role: role ?? this.role,
       plants: plants ?? this.plants,
+      phone: phone ?? this.phone,
+      receivePush: receivePush ?? this.receivePush,
+      receiveMail: receiveMail ?? this.receiveMail,
+      receiveSMS: receiveSMS ?? this.receiveSMS,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
     );
   }
+}
+
+class UserCreateDto {
+  final String username;
+  final String email;
+  final String firstName;
+  final String lastName;
+  final String password;
+  final String role;
+  final List<int> plantIds;
+  final String? phone;
+  final bool receivePush;
+  final bool receiveMail;
+  final bool receiveSMS;
+
+  UserCreateDto({
+    required this.username,
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+    required this.password,
+    required this.role,
+    required this.plantIds,
+    this.phone,
+    this.receivePush = true,
+    this.receiveMail = true,
+    this.receiveSMS = false,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'email': email,
+      'firstName': firstName,
+      'lastName': lastName,
+      'password': password,
+      'role': role,
+      'plantIds': plantIds,
+      'phone': phone,
+      'receivePush': receivePush,
+      'receiveMail': receiveMail,
+      'receiveSMS': receiveSMS,
+    };
+  }
+}
+
+// Add this new class for file upload
+class FileUploadDto {
+  final dynamic file; // This will be a MultipartFile in the service
+
+  FileUploadDto({required this.file});
 }
 
 class UserPlantDto {
@@ -66,22 +176,6 @@ class PlantUsersDto {
 
   factory PlantUsersDto.fromJson(Map<String, dynamic> json) {
     return PlantUsersDto(plantId: json['plantId'], plantName: json['plantName'], users: (json['users'] as List).map((e) => UserDto.fromJson(e)).toList());
-  }
-}
-
-class UserCreateDto {
-  final String username;
-  final String email;
-  final String firstName;
-  final String lastName;
-  final String password;
-  final String role;
-  final List<int> plantIds;
-
-  UserCreateDto({required this.username, required this.email, required this.firstName, required this.lastName, required this.password, required this.role, required this.plantIds});
-
-  Map<String, dynamic> toJson() {
-    return {'username': username, 'email': email, 'firstName': firstName, 'lastName': lastName, 'password': password, 'role': role, 'plantIds': plantIds};
   }
 }
 

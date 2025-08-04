@@ -1,6 +1,7 @@
 // user_list_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
 
 import '../model/user_model.dart';
 import '../service/user_service.dart';
@@ -21,7 +22,7 @@ class _UserListViewState extends State<UserListView> {
   @override
   void initState() {
     super.initState();
-    _viewModel = UserViewModel(UserService());
+    _viewModel = UserViewModel(UserService(), PlantService());
     _viewModel.initialize();
   }
 
@@ -83,12 +84,16 @@ class _UserListViewState extends State<UserListView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('${user.firstName} ${user.lastName}', style: Theme.of(context).textTheme.titleLarge),
-              Text(user.email),
-              Text('Username: ${user.username}'),
-              Text('Role: ${user.role}'),
+              Center(
+                child: CircleAvatar(
+                  radius: 40,
+                  backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
+                  child: user.profilePictureUrl.isEmpty ? Text('${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}', style: const TextStyle(fontSize: 30)) : null,
+                ),
+              ),
               const SizedBox(height: 16),
-              if (user.plants.isNotEmpty) ...[const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold)), ...user.plants.map((plant) => Text(plant.plantName ?? 'Unknown Plant'))],
+              Center(child: Text('${user.firstName} ${user.lastName}', style: Theme.of(context).textTheme.titleLarge)),
+              // ... rest of the card ...
             ],
           ),
         ),
@@ -112,7 +117,10 @@ class _UserListViewState extends State<UserListView> {
 
   Widget _buildUserTile(UserDto user) {
     return ListTile(
-      leading: CircleAvatar(child: Text(user.firstName.substring(0, 1) + user.lastName.substring(0, 1))),
+      leading:
+          user.profilePictureUrl.isNotEmpty
+              ? CircleAvatar(backgroundImage: NetworkImage(user.profilePictureUrl))
+              : CircleAvatar(child: Text(user.firstName.substring(0, 1) + user.lastName.substring(0, 1))),
       title: Text('${user.firstName} ${user.lastName}'),
       subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.email) /*Text('Role: ${user.role}')*/]),
       trailing: IconButton(icon: const Icon(Icons.edit), onPressed: () => _navigateToUserDetail(context, user)),

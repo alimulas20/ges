@@ -1,14 +1,18 @@
 // user_viewmodel.dart
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:smart_ges_360/global/managers/token_manager.dart';
+import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
 
+import '../../../global/dtos/dropdown_dto.dart';
 import '../model/user_model.dart';
 import '../service/user_service.dart';
 
 class UserViewModel with ChangeNotifier {
   final UserService _service;
+  final PlantService _plantService;
 
-  UserViewModel(this._service);
+  UserViewModel(this._service, this._plantService);
 
   bool _isLoading = false;
   bool _isAdmin = false;
@@ -24,7 +28,8 @@ class UserViewModel with ChangeNotifier {
   UserDto? get currentUser => _currentUser;
   List<PlantUsersDto> get plantUsers => _plantUsers;
   List<RoleDto> get roles => _roles;
-
+  List<DropdownDto> _plantsDropdown = [];
+  List<DropdownDto> get plantsDropdown => _plantsDropdown;
   Future<void> initialize() async {
     _isLoading = true;
     _error = null;
@@ -120,5 +125,39 @@ class UserViewModel with ChangeNotifier {
 
   RoleDto getDefaultRole() {
     return _roles.first;
+  }
+
+  Future<void> setProfilePicture(XFile file) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _service.setProfilePicture(file);
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadPlantsDropdown() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _plantsDropdown = await _plantService.getPlantsDropdown();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Helper method to get plant name by ID
+  String getPlantNameById(int id) {
+    return _plantsDropdown.firstWhere((plant) => plant.id == id, orElse: () => DropdownDto(id: id, name: 'Unknown Plant')).name;
   }
 }

@@ -1,4 +1,3 @@
-// user_create_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,33 +19,58 @@ class _UserCreateViewState extends State<UserCreateView> {
   final _lastNameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   final List<int> _selectedPlantIds = [];
+  bool _receivePush = true;
+  bool _receiveMail = true;
+  bool _receiveSMS = false;
+  bool _loadingPlants = false;
   late RoleDto _selectedRole;
+
   @override
   void initState() {
     super.initState();
     final viewModel = Provider.of<UserViewModel>(context, listen: false);
-    // Roller yüklenmişse ilk rolü seç, yoksa default bir değer ata
     _selectedRole = viewModel.displayRoles.isNotEmpty ? viewModel.displayRoles.first : RoleDto(key: 'Viewer', value: 'Görüntüleme');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPlants();
+    });
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPlants() async {
+    if (!mounted) return;
+
+    setState(() => _loadingPlants = true);
+
+    try {
+      final viewModel = Provider.of<UserViewModel>(context, listen: false);
+      await viewModel.loadPlantsDropdown();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load plants: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _loadingPlants = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<UserViewModel>(context);
-    // Roller henüz yüklenmediyse loading göster
-    if (viewModel.roles.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
 
-    // Roller yüklendikten sonra ilk rolü seç (eğer daha önce seçili rol yoksa)
-    if (_selectedRole.key == 'Viewer' && viewModel.displayRoles.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          _selectedRole = viewModel.displayRoles.first;
-        });
-      });
-    }
     return Scaffold(
       appBar: AppBar(title: const Text('Create New User')),
       body: Padding(
@@ -56,20 +80,33 @@ class _UserCreateViewState extends State<UserCreateView> {
           child: ListView(
             children: [
               TextFormField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Username'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                validator: (value) {
+                  if (value?.isEmpty ?? true) return 'Required';
+                  if (!value!.contains('@')) return 'Invalid email format';
+                  return null;
+                },
                 keyboardType: TextInputType.emailAddress,
               ),
+              const SizedBox(height: 16),
               TextFormField(controller: _firstNameController, decoration: const InputDecoration(labelText: 'First Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              const SizedBox(height: 16),
               TextFormField(controller: _lastNameController, decoration: const InputDecoration(labelText: 'Last Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                validator: (value) {
+                  if (value?.isEmpty ?? true) return 'Required';
+                  if (value!.length < 6) return 'Password must be at least 6 characters';
+                  return null;
+                },
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _confirmPasswordController,
                 decoration: const InputDecoration(labelText: 'Confirm Password'),
@@ -81,7 +118,14 @@ class _UserCreateViewState extends State<UserCreateView> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text('Role:', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Phone'), keyboardType: TextInputType.phone),
+              const SizedBox(height: 16),
+              const Text('Notification Preferences:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              CheckboxListTile(title: const Text('Receive Push Notifications'), value: _receivePush, onChanged: (value) => setState(() => _receivePush = value ?? true)),
+              CheckboxListTile(title: const Text('Receive Email Notifications'), value: _receiveMail, onChanged: (value) => setState(() => _receiveMail = value ?? true)),
+              CheckboxListTile(title: const Text('Receive SMS Notifications'), value: _receiveSMS, onChanged: (value) => setState(() => _receiveSMS = value ?? false)),
+              const SizedBox(height: 16),
+              const Text('Role:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               DropdownButtonFormField<RoleDto>(
                 value: _selectedRole,
                 items:
@@ -95,14 +139,108 @@ class _UserCreateViewState extends State<UserCreateView> {
                     });
                   }
                 },
+                decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
               ),
+              const SizedBox(height: 16),
+              const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              if (_loadingPlants)
+                const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Center(child: CircularProgressIndicator()))
+              else if (viewModel.plantsDropdown.isEmpty)
+                const Text('No plants available', style: TextStyle(color: Colors.grey))
+              else
+                Column(
+                  children: [
+                    ElevatedButton(onPressed: _selectPlants, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 48)), child: const Text('Select Plants')),
+                    if (_selectedPlantIds.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text('Selected Plants: ${_selectedPlantIds.length}', style: const TextStyle(fontSize: 14)),
+                      const SizedBox(height: 8),
+                      ..._selectedPlantIds.map((plantId) {
+                        final plantName = viewModel.getPlantNameById(plantId);
+                        return ListTile(
+                          leading: const Icon(Icons.eco, color: Colors.green),
+                          title: Text(plantName),
+                          trailing: IconButton(icon: const Icon(Icons.close, color: Colors.red), onPressed: () => _removePlant(plantId)),
+                        );
+                      }),
+                    ],
+                  ],
+                ),
               const SizedBox(height: 24),
-              ElevatedButton(onPressed: _submitForm, child: const Text('Create User')),
+              ElevatedButton(
+                onPressed: _submitForm,
+                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50), backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                child: const Text('Create User'),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _selectPlants() async {
+    final viewModel = Provider.of<UserViewModel>(context, listen: false);
+    final availablePlants = viewModel.plantsDropdown.where((plant) => !_selectedPlantIds.contains(plant.id)).toList();
+
+    if (availablePlants.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All available plants are already selected')));
+      return;
+    }
+
+    final selected = await showDialog<List<int>>(
+      context: context,
+      builder: (context) {
+        final tempSelected = <int>[];
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Select Plants'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children:
+                        availablePlants.map((plant) {
+                          return CheckboxListTile(
+                            title: Text(plant.name),
+                            value: tempSelected.contains(plant.id),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  tempSelected.add(plant.id);
+                                } else {
+                                  tempSelected.remove(plant.id);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                TextButton(onPressed: () => Navigator.pop(context, tempSelected), child: const Text('Select')),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (selected != null && selected.isNotEmpty) {
+      setState(() {
+        _selectedPlantIds.addAll(selected);
+      });
+    }
+  }
+
+  void _removePlant(int plantId) {
+    setState(() {
+      _selectedPlantIds.remove(plantId);
+    });
   }
 
   void _submitForm() {
@@ -115,23 +253,21 @@ class _UserCreateViewState extends State<UserCreateView> {
         password: _passwordController.text,
         role: _selectedRole.key,
         plantIds: _selectedPlantIds,
+        phone: _phoneController.text,
+        receivePush: _receivePush,
+        receiveMail: _receiveMail,
+        receiveSMS: _receiveSMS,
       );
 
       final viewModel = Provider.of<UserViewModel>(context, listen: false);
-      viewModel.createUser(dto).then((_) {
-        Navigator.pop(context);
-      });
+      viewModel
+          .createUser(dto)
+          .then((_) {
+            Navigator.pop(context);
+          })
+          .catchError((error) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error creating user: $error')));
+          });
     }
-  }
-
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _emailController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
   }
 }

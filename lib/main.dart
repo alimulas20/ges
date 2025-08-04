@@ -6,6 +6,7 @@ import 'package:smart_ges_360/global/constant/theme.dart';
 import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
 import 'package:smart_ges_360/pages/alarm/views/alarm_view.dart';
 import 'package:smart_ges_360/pages/device/view/device_setup_list_view.dart';
+import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
 import 'package:smart_ges_360/pages/plant/views/plant_list_view.dart';
 import 'package:smart_ges_360/pages/profile/view/user_list_view.dart';
 
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
       return MultiProvider(
         providers: [
           // Tüm uygulama boyunca kullanılacak Provider'ları burada tanımlayın
-          ChangeNotifierProvider(create: (_) => UserViewModel(UserService())),
+          ChangeNotifierProvider(create: (_) => UserViewModel(UserService(), PlantService())),
           // Diğer ViewModel'ler...
         ],
         child: CustomNavbar(
@@ -127,7 +128,7 @@ class MyApp extends StatelessWidget {
         '/login': (_) => ChangeNotifierProvider(create: (_) => LoginViewModel(), child: LoginView()),
         '/home':
             (_) => MultiProvider(
-              providers: [ChangeNotifierProvider(create: (_) => UserViewModel(UserService()))],
+              providers: [ChangeNotifierProvider(create: (_) => UserViewModel(UserService(), PlantService()))],
               child: CustomNavbar(
                 pages: [PlantListView(), AlarmsPage(), DeviceSetupListView(), UserListView()],
                 icons: [Icon(Icons.home), Icon(Icons.error), Icon(Icons.devices), Icon(Icons.person_4_rounded)],

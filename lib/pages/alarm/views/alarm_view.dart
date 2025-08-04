@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_ges_360/global/constant/app_constants.dart';
+import 'package:smart_ges_360/pages/device/service/device_setup_service.dart';
+import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
 
 import '../model/alarm_dto.dart';
 import '../service/alarm_service.dart';
@@ -29,7 +31,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _viewModel = AlarmsViewModel(AlarmService());
+    _viewModel = AlarmsViewModel(AlarmService(), PlantService(), DeviceSetupService());
     _selectedDeviceSetupId = widget.deviceSetupId;
     _loadAlarms();
   }

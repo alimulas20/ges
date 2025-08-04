@@ -1,6 +1,7 @@
 // services/device_setup_service.dart
 import 'package:smart_ges_360/global/managers/dio_service.dart';
 
+import '../../../global/dtos/dropdown_dto.dart';
 import '../model/device_setup_with_reading_dto.dart';
 
 class DeviceSetupService {
@@ -118,6 +119,19 @@ class DeviceSetupService {
       }
     } catch (e) {
       throw Exception('Failed to load inverter history: $e');
+    }
+  }
+
+  Future<List<DropdownWithParentDto>> getDevicesDropdown() async {
+    try {
+      final response = await DioService.dio.get('/DeviceSetup/dropdown');
+      if (response.statusCode == 200) {
+        return (response.data as List).map((item) => DropdownWithParentDto.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load device list: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load device list: $e');
     }
   }
 }

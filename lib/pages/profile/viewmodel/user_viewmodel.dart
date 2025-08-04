@@ -44,6 +44,7 @@ class UserViewModel with ChangeNotifier {
       if (_isAdmin || _isSuperAdmin) {
         _plantUsers = await _service.getUsers();
         _roles = await _service.getRoles();
+        await loadPlantsDropdown();
       }
     } catch (e) {
       _error = e.toString();
@@ -145,6 +146,8 @@ class UserViewModel with ChangeNotifier {
   }
 
   Future<void> loadPlantsDropdown() async {
+    if (_plantsDropdown.isNotEmpty) return; // Zaten yüklüyse tekrar yükleme
+
     _isLoading = true;
     notifyListeners();
 

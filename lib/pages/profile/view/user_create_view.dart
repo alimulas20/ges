@@ -61,6 +61,7 @@ class _UserCreateViewState extends State<UserCreateView> {
       final viewModel = Provider.of<UserViewModel>(context, listen: false);
       await viewModel.loadPlantsDropdown();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load plants: $e')));
     } finally {
       if (mounted) {
@@ -267,9 +268,11 @@ class _UserCreateViewState extends State<UserCreateView> {
       viewModel
           .createUser(dto)
           .then((_) {
-            Navigator.pop(context);
+            if (!mounted) return;
+            Navigator.pop(context, true); // Yeni kullanıcı oluşturulduğunu belirt
           })
           .catchError((error) {
+            if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error creating user: $error')));
           });
     }

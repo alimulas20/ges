@@ -246,8 +246,8 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
 
   Future<void> _showAlarmDetails(int alarmId, BuildContext context) async {
     final alarm = await _viewModel.getAlarmDetails(alarmId);
-    if (!mounted) return;
 
+    if (!mounted) return;
     showDialog(
       context: context,
       builder:

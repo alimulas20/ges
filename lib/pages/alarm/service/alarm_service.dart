@@ -1,5 +1,3 @@
-import 'package:smart_ges_360/global/dtos/dropdown_dto.dart';
-
 import '../../../global/managers/dio_service.dart';
 import '../model/alarm_dto.dart';
 
@@ -33,6 +31,4 @@ class AlarmService {
       throw Exception('Failed to load alarm details: $e');
     }
   }
-
-  
 }

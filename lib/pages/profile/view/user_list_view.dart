@@ -70,86 +70,79 @@ class _UserListViewState extends State<UserListView> {
     }
 
     if (!viewModel.isAdmin && !viewModel.isSuperAdmin) {
-      return _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme);
+      return SingleChildScrollView(child: _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme));
     }
 
-    return Column(
-      children: [
-        _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
-        const SizedBox(height: AppConstants.paddingExtraLarge),
-        Expanded(child: _buildAdminView(viewModel, theme, colorScheme)),
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [_buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme), const SizedBox(height: AppConstants.paddingExtraLarge), _buildAdminView(viewModel, theme, colorScheme)],
+      ),
     );
   }
 
   Widget _buildCurrentUserCard(UserDto user, ThemeData theme, ColorScheme colorScheme) {
-    return Center(
-      child: Card(
-        margin: const EdgeInsets.all(AppConstants.paddingExtraLarge),
-        child: Padding(
-          padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
-                children: [
-                  Center(
-                    child: CircleAvatar(
-                      radius: AppConstants.iconSizeExtraLarge,
-                      backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
-                      child: user.profilePictureUrl.isEmpty ? Text('${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}', style: TextStyle(fontSize: AppConstants.fontSizeTitle)) : null,
-                    ),
+    return Card(
+      margin: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                Center(
+                  child: CircleAvatar(
+                    radius: AppConstants.iconSizeExtraLarge,
+                    backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
+                    child: user.profilePictureUrl.isEmpty ? Text('${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}', style: TextStyle(fontSize: AppConstants.fontSizeTitle)) : null,
                   ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
-                      child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary, size: AppConstants.iconSizeSmall), onPressed: () => _navigateToUserDetail(context, user)),
-                    ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
+                    child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary, size: AppConstants.iconSizeSmall), onPressed: () => _navigateToUserDetail(context, user)),
                   ),
-                ],
-              ),
-              const SizedBox(height: AppConstants.paddingExtraLarge),
-              Center(child: Text('${user.firstName} ${user.lastName}', style: theme.textTheme.titleLarge)),
-              const SizedBox(height: AppConstants.paddingMedium),
-              Center(child: Text(user.email, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant))),
-              const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
-
-              // User Details Section
-              _buildDetailRow(Icons.person_outline, 'Username', user.username, theme, colorScheme),
-              if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Phone', user.phone!, theme, colorScheme),
-
-              if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Role', user.role!, theme, colorScheme),
-
-              const SizedBox(height: AppConstants.paddingMedium),
-              const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
-
-              // Notification Preferences
-              Text('Notification Preferences', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
-              const SizedBox(height: AppConstants.paddingMedium),
-              _buildNotificationPreference('Push Notifications', user.receivePush, theme, colorScheme),
-              _buildNotificationPreference('Email Notifications', user.receiveMail, theme, colorScheme),
-              _buildNotificationPreference('SMS Notifications', user.receiveSMS, theme, colorScheme),
-
-              // Associated Plants
-              if (user.plants.isNotEmpty) ...[
-                const SizedBox(height: AppConstants.paddingMedium),
-                const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
-                Text('Associated Plants', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
-                const SizedBox(height: AppConstants.paddingMedium),
-                Wrap(
-                  spacing: AppConstants.paddingMedium,
-                  runSpacing: AppConstants.paddingMedium,
-                  children:
-                      user.plants.map((plant) {
-                        return Chip(label: Text(plant.plantName ?? 'Plant ${plant.plantId}'), backgroundColor: colorScheme.primaryContainer);
-                      }).toList(),
                 ),
               ],
+            ),
+            const SizedBox(height: AppConstants.paddingExtraLarge),
+            Center(child: Text('${user.firstName} ${user.lastName}', style: theme.textTheme.titleLarge)),
+            const SizedBox(height: AppConstants.paddingMedium),
+            Center(child: Text(user.email, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant))),
+            const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
+
+            // User Details Section
+            _buildDetailRow(Icons.person_outline, 'Username', user.username, theme, colorScheme),
+            if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Phone', user.phone!, theme, colorScheme),
+
+            if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Role', user.role!, theme, colorScheme),
+
+            const SizedBox(height: AppConstants.paddingMedium),
+            const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
+
+            // Notification Preferences
+            Text('Notification Preferences', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+            const SizedBox(height: AppConstants.paddingMedium),
+            _buildNotificationPreference('Push Notifications', user.receivePush, theme, colorScheme),
+            _buildNotificationPreference('Email Notifications', user.receiveMail, theme, colorScheme),
+            _buildNotificationPreference('SMS Notifications', user.receiveSMS, theme, colorScheme),
+
+            // Associated Plants
+            if (user.plants.isNotEmpty) ...[
+              const SizedBox(height: AppConstants.paddingMedium),
+              const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
+              Text('Associated Plants', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+              const SizedBox(height: AppConstants.paddingMedium),
+              Wrap(
+                spacing: AppConstants.paddingMedium,
+                runSpacing: AppConstants.paddingMedium,
+                children: user.plants.map((plant) => Chip(label: Text(plant.plantName ?? 'Plant ${plant.plantId}'), backgroundColor: colorScheme.primaryContainer)).toList(),
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -187,19 +180,20 @@ class _UserListViewState extends State<UserListView> {
 
   Widget _buildAdminView(UserViewModel viewModel, ThemeData theme, ColorScheme colorScheme) {
     if (viewModel.plantUsers.isEmpty) {
-      return const Center(child: Text('No users found'));
+      return const Padding(padding: EdgeInsets.only(bottom: AppConstants.paddingExtraLarge), child: Center(child: Text('No users found')));
     }
 
-    return ListView.builder(
-      itemCount: viewModel.plantUsers.length,
-      itemBuilder: (context, index) {
-        final plantUsers = viewModel.plantUsers[index];
-        return ExpansionTile(
-          title: Text(plantUsers.plantName),
-          subtitle: Text('${plantUsers.users.length} users'),
-          children: plantUsers.users.map((user) => _buildUserTile(user, theme, colorScheme)).toList(),
-        );
-      },
+    return Column(
+      children: [
+        ...viewModel.plantUsers.map((plantUsers) {
+          return ExpansionTile(
+            title: Text(plantUsers.plantName),
+            subtitle: Text('${plantUsers.users.length} users'),
+            children: plantUsers.users.map((user) => _buildUserTile(user, theme, colorScheme)).toList(),
+          );
+        }),
+        SizedBox(height: AppConstants.paddingHuge),
+      ],
     );
   }
 
@@ -219,13 +213,22 @@ class _UserListViewState extends State<UserListView> {
   void _navigateToUserDetail(BuildContext context, UserDto user) async {
     try {
       final updatedUser = await _viewModel.getUserById(user.id);
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ChangeNotifierProvider.value(value: _viewModel, child: UserDetailView(user: updatedUser))));
+      final needsRefresh = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => ChangeNotifierProvider.value(value: _viewModel, child: UserDetailView(user: updatedUser))));
+
+      if (needsRefresh == true) {
+        await _viewModel.refresh();
+      }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to fetch user details: $e')));
     }
   }
 
   void _navigateToCreateUser(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => ChangeNotifierProvider.value(value: _viewModel, child: const UserCreateView()))).then((_) => _viewModel.refresh());
+    Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => ChangeNotifierProvider.value(value: _viewModel, child: const UserCreateView()))).then((needsRefresh) {
+      if (needsRefresh == true) {
+        _viewModel.refresh();
+      }
+    });
   }
 }

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/compact_switch.dart';
 import '../model/user_model.dart';
 import '../viewmodel/user_viewmodel.dart';
 
@@ -24,11 +25,20 @@ class _UserDetailViewState extends State<UserDetailView> {
   void initState() {
     super.initState();
     _editedUser = widget.user;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = Provider.of<UserViewModel>(context, listen: false);
+      if (viewModel.plantsDropdown.isEmpty) {
+        viewModel.loadPlantsDropdown();
+      }
+    });
   }
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
+      if (!mounted) {
+        return;
+      }
       final viewModel = Provider.of<UserViewModel>(context, listen: false);
       try {
         await viewModel.setProfilePicture(pickedFile);
@@ -36,7 +46,7 @@ class _UserDetailViewState extends State<UserDetailView> {
           _editedUser = _editedUser.copyWith(profilePictureUrl: '${_editedUser.profilePictureUrl}?${DateTime.now().millisecondsSinceEpoch}');
         });
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+        mounted ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload image: $e'))) : null;
       }
     }
   }
@@ -74,8 +84,10 @@ class _UserDetailViewState extends State<UserDetailView> {
                       bottom: 0,
                       right: 0,
                       child: Container(
+                        height: AppConstants.paddingHuge,
+                        width: AppConstants.paddingHuge,
                         decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
-                        child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary), onPressed: _pickImage),
+                        child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary, size: AppConstants.paddingExtraLarge), onPressed: _pickImage),
                       ),
                     ),
                 ],
@@ -126,24 +138,28 @@ class _UserDetailViewState extends State<UserDetailView> {
                       _editedUser = _editedUser.copyWith(phone: value);
                     }),
               ),
-              SwitchListTile(
-                title: const Text('Receive Push Notifications'),
+              CompactSwitch(
+                title: 'Receive Push Notifications',
                 value: _editedUser.receivePush,
                 onChanged:
                     (value) => setState(() {
                       _editedUser = _editedUser.copyWith(receivePush: value);
                     }),
               ),
-              SwitchListTile(
-                title: const Text('Receive Email Notifications'),
+
+              // Email Notifications
+              CompactSwitch(
+                title: 'Receive Email Notifications',
                 value: _editedUser.receiveMail,
                 onChanged:
                     (value) => setState(() {
                       _editedUser = _editedUser.copyWith(receiveMail: value);
                     }),
               ),
-              SwitchListTile(
-                title: const Text('Receive SMS Notifications'),
+
+              // SMS Notifications
+              CompactSwitch(
+                title: 'Receive SMS Notifications',
                 value: _editedUser.receiveSMS,
                 onChanged:
                     (value) => setState(() {
@@ -203,7 +219,6 @@ class _UserDetailViewState extends State<UserDetailView> {
 
   Future<void> _addPlants(BuildContext context) async {
     final viewModel = Provider.of<UserViewModel>(context, listen: false);
-    await viewModel.loadPlantsDropdown();
 
     final availablePlants = viewModel.plantsDropdown.where((plant) => !_editedUser.plants.any((p) => p.plantId == plant.id)).toList();
 
@@ -252,7 +267,7 @@ class _UserDetailViewState extends State<UserDetailView> {
     final viewModel = Provider.of<UserViewModel>(context, listen: false);
     viewModel.updateUser(_editedUser).then((_) {
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, true); // Değişiklik olduğunu belirt
       }
     });
   }

@@ -52,7 +52,7 @@ class MultiSelectDropdownState<T> extends State<MultiSelectDropdown<T>> {
         // Close the dropdown
         _isDropdownOpen = false;
         Future.delayed(Duration.zero, () {
-          Navigator.of(context).pop();
+          mounted ? Navigator.of(context).pop() : null;
         });
 
         // Process the selection

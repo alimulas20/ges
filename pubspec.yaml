@@ -1,6 +1,6 @@
 name: solar
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -12,7 +12,6 @@ dependencies:
     sdk: flutter
   flutter_map: ^8.1.1
   flutter_secure_storage: ^9.2.4
-  google_maps_flutter: ^2.12.1
   http: ^1.4.0
   latlong2: ^0.9.1
   provider: ^6.1.5

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "361152995366",
-    "project_id": "smartplant360solar",
-    "storage_bucket": "smartplant360solar.firebasestorage.app"
+    "project_number": "456544890085",
+    "project_id": "smartplant-360-solar",
+    "storage_bucket": "smartplant-360-solar.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:361152995366:android:0210fadc73bcd794b546e7",
+        "mobilesdk_app_id": "1:456544890085:android:9ca4faaf44331ffb83780c",
         "android_client_info": {
           "package_name": "com.smartplant360.solar"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBKTW2L9JIezzCgMnWfFyP8_8hp71AGTe4"
+          "current_key": "AIzaSyDwCNqvKesl2Ag0Bjgt-wA-xbOv57tfRZU"
         }
       ],
       "services": {

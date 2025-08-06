@@ -50,20 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBKTW2L9JIezzCgMnWfFyP8_8hp71AGTe4',
-    appId: '1:361152995366:android:0210fadc73bcd794b546e7',
-    messagingSenderId: '361152995366',
-    projectId: 'smartplant360solar',
-    storageBucket: 'smartplant360solar.firebasestorage.app',
+    apiKey: 'AIzaSyDwCNqvKesl2Ag0Bjgt-wA-xbOv57tfRZU',
+    appId: '1:456544890085:android:9ca4faaf44331ffb83780c',
+    messagingSenderId: '456544890085',
+    projectId: 'smartplant-360-solar',
+    storageBucket: 'smartplant-360-solar.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCwIKcdZwzKpVdgktu7fVQca-DVr2oohAU',
-    appId: '1:361152995366:ios:193929f9b2fb17eeb546e7',
-    messagingSenderId: '361152995366',
-    projectId: 'smartplant360solar',
-    storageBucket: 'smartplant360solar.firebasestorage.app',
-    iosBundleId: 'com.example.smartGes360',
+    apiKey: 'AIzaSyBlTWtONy2HyJH38EcaGDc1neH36H4meqU',
+    appId: '1:456544890085:ios:babeb6b741fc340383780c',
+    messagingSenderId: '456544890085',
+    projectId: 'smartplant-360-solar',
+    storageBucket: 'smartplant-360-solar.firebasestorage.app',
+    iosBundleId: 'com.smartplant360.solar',
   );
 
 }

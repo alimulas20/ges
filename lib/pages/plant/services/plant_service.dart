@@ -1,9 +1,9 @@
 // services/api_service.dart
-import 'package:smart_ges_360/global/managers/dio_service.dart';
-import 'package:smart_ges_360/pages/plant/models/plant_with_latest_weather_dto.dart';
 
 import '../../../global/dtos/dropdown_dto.dart';
+import '../../../global/managers/dio_service.dart';
 import '../models/plant_production_model.dart';
+import '../models/plant_with_latest_weather_dto.dart';
 
 class PlantService {
   Future<List<PlantWithLatestWeatherDto>> getPlantswithWeather() async {

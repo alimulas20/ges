@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "112831684553",
-    "project_id": "smart-plant-360-solar",
-    "storage_bucket": "smart-plant-360-solar.firebasestorage.app"
+    "project_number": "361152995366",
+    "project_id": "smartplant360solar",
+    "storage_bucket": "smartplant360solar.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:112831684553:android:cd57f9296f03466fc11218",
+        "mobilesdk_app_id": "1:361152995366:android:0210fadc73bcd794b546e7",
         "android_client_info": {
-          "package_name": "com.example.smart_ges_360"
+          "package_name": "com.smartplant360.solar"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBLD7uPRno4k3UaNK0De1G8reiLLtc_s_8"
+          "current_key": "AIzaSyBKTW2L9JIezzCgMnWfFyP8_8hp71AGTe4"
         }
       ],
       "services": {

@@ -2,21 +2,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_ges_360/global/constant/theme.dart';
-import 'package:smart_ges_360/global/widgets/custom_navbar.dart';
-import 'package:smart_ges_360/pages/alarm/views/alarm_view.dart';
-import 'package:smart_ges_360/pages/device/view/device_setup_list_view.dart';
-import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
-import 'package:smart_ges_360/pages/plant/views/plant_list_view.dart';
-import 'package:smart_ges_360/pages/profile/view/user_list_view.dart';
 
 import 'firebase_options.dart';
+import 'global/constant/theme.dart';
 import 'global/managers/dio_service.dart';
 import 'global/managers/token_manager.dart';
 
+import 'global/widgets/custom_navbar.dart';
+import 'pages/alarm/views/alarm_view.dart';
+import 'pages/device/view/device_setup_list_view.dart';
 import 'pages/login/views/login_view.dart';
 import 'pages/login/viewmodels/login_view_model.dart';
+import 'pages/plant/services/plant_service.dart';
+import 'pages/plant/views/plant_list_view.dart';
 import 'pages/profile/service/user_service.dart';
+import 'pages/profile/view/user_list_view.dart';
 import 'pages/profile/viewmodel/user_viewmodel.dart';
 
 void main() async {

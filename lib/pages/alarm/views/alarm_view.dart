@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_ges_360/global/constant/app_constants.dart';
-import 'package:smart_ges_360/pages/device/service/device_setup_service.dart';
-import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
 
+import '../../../global/constant/app_constants.dart';
+import '../../device/service/device_setup_service.dart';
+import '../../plant/services/plant_service.dart';
 import '../model/alarm_dto.dart';
 import '../service/alarm_service.dart';
 import '../viewmodels/alarm_viewmodel.dart';

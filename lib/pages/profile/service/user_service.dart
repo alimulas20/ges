@@ -1,7 +1,7 @@
 // user_service.dart
 import 'package:dio/dio.dart';
-import 'package:smart_ges_360/global/managers/dio_service.dart';
 
+import '../../../global/managers/dio_service.dart';
 import '../model/user_model.dart';
 
 class UserService {

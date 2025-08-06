@@ -1,10 +1,10 @@
 // user_viewmodel.dart
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:smart_ges_360/global/managers/token_manager.dart';
-import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
 
 import '../../../global/dtos/dropdown_dto.dart';
+import '../../../global/managers/token_manager.dart';
+import '../../plant/services/plant_service.dart';
 import '../model/user_model.dart';
 import '../service/user_service.dart';
 

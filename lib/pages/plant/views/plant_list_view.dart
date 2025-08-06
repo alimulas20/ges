@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_ges_360/pages/map/views/map_view.dart';
-import 'package:smart_ges_360/pages/plant/views/plant_production_view.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
 import '../../../global/widgets/network_image_with_placeholder.dart';
 import '../../device/view/device_setup_list_view.dart';
+import '../../map/views/map_view.dart';
 import '../models/plant_with_latest_weather_dto.dart';
 import '../models/weather_code_utils.dart';
 import '../services/plant_service.dart';
 import '../viewmodels/plant_list_view_model.dart';
+import 'plant_production_view.dart';
 
 class PlantListView extends StatefulWidget {
   const PlantListView({super.key});

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:smart_ges_360/pages/plant/models/plant_with_latest_weather_dto.dart';
-import 'package:smart_ges_360/pages/plant/services/plant_service.dart';
+
+import '../models/plant_with_latest_weather_dto.dart';
+import '../services/plant_service.dart';
 
 class PlantListViewModel with ChangeNotifier {
   final PlantService _plantService;

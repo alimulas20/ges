@@ -1,7 +1,7 @@
 // services/device_setup_service.dart
-import 'package:smart_ges_360/global/managers/dio_service.dart';
 
 import '../../../global/dtos/dropdown_dto.dart';
+import '../../../global/managers/dio_service.dart';
 import '../model/device_setup_with_reading_dto.dart';
 
 class DeviceSetupService {

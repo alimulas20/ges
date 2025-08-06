@@ -1,4 +1,4 @@
-package com.example.smart_ges_360
+package com.smartplant360.solar
 
 import io.flutter.embedding.android.FlutterActivity
 

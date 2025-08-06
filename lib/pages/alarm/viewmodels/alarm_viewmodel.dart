@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:smart_ges_360/pages/device/service/device_setup_service.dart';
 
 import '../../../global/dtos/dropdown_dto.dart';
+import '../../device/service/device_setup_service.dart';
 import '../../plant/services/plant_service.dart';
 import '../model/alarm_dto.dart';
 import '../service/alarm_service.dart';

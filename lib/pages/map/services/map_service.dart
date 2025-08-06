@@ -1,5 +1,5 @@
 // services/api_service.dart
-import 'package:smart_ges_360/global/managers/dio_service.dart';
+import '../../../global/managers/dio_service.dart';
 import '../models/pv_string_model.dart';
 
 class MapService {

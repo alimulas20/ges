@@ -33,7 +33,7 @@ class _DeviceReadingsViewState extends State<DeviceReadingsView> {
       value: _viewModel,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Anlık Okumalar'),
+          title: const Text('Anlık Okumalar', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
           actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _viewModel.fetchDeviceReadings)],
           toolbarHeight: AppConstants.appBarHeight,
         ),

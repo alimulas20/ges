@@ -31,7 +31,11 @@ class _DeviceInfoViewState extends State<DeviceInfoView> {
     return ChangeNotifierProvider.value(
       value: _viewModel,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Cihaz Bilgileri'), actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _viewModel.fetchDeviceInfo)], toolbarHeight: AppConstants.appBarHeight),
+        appBar: AppBar(
+          title: const Text('Cihaz Bilgileri', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
+          actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _viewModel.fetchDeviceInfo)],
+          toolbarHeight: AppConstants.appBarHeight,
+        ),
         body: Consumer<DeviceInfoViewModel>(
           builder: (context, viewModel, child) {
             if (viewModel.isLoading && viewModel.deviceInfo == null) {

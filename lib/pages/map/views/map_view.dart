@@ -55,12 +55,13 @@ class MapViewState extends State<MapView> {
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text('PV String Monitoring'),
+              title: const Text('PV Isı Haritası', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
               actions: [
                 IconButton(icon: const Icon(Icons.zoom_in), onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 0.5)),
                 IconButton(icon: const Icon(Icons.zoom_out), onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 0.5)),
                 IconButton(icon: const Icon(Icons.center_focus_strong), onPressed: _centerMap),
               ],
+              toolbarHeight: AppConstants.appBarHeight,
             ),
             body: Stack(
               children: [

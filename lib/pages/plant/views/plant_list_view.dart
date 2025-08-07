@@ -36,6 +36,7 @@ class _PlantListViewState extends State<PlantListView> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Tesisler', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
+          toolbarHeight: AppConstants.appBarHeight,
           actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.fetchPlants())],
         ),
         body: Consumer<PlantListViewModel>(

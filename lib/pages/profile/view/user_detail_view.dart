@@ -46,7 +46,7 @@ class _UserDetailViewState extends State<UserDetailView> {
           _editedUser = _editedUser.copyWith(profilePictureUrl: '${_editedUser.profilePictureUrl}?${DateTime.now().millisecondsSinceEpoch}');
         });
       } catch (e) {
-        mounted ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload image: $e'))) : null;
+        mounted ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Resim yüklenemedi: $e'))) : null;
       }
     }
   }
@@ -61,8 +61,9 @@ class _UserDetailViewState extends State<UserDetailView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${_editedUser.firstName} ${_editedUser.lastName}'),
+        title: Text('${_editedUser.firstName} ${_editedUser.lastName}', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
         actions: [if (canEdit && _hasChanges()) IconButton(icon: const Icon(Icons.save), onPressed: () => _saveChanges(context))],
+        toolbarHeight: AppConstants.appBarHeight,
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
@@ -97,7 +98,7 @@ class _UserDetailViewState extends State<UserDetailView> {
             if (canEdit) ...[
               TextFormField(
                 initialValue: _editedUser.firstName,
-                decoration: const InputDecoration(labelText: 'First Name'),
+                decoration: const InputDecoration(labelText: 'Ad'),
                 onChanged:
                     (value) => setState(() {
                       _editedUser = _editedUser.copyWith(firstName: value);
@@ -105,7 +106,7 @@ class _UserDetailViewState extends State<UserDetailView> {
               ),
               TextFormField(
                 initialValue: _editedUser.lastName,
-                decoration: const InputDecoration(labelText: 'Last Name'),
+                decoration: const InputDecoration(labelText: 'Soyad'),
                 onChanged:
                     (value) => setState(() {
                       _editedUser = _editedUser.copyWith(lastName: value);
@@ -113,7 +114,7 @@ class _UserDetailViewState extends State<UserDetailView> {
               ),
               TextFormField(
                 initialValue: _editedUser.email,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'E-posta'),
                 onChanged:
                     (value) => setState(() {
                       _editedUser = _editedUser.copyWith(email: value);
@@ -127,39 +128,35 @@ class _UserDetailViewState extends State<UserDetailView> {
                       (value) => setState(() {
                         _editedUser = _editedUser.copyWith(role: value);
                       }),
-                  decoration: const InputDecoration(labelText: 'Role'),
+                  decoration: const InputDecoration(labelText: 'Rol'),
                 ),
               ],
               TextFormField(
                 initialValue: _editedUser.phone,
-                decoration: const InputDecoration(labelText: 'Phone'),
+                decoration: const InputDecoration(labelText: 'Telefon'),
                 onChanged:
                     (value) => setState(() {
                       _editedUser = _editedUser.copyWith(phone: value);
                     }),
               ),
               CompactSwitch(
-                title: 'Receive Push Notifications',
+                title: 'Anlık Bildirimler',
                 value: _editedUser.receivePush,
                 onChanged:
                     (value) => setState(() {
                       _editedUser = _editedUser.copyWith(receivePush: value);
                     }),
               ),
-
-              // Email Notifications
               CompactSwitch(
-                title: 'Receive Email Notifications',
+                title: 'E-posta Bildirimleri',
                 value: _editedUser.receiveMail,
                 onChanged:
                     (value) => setState(() {
                       _editedUser = _editedUser.copyWith(receiveMail: value);
                     }),
               ),
-
-              // SMS Notifications
               CompactSwitch(
-                title: 'Receive SMS Notifications',
+                title: 'SMS Bildirimleri',
                 value: _editedUser.receiveSMS,
                 onChanged:
                     (value) => setState(() {
@@ -167,13 +164,13 @@ class _UserDetailViewState extends State<UserDetailView> {
                     }),
               ),
             ] else ...[
-              ListTile(title: const Text('First Name'), subtitle: Text(_editedUser.firstName)),
-              ListTile(title: const Text('Last Name'), subtitle: Text(_editedUser.lastName)),
-              ListTile(title: const Text('Email'), subtitle: Text(_editedUser.email)),
-              if (_editedUser.phone != null && _editedUser.phone!.isNotEmpty) ListTile(title: const Text('Phone'), subtitle: Text(_editedUser.phone!)),
+              ListTile(title: const Text('Ad'), subtitle: Text(_editedUser.firstName)),
+              ListTile(title: const Text('Soyad'), subtitle: Text(_editedUser.lastName)),
+              ListTile(title: const Text('E-posta'), subtitle: Text(_editedUser.email)),
+              if (_editedUser.phone != null && _editedUser.phone!.isNotEmpty) ListTile(title: const Text('Telefon'), subtitle: Text(_editedUser.phone!)),
             ],
             const SizedBox(height: AppConstants.paddingExtraLarge),
-            const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Bitkiler:', style: TextStyle(fontWeight: FontWeight.bold)),
             ..._editedUser.plants.map(
               (plant) => ListTile(
                 title: Text(viewModel.getPlantNameById(plant.plantId)),
@@ -190,7 +187,7 @@ class _UserDetailViewState extends State<UserDetailView> {
                         : null,
               ),
             ),
-            if (canEdit) ElevatedButton(onPressed: () => _addPlants(context), child: const Text('Add Plants')),
+            if (canEdit) ElevatedButton(onPressed: () => _addPlants(context), child: const Text('Bitki Ekle')),
           ],
         ),
       ),
@@ -223,7 +220,7 @@ class _UserDetailViewState extends State<UserDetailView> {
     final availablePlants = viewModel.plantsDropdown.where((plant) => !_editedUser.plants.any((p) => p.plantId == plant.id)).toList();
 
     if (availablePlants.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No more plants available to add')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Eklenebilecek başka tesis bulunamadı')));
       return;
     }
 
@@ -232,7 +229,7 @@ class _UserDetailViewState extends State<UserDetailView> {
       builder: (context) {
         final selected = <int>[];
         return AlertDialog(
-          title: const Text('Add Plants'),
+          title: const Text('Bitki Ekle'),
           content: SingleChildScrollView(
             child: Column(
               children:
@@ -251,7 +248,7 @@ class _UserDetailViewState extends State<UserDetailView> {
                   }).toList(),
             ),
           ),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), TextButton(onPressed: () => Navigator.pop(context, selected), child: const Text('Add'))],
+          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')), TextButton(onPressed: () => Navigator.pop(context, selected), child: const Text('Ekle'))],
         );
       },
     );
@@ -267,7 +264,7 @@ class _UserDetailViewState extends State<UserDetailView> {
     final viewModel = Provider.of<UserViewModel>(context, listen: false);
     viewModel.updateUser(_editedUser).then((_) {
       if (mounted) {
-        Navigator.pop(context, true); // Değişiklik olduğunu belirt
+        Navigator.pop(context, true);
       }
     });
   }

@@ -62,7 +62,7 @@ class _UserCreateViewState extends State<UserCreateView> {
       await viewModel.loadPlantsDropdown();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load plants: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Tesisler yüklenemedi: $e')));
     } finally {
       if (mounted) {
         setState(() => _loadingPlants = false);
@@ -77,60 +77,60 @@ class _UserCreateViewState extends State<UserCreateView> {
     final viewModel = Provider.of<UserViewModel>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create New User')),
+      appBar: AppBar(title: const Text('Profil', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge))),
       body: Padding(
         padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Username'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              TextFormField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Kullanıcı Adı'), validator: (value) => value?.isEmpty ?? true ? 'Zorunlu alan' : null),
               const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'E-posta'),
                 validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Required';
-                  if (!value!.contains('@')) return 'Invalid email format';
+                  if (value?.isEmpty ?? true) return 'Zorunlu alan';
+                  if (!value!.contains('@')) return 'Geçersiz e-posta formatı';
                   return null;
                 },
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: AppConstants.paddingExtraLarge),
-              TextFormField(controller: _firstNameController, decoration: const InputDecoration(labelText: 'First Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              TextFormField(controller: _firstNameController, decoration: const InputDecoration(labelText: 'Ad'), validator: (value) => value?.isEmpty ?? true ? 'Zorunlu alan' : null),
               const SizedBox(height: AppConstants.paddingExtraLarge),
-              TextFormField(controller: _lastNameController, decoration: const InputDecoration(labelText: 'Last Name'), validator: (value) => value?.isEmpty ?? true ? 'Required' : null),
+              TextFormField(controller: _lastNameController, decoration: const InputDecoration(labelText: 'Soyad'), validator: (value) => value?.isEmpty ?? true ? 'Zorunlu alan' : null),
               const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Şifre'),
                 obscureText: true,
                 validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Required';
-                  if (value!.length < 6) return 'Password must be at least 6 characters';
+                  if (value?.isEmpty ?? true) return 'Zorunlu alan';
+                  if (value!.length < 6) return 'Şifre en az 6 karakter olmalı';
                   return null;
                 },
               ),
               const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(
                 controller: _confirmPasswordController,
-                decoration: const InputDecoration(labelText: 'Confirm Password'),
+                decoration: const InputDecoration(labelText: 'Şifreyi Onayla'),
                 obscureText: true,
                 validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Required';
-                  if (value != _passwordController.text) return 'Passwords do not match';
+                  if (value?.isEmpty ?? true) return 'Zorunlu alan';
+                  if (value != _passwordController.text) return 'Şifreler eşleşmiyor';
                   return null;
                 },
               ),
               const SizedBox(height: AppConstants.paddingExtraLarge),
-              TextFormField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Phone'), keyboardType: TextInputType.phone),
+              TextFormField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Telefon'), keyboardType: TextInputType.phone),
               const SizedBox(height: AppConstants.paddingExtraLarge),
-              const Text('Notification Preferences:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
-              CheckboxListTile(title: const Text('Receive Push Notifications'), value: _receivePush, onChanged: (value) => setState(() => _receivePush = value ?? true)),
-              CheckboxListTile(title: const Text('Receive Email Notifications'), value: _receiveMail, onChanged: (value) => setState(() => _receiveMail = value ?? true)),
-              CheckboxListTile(title: const Text('Receive SMS Notifications'), value: _receiveSMS, onChanged: (value) => setState(() => _receiveSMS = value ?? false)),
+              const Text('Bildirim Tercihleri:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+              CheckboxListTile(title: const Text('Anlık Bildirimler'), value: _receivePush, onChanged: (value) => setState(() => _receivePush = value ?? true)),
+              CheckboxListTile(title: const Text('E-posta Bildirimleri'), value: _receiveMail, onChanged: (value) => setState(() => _receiveMail = value ?? true)),
+              CheckboxListTile(title: const Text('SMS Bildirimleri'), value: _receiveSMS, onChanged: (value) => setState(() => _receiveSMS = value ?? false)),
               const SizedBox(height: AppConstants.paddingExtraLarge),
-              const Text('Role:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+              const Text('Rol:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
               DropdownButtonFormField<RoleDto>(
                 value: _selectedRole,
                 items:
@@ -147,18 +147,18 @@ class _UserCreateViewState extends State<UserCreateView> {
                 decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: AppConstants.paddingMedium)),
               ),
               const SizedBox(height: AppConstants.paddingExtraLarge),
-              const Text('Plants:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+              const Text('Tesisler:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
               if (_loadingPlants)
                 const Padding(padding: EdgeInsets.symmetric(vertical: AppConstants.paddingExtraLarge), child: Center(child: CircularProgressIndicator()))
               else if (viewModel.plantsDropdown.isEmpty)
-                const Text('No plants available', style: TextStyle(color: Colors.grey))
+                const Text('Kullanılabilir tesis yok', style: TextStyle(color: Colors.grey))
               else
                 Column(
                   children: [
-                    ElevatedButton(onPressed: _selectPlants, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, AppConstants.buttonHeight)), child: const Text('Select Plants')),
+                    ElevatedButton(onPressed: _selectPlants, style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, AppConstants.buttonHeight)), child: const Text('Tesis Seç')),
                     if (_selectedPlantIds.isNotEmpty) ...[
                       const SizedBox(height: AppConstants.paddingMedium),
-                      Text('Selected Plants: ${_selectedPlantIds.length}', style: const TextStyle(fontSize: AppConstants.fontSizeMedium)),
+                      Text('Seçilen Tesisler: ${_selectedPlantIds.length}', style: const TextStyle(fontSize: AppConstants.fontSizeMedium)),
                       const SizedBox(height: AppConstants.paddingMedium),
                       ..._selectedPlantIds.map((plantId) {
                         final plantName = viewModel.getPlantNameById(plantId);
@@ -175,7 +175,7 @@ class _UserCreateViewState extends State<UserCreateView> {
               ElevatedButton(
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, AppConstants.buttonHeight), backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
-                child: const Text('Create User'),
+                child: const Text('Kullanıcı Oluştur'),
               ),
             ],
           ),
@@ -189,7 +189,7 @@ class _UserCreateViewState extends State<UserCreateView> {
     final availablePlants = viewModel.plantsDropdown.where((plant) => !_selectedPlantIds.contains(plant.id)).toList();
 
     if (availablePlants.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All available plants are already selected')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tüm kullanılabilir tesisler zaten seçili')));
       return;
     }
 
@@ -200,7 +200,7 @@ class _UserCreateViewState extends State<UserCreateView> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Select Plants'),
+              title: const Text('Tesis Seç'),
               content: SizedBox(
                 width: double.maxFinite,
                 child: SingleChildScrollView(
@@ -225,10 +225,7 @@ class _UserCreateViewState extends State<UserCreateView> {
                   ),
                 ),
               ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-                TextButton(onPressed: () => Navigator.pop(context, tempSelected), child: const Text('Select')),
-              ],
+              actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')), TextButton(onPressed: () => Navigator.pop(context, tempSelected), child: const Text('Seç'))],
             );
           },
         );
@@ -269,11 +266,11 @@ class _UserCreateViewState extends State<UserCreateView> {
           .createUser(dto)
           .then((_) {
             if (!mounted) return;
-            Navigator.pop(context, true); // Yeni kullanıcı oluşturulduğunu belirt
+            Navigator.pop(context, true);
           })
           .catchError((error) {
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error creating user: $error')));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kullanıcı oluşturulurken hata: $error')));
           });
     }
   }

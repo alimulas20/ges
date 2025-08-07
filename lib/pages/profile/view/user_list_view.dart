@@ -38,7 +38,8 @@ class _UserListViewState extends State<UserListView> {
         builder: (context, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Profil'),
+              title: const Text('Profil', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
+              toolbarHeight: AppConstants.appBarHeight,
               actions: [
                 IconButton(icon: const Icon(Icons.refresh), onPressed: () => viewModel.refresh()),
                 if (viewModel.isAdmin || viewModel.isSuperAdmin) IconButton(icon: const Icon(Icons.add), onPressed: () => _navigateToCreateUser(context)),
@@ -60,13 +61,13 @@ class _UserListViewState extends State<UserListView> {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [Text(viewModel.error!), const SizedBox(height: AppConstants.paddingExtraLarge), ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Retry'))],
+          children: [Text(viewModel.error!), const SizedBox(height: AppConstants.paddingExtraLarge), ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Tekrar Dene'))],
         ),
       );
     }
 
     if (viewModel.currentUser == null) {
-      return const Center(child: Text('No user information available'));
+      return const Center(child: Text('Kullanıcı bilgisi bulunamadı'));
     }
 
     if (!viewModel.isAdmin && !viewModel.isSuperAdmin) {
@@ -114,32 +115,32 @@ class _UserListViewState extends State<UserListView> {
             Center(child: Text(user.email, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant))),
             const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
 
-            // User Details Section
-            _buildDetailRow(Icons.person_outline, 'Username', user.username, theme, colorScheme),
-            if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Phone', user.phone!, theme, colorScheme),
+            // Kullanıcı Detayları Bölümü
+            _buildDetailRow(Icons.person_outline, 'Kullanıcı Adı', user.username, theme, colorScheme),
+            if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Telefon', user.phone!, theme, colorScheme),
 
-            if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Role', user.role!, theme, colorScheme),
+            if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Rol', user.role!, theme, colorScheme),
 
             const SizedBox(height: AppConstants.paddingMedium),
             const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
 
-            // Notification Preferences
-            Text('Notification Preferences', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+            // Bildirim Tercihleri
+            Text('Bildirim Tercihleri', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
             const SizedBox(height: AppConstants.paddingMedium),
-            _buildNotificationPreference('Push Notifications', user.receivePush, theme, colorScheme),
-            _buildNotificationPreference('Email Notifications', user.receiveMail, theme, colorScheme),
-            _buildNotificationPreference('SMS Notifications', user.receiveSMS, theme, colorScheme),
+            _buildNotificationPreference('Anlık Bildirimler', user.receivePush, theme, colorScheme),
+            _buildNotificationPreference('E-Posta Bildirimleri', user.receiveMail, theme, colorScheme),
+            _buildNotificationPreference('SMS Bildirimleri', user.receiveSMS, theme, colorScheme),
 
-            // Associated Plants
+            // İlişkili Tesisler
             if (user.plants.isNotEmpty) ...[
               const SizedBox(height: AppConstants.paddingMedium),
               const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
-              Text('Associated Plants', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
+              Text('İlişkili Tesisler', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
               const SizedBox(height: AppConstants.paddingMedium),
               Wrap(
                 spacing: AppConstants.paddingMedium,
                 runSpacing: AppConstants.paddingMedium,
-                children: user.plants.map((plant) => Chip(label: Text(plant.plantName ?? 'Plant ${plant.plantId}'), backgroundColor: colorScheme.primaryContainer)).toList(),
+                children: user.plants.map((plant) => Chip(label: Text(plant.plantName ?? 'Tesis ${plant.plantId}'), backgroundColor: colorScheme.primaryContainer)).toList(),
               ),
             ],
           ],
@@ -180,7 +181,7 @@ class _UserListViewState extends State<UserListView> {
 
   Widget _buildAdminView(UserViewModel viewModel, ThemeData theme, ColorScheme colorScheme) {
     if (viewModel.plantUsers.isEmpty) {
-      return const Padding(padding: EdgeInsets.only(bottom: AppConstants.paddingExtraLarge), child: Center(child: Text('No users found')));
+      return const Padding(padding: EdgeInsets.only(bottom: AppConstants.paddingExtraLarge), child: Center(child: Text('Kullanıcı bulunamadı')));
     }
 
     return Column(
@@ -188,7 +189,7 @@ class _UserListViewState extends State<UserListView> {
         ...viewModel.plantUsers.map((plantUsers) {
           return ExpansionTile(
             title: Text(plantUsers.plantName),
-            subtitle: Text('${plantUsers.users.length} users'),
+            subtitle: Text('${plantUsers.users.length} kullanıcı'),
             children: plantUsers.users.map((user) => _buildUserTile(user, theme, colorScheme)).toList(),
           );
         }),
@@ -213,6 +214,7 @@ class _UserListViewState extends State<UserListView> {
   void _navigateToUserDetail(BuildContext context, UserDto user) async {
     try {
       final updatedUser = await _viewModel.getUserById(user.id);
+      if (!mounted) return;
       final needsRefresh = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => ChangeNotifierProvider.value(value: _viewModel, child: UserDetailView(user: updatedUser))));
 
       if (needsRefresh == true) {
@@ -220,7 +222,7 @@ class _UserListViewState extends State<UserListView> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to fetch user details: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kullanıcı detayları alınamadı: $e')));
     }
   }
 

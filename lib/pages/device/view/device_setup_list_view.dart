@@ -38,7 +38,9 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Inverterler', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
+
           actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.fetchDevices(widget.plantId))],
+          toolbarHeight: AppConstants.appBarHeight,
         ),
         body: Consumer<DeviceSetupListViewModel>(
           builder: (context, viewModel, child) {

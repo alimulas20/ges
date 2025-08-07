@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,7 +22,10 @@ import 'pages/profile/viewmodel/user_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if (!kIsWeb) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  }
+
   DioService.init();
 
   runApp(const MyApp());
@@ -50,6 +54,7 @@ class MyApp extends StatelessWidget {
   }
 
   Future<void> _setupFirebaseMessaging() async {
+    if (kIsWeb) return;
     final messaging = FirebaseMessaging.instance;
 
     // Arkaplanda gelen bildirimler
@@ -79,6 +84,7 @@ class MyApp extends StatelessWidget {
     // Örneğin belirli bir sayfaya yönlendirme
   }
   static Future<void> _setupFirebaseToken() async {
+    if (kIsWeb) return;
     try {
       // Firebase Messaging instance'ını al
       final messaging = FirebaseMessaging.instance;

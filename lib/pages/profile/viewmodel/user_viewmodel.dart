@@ -130,12 +130,14 @@ class UserViewModel with ChangeNotifier {
     return _roles.first;
   }
 
-  Future<void> setProfilePicture(XFile file) async {
+  Future<String?> setProfilePicture(XFile file) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await _service.setProfilePicture(file);
+      var url = await _service.setProfilePicture(file);
+      _currentUser = await _service.getCurrentUser();
+      return url ?? "";
     } catch (e) {
       _error = e.toString();
       rethrow;

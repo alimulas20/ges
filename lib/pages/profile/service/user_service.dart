@@ -75,10 +75,11 @@ class UserService {
     }
   }
 
-  Future<void> setProfilePicture(dynamic file) async {
+  Future<String?> setProfilePicture(dynamic file) async {
     try {
       FormData formData = FormData.fromMap({'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last)});
-      await DioService.dio.post('/users/setProfileImage', data: formData);
+      var response = await DioService.dio.post<String>('/users/setProfileImage', data: formData);
+      return response.data;
     } catch (e) {
       throw Exception('Failed to set profile picture: $e');
     }

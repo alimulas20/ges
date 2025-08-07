@@ -41,9 +41,9 @@ class _UserDetailViewState extends State<UserDetailView> {
       }
       final viewModel = Provider.of<UserViewModel>(context, listen: false);
       try {
-        await viewModel.setProfilePicture(pickedFile);
+        var url = await viewModel.setProfilePicture(pickedFile);
         setState(() {
-          _editedUser = _editedUser.copyWith(profilePictureUrl: '${_editedUser.profilePictureUrl}?${DateTime.now().millisecondsSinceEpoch}');
+          _editedUser = _editedUser.copyWith(profilePictureUrl: url);
         });
       } catch (e) {
         mounted ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Resim yüklenemedi: $e'))) : null;
@@ -170,7 +170,7 @@ class _UserDetailViewState extends State<UserDetailView> {
               if (_editedUser.phone != null && _editedUser.phone!.isNotEmpty) ListTile(title: const Text('Telefon'), subtitle: Text(_editedUser.phone!)),
             ],
             const SizedBox(height: AppConstants.paddingExtraLarge),
-            const Text('Bitkiler:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Tesisler:', style: TextStyle(fontWeight: FontWeight.bold)),
             ..._editedUser.plants.map(
               (plant) => ListTile(
                 title: Text(viewModel.getPlantNameById(plant.plantId)),
@@ -187,7 +187,7 @@ class _UserDetailViewState extends State<UserDetailView> {
                         : null,
               ),
             ),
-            if (canEdit) ElevatedButton(onPressed: () => _addPlants(context), child: const Text('Bitki Ekle')),
+            if (canEdit) ElevatedButton(onPressed: () => _addPlants(context), child: const Text('Tesis Ekle')),
           ],
         ),
       ),
@@ -229,7 +229,7 @@ class _UserDetailViewState extends State<UserDetailView> {
       builder: (context) {
         final selected = <int>[];
         return AlertDialog(
-          title: const Text('Bitki Ekle'),
+          title: const Text('Tesis Ekle'),
           content: SingleChildScrollView(
             child: Column(
               children:

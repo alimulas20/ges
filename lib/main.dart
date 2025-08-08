@@ -37,6 +37,8 @@ class MyApp extends StatelessWidget {
   Future<Widget> getInitialPage() async {
     final auth = await TokenManager.getAuth();
     if (auth != null) {
+      setupFirebaseToken();
+      setupFirebaseMessaging();
       return MultiProvider(
         providers: [
           // Tüm uygulama boyunca kullanılacak Provider'ları burada tanımlayın
@@ -53,7 +55,7 @@ class MyApp extends StatelessWidget {
     }
   }
 
-  Future<void> _setupFirebaseMessaging() async {
+  Future<void> setupFirebaseMessaging() async {
     if (kIsWeb) return;
     final messaging = FirebaseMessaging.instance;
 
@@ -83,7 +85,7 @@ class MyApp extends StatelessWidget {
     // Bildirime tıklandığında yapılacak işlemler
     // Örneğin belirli bir sayfaya yönlendirme
   }
-  static Future<void> _setupFirebaseToken() async {
+  Future<void> setupFirebaseToken() async {
     if (kIsWeb) return;
     try {
       // Firebase Messaging instance'ını al
@@ -122,8 +124,6 @@ class MyApp extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           } else if (snapshot.hasData) {
-            _setupFirebaseToken();
-            _setupFirebaseMessaging();
             return snapshot.data!; // Provider'lar zaten tanımlı
           } else {
             return const Scaffold(body: Center(child: Text("Bir hata oluştu")));

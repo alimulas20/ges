@@ -1,6 +1,7 @@
 // user_list_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solar/global/managers/token_manager.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../plant/services/plant_service.dart';
@@ -76,7 +77,19 @@ class _UserListViewState extends State<UserListView> {
 
     return SingleChildScrollView(
       child: Column(
-        children: [_buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme), const SizedBox(height: AppConstants.paddingExtraLarge), _buildAdminView(viewModel, theme, colorScheme)],
+        children: [
+          _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
+          const SizedBox(height: AppConstants.paddingExtraLarge),
+          _buildAdminView(viewModel, theme, colorScheme),
+          TextButton.icon(
+            label: Text("Çıkış Yap"),
+            onPressed: () {
+              TokenManager.clearToken();
+              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            },
+            icon: Icon(Icons.logout),
+          ),
+        ],
       ),
     );
   }

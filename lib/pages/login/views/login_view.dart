@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solar/global/extensions/string_extension.dart';
 import '../../../global/widgets/app_text_field.dart';
 import '../viewmodels/login_view_model.dart';
 
@@ -29,7 +30,7 @@ class LoginView extends StatelessWidget {
                 Container(
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), image: DecorationImage(image: NetworkImage('https://picsum.photos/200'), fit: BoxFit.cover)),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), image: DecorationImage(image: AssetImage("solar_icon.png".imageAsset), fit: BoxFit.cover)),
                 ),
                 const SizedBox(height: 32),
 

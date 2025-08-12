@@ -72,7 +72,22 @@ class _UserListViewState extends State<UserListView> {
     }
 
     if (!viewModel.isAdmin && !viewModel.isSuperAdmin) {
-      return SingleChildScrollView(child: _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme));
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
+            const SizedBox(height: AppConstants.paddingExtraLarge),
+            TextButton.icon(
+              label: Text("Çıkış Yap"),
+              onPressed: () {
+                TokenManager.clearToken();
+                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+              },
+              icon: Icon(Icons.logout),
+            ),
+          ],
+        ),
+      );
     }
 
     return SingleChildScrollView(
@@ -81,6 +96,7 @@ class _UserListViewState extends State<UserListView> {
           _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
           const SizedBox(height: AppConstants.paddingExtraLarge),
           _buildAdminView(viewModel, theme, colorScheme),
+          const SizedBox(height: AppConstants.paddingExtraLarge),
           TextButton.icon(
             label: Text("Çıkış Yap"),
             onPressed: () {

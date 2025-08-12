@@ -28,6 +28,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -45,5 +49,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil fotoğrafınızı seçebilmeniz için fotoğraf galerisine erişmemiz gerekiyor.</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>Size bildirim gönderebilmemiz için izninize ihtiyacımız var.</string>
 </dict>
 </plist>

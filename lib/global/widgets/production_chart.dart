@@ -9,8 +9,9 @@ class ProductionChart extends StatelessWidget {
   final Color lineColor;
   final String? bottomDescription;
   final ProductionTimePeriod timePeriod;
+  final String unit;
 
-  const ProductionChart({super.key, required this.dataPoints, this.lineColor = Colors.blueAccent, this.bottomDescription, required this.timePeriod});
+  const ProductionChart({super.key, required this.dataPoints, this.lineColor = Colors.blueAccent, this.bottomDescription, required this.timePeriod, required this.unit});
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +23,7 @@ class ProductionChart extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(25), blurRadius: 6, offset: const Offset(0, 2))],
-      ),
+      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.elevatedShadow),
       child: Column(
         children: [
           SizedBox(
@@ -53,7 +50,7 @@ class ProductionChart extends StatelessWidget {
           touchTooltipData: LineTouchTooltipData(
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
-                return LineTooltipItem('${spot.y.toStringAsFixed(1)} kWh', const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: AppConstants.fontSizeSmall));
+                return LineTooltipItem('${spot.y.toStringAsFixed(1)} $unit', const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: AppConstants.fontSizeSmall));
               }).toList();
             },
           ),
@@ -117,7 +114,7 @@ class ProductionChart extends StatelessWidget {
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              return BarTooltipItem('${rod.toY.toStringAsFixed(1)} kWh', const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: AppConstants.fontSizeSmall));
+              return BarTooltipItem('${rod.toY.toStringAsFixed(1)} $unit', const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: AppConstants.fontSizeSmall));
             },
           ),
         ),

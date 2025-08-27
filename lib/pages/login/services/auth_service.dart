@@ -2,13 +2,14 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:solar/global/constant/url_constant.dart';
 import 'package:solar/main.dart';
 import '../../../global/managers/token_manager.dart';
 import '../models/token_response.dart';
 import '../models/login_model.dart';
 
 class AuthService {
-  final String _baseUrl = 'https://pms-demo.smartplant360.com';
+  final String _baseUrl = UrlConstants.baseUrl;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   Future<TokenResponse> login(LoginModel model) async {

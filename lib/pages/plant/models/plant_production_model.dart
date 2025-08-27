@@ -1,17 +1,27 @@
 class PlantProductionDTO {
   final int plantId;
   final String plantName;
+  final double totalProduction; // Yeni eklendi
   final List<ProductionDataPointDTO> dataPoints;
   final String unit;
   final ProductionTimePeriod timePeriod;
   final DateTime selectedDate;
 
-  PlantProductionDTO({required this.plantId, required this.plantName, required this.dataPoints, this.unit = "kWh", required this.timePeriod, required this.selectedDate});
+  PlantProductionDTO({
+    required this.plantId,
+    required this.plantName,
+    required this.totalProduction, // Yeni eklendi
+    required this.dataPoints,
+    this.unit = "kWh",
+    required this.timePeriod,
+    required this.selectedDate,
+  });
 
   factory PlantProductionDTO.fromJson(Map<String, dynamic> json) {
     return PlantProductionDTO(
       plantId: json['plantId'],
       plantName: json['plantName'],
+      totalProduction: (json['totalProduction'] ?? 0).toDouble(), // JSON'dan al
       dataPoints: (json['dataPoints'] as List).map((e) => ProductionDataPointDTO.fromJson(e)).toList(),
       unit: json['unit'] ?? "kWh",
       timePeriod: ProductionTimePeriod.values[json['timePeriod']],

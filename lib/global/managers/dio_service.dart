@@ -1,16 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:solar/global/constant/url_constant.dart';
 import '../../pages/login/services/auth_service.dart';
 import 'token_manager.dart';
 
 class DioService {
   static final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: 'https://pms-demo.smartplant360.com/services/logger',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      contentType: 'application/json',
-    ),
+    BaseOptions(baseUrl: UrlConstants.getApiUrl(), connectTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 10), contentType: 'application/json'),
   );
 
   // Store a navigator key globally

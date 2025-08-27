@@ -57,9 +57,19 @@ class _PlantProductionViewState extends State<PlantProductionView> {
                   _buildControls(viewModel),
                   const SizedBox(height: AppConstants.paddingUltraLarge),
 
+                  // Total production card - TABLONUN ÜSTÜNDE GÖRÜNTÜLE
+                  if (viewModel.productionData != null) _buildTotalProductionCard(viewModel.productionData!),
+
+                  const SizedBox(height: AppConstants.paddingUltraLarge),
+
                   // Production chart
                   if (viewModel.productionData != null)
-                    ProductionChart(dataPoints: viewModel.productionData!.dataPoints, bottomDescription: viewModel.bottomDescription, timePeriod: viewModel.selectedTimePeriod),
+                    ProductionChart(
+                      dataPoints: viewModel.productionData!.dataPoints,
+                      bottomDescription: viewModel.bottomDescription,
+                      timePeriod: viewModel.selectedTimePeriod,
+                      unit: viewModel.productionData?.unit ?? "",
+                    ),
                 ],
               ),
             );
@@ -67,6 +77,60 @@ class _PlantProductionViewState extends State<PlantProductionView> {
         ),
       ),
     );
+  }
+
+  // Toplam üretim kartı
+  // Toplam üretim kartı
+  Widget _buildTotalProductionCard(PlantProductionDTO productionData) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        boxShadow: AppConstants.elevatedShadow, // Aynı shadow kullanımı
+      ),
+      child: Card(
+        elevation: 0, // Card'ın kendi gölgesini devre dışı bırak
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge)),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.paddingLarge),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Toplam Üretim', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: AppConstants.paddingMedium),
+              Row(
+                children: [
+                  Text(
+                    productionData.totalProduction.toStringAsFixed(2),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: AppConstants.paddingSmall),
+                  Text("kWh", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.secondary)),
+                ],
+              ),
+              const SizedBox(height: AppConstants.paddingSmall),
+              Text(
+                _getTimePeriodDescription(productionData.timePeriod, productionData.selectedDate),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(153)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getTimePeriodDescription(ProductionTimePeriod timePeriod, DateTime selectedDate) {
+    final dateFormat = DateFormat('dd/MM/yyyy');
+    switch (timePeriod) {
+      case ProductionTimePeriod.daily:
+        return dateFormat.format(selectedDate);
+      case ProductionTimePeriod.monthly:
+        return DateFormat('MMMM yyyy').format(selectedDate);
+      case ProductionTimePeriod.yearly:
+        return selectedDate.year.toString();
+      case ProductionTimePeriod.lifetime:
+        return 'Tüm Zamanlar';
+    }
   }
 
   Widget _buildControls(PlantProductionViewModel viewModel) {

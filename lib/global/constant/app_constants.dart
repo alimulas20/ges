@@ -1,4 +1,7 @@
 // constants/app_constants.dart
+
+import 'package:flutter/widgets.dart';
+
 class AppConstants {
   /// Padding and margin values
 
@@ -153,4 +156,21 @@ class AppConstants {
 
   /// 50.0 (large width for left chart axis)
   static const double chartLeftAxisWidthLarge = 50;
+
+  static const List<BoxShadow> cardShadow = [
+    BoxShadow(
+      color: Color(0x19000000), // %10 opacity siyah
+      blurRadius: 6,
+      offset: Offset(0, 2),
+    ),
+  ];
+
+  static const List<BoxShadow> elevatedShadow = [
+    BoxShadow(
+      color: Color(0x29000000), // %16 opacity siyah
+      blurRadius: 10,
+      spreadRadius: 2,
+      offset: Offset(0, 4),
+    ),
+  ];
 }

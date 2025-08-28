@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:solar/pages/plant/models/plant_with_latest_weather_dto.dart';
 import '../../../global/constant/app_constants.dart';
 import '../services/map_service.dart';
 import '../viewmodels/map_viewmodel.dart';
 import '../models/pv_string_model.dart';
 
 class MapView extends StatefulWidget {
-  final int plantId;
+  final PlantWithLatestWeatherDto plant;
 
-  const MapView({super.key, required this.plantId});
+  const MapView({super.key, required this.plant});
 
   @override
   MapViewState createState() => MapViewState();
@@ -20,8 +21,29 @@ class MapView extends StatefulWidget {
 class MapViewState extends State<MapView> {
   late final MapViewModel _viewModel;
   final MapController _mapController = MapController();
-  final LatLng _initialTopLeft = const LatLng(39.808451, 32.453752);
-  final LatLng _initialBottomRight = const LatLng(39.805106, 32.461504);
+
+  // Varsayılan değerler
+  LatLng? get _initialTopLeft {
+    if (widget.plant.mapTopLeftLat != null && widget.plant.mapTopLeftLng != null) {
+      return LatLng(widget.plant.mapTopLeftLat!, widget.plant.mapTopLeftLng!);
+    }
+    return null;
+  }
+
+  LatLng? get _initialBottomRight {
+    if (widget.plant.mapBottomRightLat != null && widget.plant.mapBottomRightLng != null) {
+      return LatLng(widget.plant.mapBottomRightLat!, widget.plant.mapBottomRightLng!);
+    }
+    return null;
+  }
+
+  double get _initialZoom {
+    return widget.plant.mapZoomLevel ?? 19.6;
+  }
+
+  String? get _mapImageUrl {
+    return widget.plant.mapImageUrl;
+  }
 
   @override
   void initState() {
@@ -31,15 +53,15 @@ class MapViewState extends State<MapView> {
   }
 
   Future<void> _loadData() async {
-    await _viewModel.fetchPVStrings(widget.plantId);
+    await _viewModel.fetchPVStrings(widget.plant.id);
     if (_viewModel.pvStrings.isNotEmpty) {
       _centerMap();
     }
   }
 
   void _centerMap() {
-    var center = LatLng(39.806783, 32.457461);
-    _mapController.move(center, 19.6);
+    var center = LatLng(widget.plant.latitude, widget.plant.longitude);
+    _mapController.move(center, _initialZoom);
   }
 
   @override
@@ -68,23 +90,24 @@ class MapViewState extends State<MapView> {
                 FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: const LatLng(39.806783, 32.457461),
-                    initialZoom: 19.6,
+                    initialCenter: LatLng(widget.plant.latitude, widget.plant.longitude),
+                    initialZoom: _initialZoom,
                     minZoom: 0,
                     maxZoom: 25,
                     onTap: (_, __) => viewModel.selectString(null),
-                    cameraConstraint: CameraConstraint.contain(bounds: LatLngBounds.fromPoints([_initialTopLeft, _initialBottomRight])),
+                    cameraConstraint:
+                        _initialBottomRight != null && _initialTopLeft != null
+                            ? CameraConstraint.contain(bounds: LatLngBounds.fromPoints([_initialTopLeft!, _initialBottomRight!]))
+                            : CameraConstraint.unconstrained(),
                   ),
                   children: [
-                    OverlayImageLayer(
-                      overlayImages: [
-                        OverlayImage(
-                          bounds: LatLngBounds.fromPoints([_initialTopLeft, _initialBottomRight]),
-                          opacity: 0.8,
-                          imageProvider: NetworkImage('http://78.187.86.118:8083/UPLOAD/mistav_3.jpg'),
-                        ),
-                      ],
-                    ),
+                    // Sadece mapImageUrl null değilse overlay image göster
+                    if (_mapImageUrl != null && _initialBottomRight != null && _initialTopLeft != null)
+                      OverlayImageLayer(
+                        overlayImages: [
+                          OverlayImage(bounds: LatLngBounds.fromPoints([_initialTopLeft!, _initialBottomRight!]), opacity: 0.8, imageProvider: NetworkImage(_mapImageUrl!)),
+                        ],
+                      ),
                     PolygonLayer(
                       polygons: List.generate(polygonPoints.length, (index) {
                         return Polygon(points: polygonPoints[index], color: polygonColors[index], borderColor: borderColors[index], borderStrokeWidth: 2);
@@ -120,13 +143,7 @@ class MapViewState extends State<MapView> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: AnimatedToggleSwitch<ColorMode>.size(
                           current: viewModel.colorMode,
-                          style: ToggleStyle(
-                            // backgroundColor: const Color(0xFF919191),
-                            // indicatorColor: const Color(0xFFEC3345),
-                            borderColor: Colors.transparent,
-                            borderRadius: BorderRadius.circular(10.0),
-                            indicatorBorderRadius: BorderRadius.zero,
-                          ),
+                          style: ToggleStyle(borderColor: Colors.transparent, borderRadius: BorderRadius.circular(10.0), indicatorBorderRadius: BorderRadius.zero),
                           values: const [ColorMode.voltage, ColorMode.current, ColorMode.power],
                           iconOpacity: 1.0,
                           selectedIconScale: 1.0,
@@ -151,13 +168,7 @@ class MapViewState extends State<MapView> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: AnimatedToggleSwitch<ShowMode>.size(
                           current: viewModel.showMode,
-                          style: ToggleStyle(
-                            // backgroundColor: const Color(0xFF919191),
-                            // indicatorColor: const Color(0xFFEC3345),
-                            borderColor: Colors.transparent,
-                            borderRadius: BorderRadius.circular(10.0),
-                            indicatorBorderRadius: BorderRadius.zero,
-                          ),
+                          style: ToggleStyle(borderColor: Colors.transparent, borderRadius: BorderRadius.circular(10.0), indicatorBorderRadius: BorderRadius.zero),
                           values: const [ShowMode.last, ShowMode.max],
                           iconOpacity: 1.0,
                           selectedIconScale: 1.0,

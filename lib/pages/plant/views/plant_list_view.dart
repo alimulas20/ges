@@ -89,7 +89,7 @@ class _PlantListViewState extends State<PlantListView> {
             MaterialPageRoute(
               builder:
                   (_) => CustomNavbar(
-                    pages: [MapView(plantId: plant.id), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
+                    pages: [MapView(plant: plant), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
                     icons: const [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
                   ),
             ),

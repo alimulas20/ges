@@ -15,6 +15,14 @@ class PlantWithLatestWeatherDto {
   final WeatherDataDto? latestWeather;
   final String? plantPictureUrl;
 
+  // Harita için statik veriler
+  final double? mapZoomLevel;
+  final String? mapImageUrl;
+  final double? mapTopLeftLat;
+  final double? mapTopLeftLng;
+  final double? mapBottomRightLat;
+  final double? mapBottomRightLng;
+
   PlantWithLatestWeatherDto({
     required this.id,
     required this.name,
@@ -29,6 +37,12 @@ class PlantWithLatestWeatherDto {
     required this.dailyProduction,
     this.latestWeather,
     this.plantPictureUrl,
+    this.mapZoomLevel,
+    this.mapImageUrl,
+    this.mapTopLeftLat,
+    this.mapTopLeftLng,
+    this.mapBottomRightLat,
+    this.mapBottomRightLng,
   });
 
   factory PlantWithLatestWeatherDto.fromJson(Map<String, dynamic> json) {
@@ -46,6 +60,12 @@ class PlantWithLatestWeatherDto {
       dailyProduction: json['dailyProduction']?.toDouble() ?? 0.0,
       latestWeather: json['latestWeather'] != null ? WeatherDataDto.fromJson(json['latestWeather']) : null,
       plantPictureUrl: json['plantPictureUrl'],
+      mapZoomLevel: json['mapZoomLevel']?.toDouble(),
+      mapImageUrl: json['mapImageUrl'],
+      mapTopLeftLat: json['mapTopLeftLat']?.toDouble(),
+      mapTopLeftLng: json['mapTopLeftLng']?.toDouble(),
+      mapBottomRightLat: json['mapBottomRightLat']?.toDouble(),
+      mapBottomRightLng: json['mapBottomRightLng']?.toDouble(),
     );
   }
 
@@ -64,6 +84,12 @@ class PlantWithLatestWeatherDto {
       'dailyProduction': dailyProduction,
       'latestWeather': latestWeather?.toJson(),
       'plantPictureUrl': plantPictureUrl,
+      'mapZoomLevel': mapZoomLevel,
+      'mapImageUrl': mapImageUrl,
+      'mapTopLeftLat': mapTopLeftLat,
+      'mapTopLeftLng': mapTopLeftLng,
+      'mapBottomRightLat': mapBottomRightLat,
+      'mapBottomRightLng': mapBottomRightLng,
     };
   }
 }

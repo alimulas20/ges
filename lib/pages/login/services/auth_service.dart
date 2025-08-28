@@ -33,28 +33,6 @@ class AuthService {
     await TokenManager.clearToken();
   }
 
-  Future<String?> getToken() async {
-    // Check if refresh token is expired
-    final refreshExpiresAtStr = await _storage.read(key: 'refresh_expires_at');
-    if (refreshExpiresAtStr == null) return null;
-
-    final refreshExpiresAt = int.tryParse(refreshExpiresAtStr) ?? 0;
-    if (DateTime.now().millisecondsSinceEpoch > refreshExpiresAt) {
-      await logout();
-      return null;
-    }
-
-    // Check if access token is expired
-    final expiresAtStr = await _storage.read(key: 'expires_at');
-    if (expiresAtStr == null) return null;
-
-    final expiresAt = int.tryParse(expiresAtStr) ?? 0;
-    if (DateTime.now().millisecondsSinceEpoch > expiresAt) {
-      return await refreshAccessToken();
-    }
-    return await _storage.read(key: 'access_token');
-  }
-
   Future<String?> refreshAccessToken() async {
     final refreshToken = await _storage.read(key: 'refresh_token');
 

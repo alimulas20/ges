@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide DatePickerMode;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -8,6 +8,7 @@ import '../services/plant_service.dart';
 
 import '../../../global/widgets/production_chart.dart';
 import '../viewmodels/plant_production_viewmodel.dart';
+import '../../../global/widgets/custom_date_picker.dart'; // Yeni eklediğimiz import
 
 class PlantProductionView extends StatefulWidget {
   final int plantId;
@@ -80,15 +81,11 @@ class _PlantProductionViewState extends State<PlantProductionView> {
   }
 
   // Toplam üretim kartı
-  // Toplam üretim kartı
   Widget _buildTotalProductionCard(PlantProductionDTO productionData) {
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
-        boxShadow: AppConstants.elevatedShadow, // Aynı shadow kullanımı
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.elevatedShadow),
       child: Card(
-        elevation: 0, // Card'ın kendi gölgesini devre dışı bırak
+        elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge)),
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.paddingLarge),
@@ -153,6 +150,23 @@ class _PlantProductionViewState extends State<PlantProductionView> {
   }
 
   Widget _buildDatePicker(PlantProductionViewModel viewModel) {
+    String dateText;
+
+    switch (viewModel.selectedTimePeriod) {
+      case ProductionTimePeriod.daily:
+        dateText = DateFormat('dd/MM/yyyy').format(viewModel.selectedDate);
+        break;
+      case ProductionTimePeriod.monthly:
+        dateText = DateFormat('MMMM yyyy').format(viewModel.selectedDate);
+        break;
+      case ProductionTimePeriod.yearly:
+        dateText = viewModel.selectedDate.year.toString();
+        break;
+      case ProductionTimePeriod.lifetime:
+        dateText = '';
+        break;
+    }
+
     return InkWell(
       onTap: () => _selectDate(context, viewModel),
       child: InputDecorator(
@@ -161,16 +175,30 @@ class _PlantProductionViewState extends State<PlantProductionView> {
           border: OutlineInputBorder(),
           contentPadding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: AppConstants.paddingMedium),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [Text(DateFormat('dd/MM/yyyy').format(viewModel.selectedDate)), const Icon(Icons.calendar_today, size: AppConstants.iconSizeMedium)],
-        ),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(dateText), const Icon(Icons.calendar_today, size: AppConstants.iconSizeMedium)]),
       ),
     );
   }
 
   Future<void> _selectDate(BuildContext context, PlantProductionViewModel viewModel) async {
-    final DateTime? picked = await showDatePicker(context: context, initialDate: viewModel.selectedDate, firstDate: DateTime(2000), lastDate: DateTime.now());
+    DatePickerMode mode;
+
+    switch (viewModel.selectedTimePeriod) {
+      case ProductionTimePeriod.daily:
+        mode = DatePickerMode.day;
+        break;
+      case ProductionTimePeriod.monthly:
+        mode = DatePickerMode.month;
+        break;
+      case ProductionTimePeriod.yearly:
+        mode = DatePickerMode.year;
+        break;
+      case ProductionTimePeriod.lifetime:
+        return; // Lifetime için date picker göstermiyoruz
+    }
+
+    final DateTime? picked = await CustomDatePicker.showCustomDatePicker(context: context, initialDate: viewModel.selectedDate, mode: mode, firstDate: DateTime(2000), lastDate: DateTime.now());
+
     if (picked != null && picked != viewModel.selectedDate) {
       viewModel.setSelectedDate(picked);
     }

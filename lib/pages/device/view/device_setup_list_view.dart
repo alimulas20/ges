@@ -100,7 +100,7 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
                         AlarmsPage(deviceSetupId: device.deviceSetupId), // PV Comparison page
                         DeviceInfoView(deviceSetupId: device.deviceSetupId), // Empty page 4
                       ],
-                      icons: const [Icon(Icons.info), Icon(Icons.history), Icon(Icons.show_chart), Icon(Icons.settings)],
+                      icons: const [Icon(Icons.bolt), Icon(Icons.show_chart), Icon(Icons.notifications), Icon(Icons.info)],
                     ),
               ),
             );

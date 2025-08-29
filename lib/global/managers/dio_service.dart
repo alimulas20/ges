@@ -11,15 +11,15 @@ class DioService {
 
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  // Token refresh işleminin devam edip etmediğini takip etmek için
   static bool _isRefreshing = false;
-  static final List<RequestOptions> _pendingRequests = [];
+  static final List<({RequestOptions options, ErrorInterceptorHandler handler})> _pendingRequests = [];
 
   static void init() {
     _dio.interceptors.clear();
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          debugPrint('Request: ${options.method} ${options.path}');
           final token = await TokenManager.getAccessToken();
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -27,64 +27,97 @@ class DioService {
           handler.next(options);
         },
         onError: (DioException e, handler) async {
-          // 401 Unauthorized hatası ve refresh denemesi yapılmamışsa
-          if (e.response?.statusCode == 401 && !e.requestOptions.path.contains('refresh')) {
-            // Eğer refresh işlemi zaten devam ediyorsa, isteği beklemeye al
-            if (_isRefreshing) {
-              _pendingRequests.add(e.requestOptions);
-              return;
-            }
+          debugPrint('Error: ${e.response?.statusCode} ${e.requestOptions.path}');
 
-            _isRefreshing = true;
-            final originalRequest = e.requestOptions;
+          // Refresh endpoint'ine istek yapıyorsak veya 401 değilse direkt geç
+          if (e.response?.statusCode != 401 || e.requestOptions.path.contains('refresh')) {
+            return handler.next(e);
+          }
 
-            try {
-              final newToken = await AuthService().refreshAccessToken();
+          // Eğer refresh işlemi zaten devam ediyorsa, isteği beklemeye al
+          if (_isRefreshing) {
+            debugPrint('Refresh already in progress, adding to pending requests');
+            _pendingRequests.add((options: e.requestOptions, handler: handler));
+            return;
+          }
 
-              if (newToken != null) {
-                // Tüm bekleyen istekleri yeni token ile güncelle
-                _isRefreshing = false;
-                _retryAllPendingRequests(newToken);
+          _isRefreshing = true;
+          debugPrint('Starting token refresh...');
 
-                // Orijinal isteği tekrarla
-                originalRequest.headers['Authorization'] = 'Bearer $newToken';
-                final retryResponse = await _dio.fetch(originalRequest);
-                return handler.resolve(retryResponse);
-              } else {
-                await _handleTokenExpiration();
-                return handler.next(e);
-              }
-            } catch (refreshError) {
-              debugPrint('Token refresh failed: $refreshError');
+          try {
+            final newToken = await AuthService().refreshAccessToken();
+
+            if (newToken != null) {
+              debugPrint('Token refresh successful');
               _isRefreshing = false;
-              _pendingRequests.clear();
+
+              // Önce orijinal isteği tekrarla
+              e.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+              final retryResponse = await _dio.fetch(e.requestOptions);
+
+              // Sonra bekleyen tüm istekleri işle
+              await _retryAllPendingRequests(newToken);
+
+              return handler.resolve(retryResponse);
+            } else {
+              debugPrint('Token refresh returned null');
               await _handleTokenExpiration();
               return handler.next(e);
             }
-          }
+          } catch (refreshError) {
+            debugPrint('Token refresh failed: $refreshError');
+            _isRefreshing = false;
+            await _handleTokenExpiration();
 
-          handler.next(e);
+            // Tüm bekleyen isteklere hata dön
+            _rejectAllPendingRequests(refreshError);
+
+            return handler.next(e);
+          }
         },
       ),
     );
   }
 
-  static void _retryAllPendingRequests(String newToken) {
-    for (final requestOptions in _pendingRequests) {
-      requestOptions.headers['Authorization'] = 'Bearer $newToken';
-      _dio.fetch(requestOptions).catchError((error) {
-        debugPrint('Retry request failed: $error');
-      });
+  static Future<void> _retryAllPendingRequests(String newToken) async {
+    debugPrint('Retrying ${_pendingRequests.length} pending requests');
+
+    for (final pending in _pendingRequests) {
+      try {
+        pending.options.headers['Authorization'] = 'Bearer $newToken';
+        final response = await _dio.fetch(pending.options);
+        pending.handler.resolve(response);
+      } catch (error) {
+        pending.handler.next(DioException(requestOptions: pending.options, error: error));
+      }
+    }
+    _pendingRequests.clear();
+  }
+
+  static void _rejectAllPendingRequests(dynamic error) {
+    debugPrint('Rejecting ${_pendingRequests.length} pending requests');
+
+    for (final pending in _pendingRequests) {
+      pending.handler.next(DioException(requestOptions: pending.options, error: error));
     }
     _pendingRequests.clear();
   }
 
   static Future<void> _handleTokenExpiration() async {
+    debugPrint('Handling token expiration - logging out');
     await TokenManager.clearToken();
-    if (navigatorKey.currentState != null) {
-      navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
-    }
+
+    // Navigator'ı kullanmadan önce kontroller yap
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (navigatorKey.currentState != null && navigatorKey.currentState!.mounted) {
+        navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
+      }
+    });
   }
 
   static Dio get dio => _dio;
+
+  // Debug için pending requests sayısını göster
+  static int get pendingRequestsCount => _pendingRequests.length;
+  static bool get isRefreshing => _isRefreshing;
 }

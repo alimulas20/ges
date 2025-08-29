@@ -60,7 +60,7 @@ class MyApp extends StatelessWidget {
         ],
         child: CustomNavbar(
           pages: [PlantListView(), AlarmsPage(), DeviceSetupListView(), UserListView()],
-          icons: [Icon(Icons.home), Icon(Icons.error), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
+          icons: [Icon(Icons.home), Icon(Icons.notifications), Icon(Icons.ad_units_outlined), Icon(Icons.person_4_rounded)],
         ),
       );
     } else {

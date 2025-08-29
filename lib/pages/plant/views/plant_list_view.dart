@@ -90,7 +90,7 @@ class _PlantListViewState extends State<PlantListView> {
               builder:
                   (_) => CustomNavbar(
                     pages: [MapView(plant: plant), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
-                    icons: const [Icon(Icons.home), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
+                    icons: const [Icon(Icons.map), Icon(Icons.ad_units_outlined), Icon(Icons.show_chart)],
                   ),
             ),
           );

@@ -1,6 +1,7 @@
 // views/device_setup_list_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solar/global/constant/type_constants.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
@@ -87,21 +88,23 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (_) => CustomNavbar(
-                    pages: [
-                      DeviceReadingsView(deviceSetupId: device.deviceSetupId),
-                      DeviceHistoryView(deviceSetupId: device.deviceSetupId),
-                      AlarmsPage(deviceSetupId: device.deviceSetupId), // PV Comparison page
-                      DeviceInfoView(deviceSetupId: device.deviceSetupId), // Empty page 4
-                    ],
-                    icons: const [Icon(Icons.info), Icon(Icons.history), Icon(Icons.show_chart), Icon(Icons.settings)],
-                  ),
-            ),
-          );
+          if (device.deviceType == DeviceType.inverter) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (_) => CustomNavbar(
+                      pages: [
+                        DeviceReadingsView(deviceSetupId: device.deviceSetupId),
+                        DeviceHistoryView(deviceSetupId: device.deviceSetupId),
+                        AlarmsPage(deviceSetupId: device.deviceSetupId), // PV Comparison page
+                        DeviceInfoView(deviceSetupId: device.deviceSetupId), // Empty page 4
+                      ],
+                      icons: const [Icon(Icons.info), Icon(Icons.history), Icon(Icons.show_chart), Icon(Icons.settings)],
+                    ),
+              ),
+            );
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.paddingLarge),

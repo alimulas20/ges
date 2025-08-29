@@ -34,22 +34,28 @@ class AuthService {
   }
 
   Future<String?> refreshAccessToken() async {
-    final refreshToken = await _storage.read(key: 'refresh_token');
+    try {
+      final refreshToken = await _storage.read(key: 'refresh_token');
+      if (refreshToken == null) {
+        await logout();
+        return null;
+      }
 
-    if (refreshToken == null) return null;
+      final response = await http.post(Uri.parse('$_baseUrl/auth/refresh'), body: {'refresh_token': refreshToken}, headers: {'Content-Type': 'application/x-www-form-urlencoded'});
 
-    final response = await http.post(
-      Uri.parse('$_baseUrl/auth/refresh'),
-      body: {'refresh_token': refreshToken}, // http package will encode this properly
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    );
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      final token = TokenResponse.fromJson(jsonData);
-      await TokenManager.saveToken(token);
-      return token.accessToken;
-    } else {
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        final token = TokenResponse.fromJson(jsonData);
+        await TokenManager.saveToken(token);
+        return token.accessToken;
+      } else if (response.statusCode == 401) {
+        // Refresh token da geçersizse tamamen logout yap
+        await logout();
+        return null;
+      } else {
+        throw Exception('Refresh token failed with status: ${response.statusCode}');
+      }
+    } catch (error) {
       await logout();
       return null;
     }

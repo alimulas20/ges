@@ -9,8 +9,11 @@ class DioService {
     BaseOptions(baseUrl: UrlConstants.getApiUrl(), connectTimeout: const Duration(seconds: 10), receiveTimeout: const Duration(seconds: 10), contentType: 'application/json'),
   );
 
-  // Store a navigator key globally
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  // Token refresh işleminin devam edip etmediğini takip etmek için
+  static bool _isRefreshing = false;
+  static final List<RequestOptions> _pendingRequests = [];
 
   static void init() {
     _dio.interceptors.clear();
@@ -26,35 +29,61 @@ class DioService {
         onError: (DioException e, handler) async {
           // 401 Unauthorized hatası ve refresh denemesi yapılmamışsa
           if (e.response?.statusCode == 401 && !e.requestOptions.path.contains('refresh')) {
-            // Orijinal isteği sakla
+            // Eğer refresh işlemi zaten devam ediyorsa, isteği beklemeye al
+            if (_isRefreshing) {
+              _pendingRequests.add(e.requestOptions);
+              return;
+            }
+
+            _isRefreshing = true;
             final originalRequest = e.requestOptions;
+
             try {
               final newToken = await AuthService().refreshAccessToken();
 
               if (newToken != null) {
-                // Yeni token ile orijinal isteği tekrarla
+                // Tüm bekleyen istekleri yeni token ile güncelle
+                _isRefreshing = false;
+                _retryAllPendingRequests(newToken);
+
+                // Orijinal isteği tekrarla
                 originalRequest.headers['Authorization'] = 'Bearer $newToken';
                 final retryResponse = await _dio.fetch(originalRequest);
                 return handler.resolve(retryResponse);
+              } else {
+                await _handleTokenExpiration();
+                return handler.next(e);
               }
             } catch (refreshError) {
               debugPrint('Token refresh failed: $refreshError');
+              _isRefreshing = false;
+              _pendingRequests.clear();
+              await _handleTokenExpiration();
+              return handler.next(e);
             }
-
-            // Refresh başarısız olduysa logout yap
-            await _handleTokenExpiration();
           }
 
-          // Diğer hataları veya başarısız refresh durumunu ileri taşı
           handler.next(e);
         },
       ),
     );
   }
 
+  static void _retryAllPendingRequests(String newToken) {
+    for (final requestOptions in _pendingRequests) {
+      requestOptions.headers['Authorization'] = 'Bearer $newToken';
+      _dio.fetch(requestOptions).catchError((error) {
+        debugPrint('Retry request failed: $error');
+      });
+    }
+    _pendingRequests.clear();
+  }
+
   static Future<void> _handleTokenExpiration() async {
     await TokenManager.clearToken();
-    navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
+    if (navigatorKey.currentState != null) {
+      navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
+    }
   }
 
   static Dio get dio => _dio;

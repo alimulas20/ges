@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solar/pages/plant/views/plant_status_view.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
@@ -89,8 +90,13 @@ class _PlantListViewState extends State<PlantListView> {
             MaterialPageRoute(
               builder:
                   (_) => CustomNavbar(
-                    pages: [MapView(plant: plant), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
-                    icons: const [Icon(Icons.map), Icon(Icons.ad_units_outlined), Icon(Icons.show_chart)],
+                    pages: [PlantStatusView(), MapView(plant: plant), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
+                    tabs: const [
+                      Tab(icon: Icon(Icons.adobe_sharp), text: "Status"),
+                      Tab(icon: Icon(Icons.map), text: "Harita"),
+                      Tab(icon: Icon(Icons.ad_units_outlined), text: "Cihazlar"),
+                      Tab(icon: Icon(Icons.show_chart), text: "İstatistik"),
+                    ],
                   ),
             ),
           );

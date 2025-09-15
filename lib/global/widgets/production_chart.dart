@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 
 import '../../pages/plant/models/plant_production_model.dart';
 import '../constant/app_constants.dart';
@@ -18,7 +18,6 @@ class ProductionChart extends StatelessWidget {
     if (dataPoints.isEmpty) {
       return const Center(child: Text('Üretim verisi bulunamadı', style: TextStyle(color: Colors.grey, fontSize: AppConstants.fontSizeMedium)));
     }
-
     final theme = Theme.of(context);
 
     return Container(
@@ -26,13 +25,7 @@ class ProductionChart extends StatelessWidget {
       decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.elevatedShadow),
       child: Column(
         children: [
-          SizedBox(
-            height: 250,
-            child: Padding(
-              padding: const EdgeInsets.only(top: AppConstants.paddingLarge),
-              child: timePeriod == ProductionTimePeriod.daily || timePeriod == ProductionTimePeriod.monthly ? _buildLineChart() : _buildBarChart(),
-            ),
-          ),
+          SizedBox(height: 250, child: Padding(padding: const EdgeInsets.only(top: AppConstants.paddingLarge), child: timePeriod == ProductionTimePeriod.daily ? _buildLineChart() : _buildBarChart())),
           if (bottomDescription != null) ...[
             const SizedBox(height: AppConstants.paddingMedium),
             Text(bottomDescription!, style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey, fontSize: AppConstants.fontSizeSmall)),
@@ -55,7 +48,7 @@ class ProductionChart extends StatelessWidget {
             },
           ),
         ),
-        gridData: FlGridData(show: false),
+        gridData: FlGridData(show: true),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -108,6 +101,7 @@ class ProductionChart extends StatelessWidget {
   }
 
   Widget _buildBarChart() {
+    final maxY = _calculateMaxY(dataPoints);
     return BarChart(
       BarChartData(
         barTouchData: BarTouchData(
@@ -118,18 +112,18 @@ class ProductionChart extends StatelessWidget {
             },
           ),
         ),
-        gridData: FlGridData(show: false),
+        gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: maxY / 10),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
+              reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index >= 0 && index < dataPoints.length) {
                   return Padding(
                     padding: const EdgeInsets.only(top: AppConstants.paddingMedium),
-                    child: Text(dataPoints[index].timeLabel, style: TextStyle(fontSize: AppConstants.fontSizeExtraSmall, color: Colors.grey)),
+                    child: Transform.rotate(angle: 45, child: Text(dataPoints[index].timeLabel, style: TextStyle(fontSize: AppConstants.fontSizeTiny, color: Colors.grey))),
                   );
                 }
                 return const Text('');
@@ -141,6 +135,8 @@ class ProductionChart extends StatelessWidget {
               showTitles: true,
               reservedSize: AppConstants.chartLeftAxisWidth,
               getTitlesWidget: (value, meta) {
+                print(value);
+                print(meta);
                 return Text(value.toInt().toString(), style: TextStyle(fontSize: AppConstants.fontSizeExtraSmall, color: Colors.grey));
               },
             ),
@@ -150,13 +146,13 @@ class ProductionChart extends StatelessWidget {
         ),
         borderData: FlBorderData(show: false),
         minY: 0,
-        maxY: _calculateMaxY(dataPoints),
+        maxY: maxY,
         barGroups:
             dataPoints.asMap().entries.map((entry) {
               return BarChartGroupData(
                 x: entry.key,
                 barRods: [BarChartRodData(toY: entry.value.totalProduction, color: lineColor, width: 16, borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall))],
-                showingTooltipIndicators: [0],
+                //showingTooltipIndicators: [0],
               );
             }).toList(),
       ),

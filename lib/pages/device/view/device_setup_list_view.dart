@@ -9,9 +9,9 @@ import '../../alarm/views/alarm_view.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_setup_list_view_model.dart';
+import 'device_history_view.dart';
 import 'device_info_view.dart';
 import 'device_reading_view.dart';
-import 'device_history_view.dart';
 
 class DeviceSetupListView extends StatefulWidget {
   const DeviceSetupListView({super.key, this.plantId});
@@ -100,7 +100,12 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
                         AlarmsPage(deviceSetupId: device.deviceSetupId), // PV Comparison page
                         DeviceInfoView(deviceSetupId: device.deviceSetupId), // Empty page 4
                       ],
-                      icons: const [Icon(Icons.bolt), Icon(Icons.show_chart), Icon(Icons.notifications), Icon(Icons.info)],
+                      tabs: const [
+                        Tab(icon: Icon(Icons.bolt), text: "Anlık Bilgi"),
+                        Tab(icon: Icon(Icons.show_chart), text: "İstatistikler"),
+                        Tab(icon: Icon(Icons.notifications), text: "Alarmlar"),
+                        Tab(icon: Icon(Icons.info), text: "Temel Bilgiler"),
+                      ],
                     ),
               ),
             );

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../constant/app_constants.dart';
 import '../constant/my_colors.dart';
 
 class CustomNavbar extends StatefulWidget {
-  const CustomNavbar({super.key, required this.pages, required this.icons});
+  const CustomNavbar({super.key, required this.pages, required this.tabs});
 
   final List<Widget> pages;
-  final List<Icon> icons;
+  final List<Tab> tabs;
 
   @override
   CustomNavbarState createState() => CustomNavbarState();
@@ -35,7 +36,7 @@ class CustomNavbarState extends State<CustomNavbar> with SingleTickerProviderSta
   }
 
   List<Tab> getTabs() {
-    return widget.icons.map((icon) => Tab(icon: icon)).toList();
+    return widget.tabs;
   }
 
   @override
@@ -44,30 +45,73 @@ class CustomNavbarState extends State<CustomNavbar> with SingleTickerProviderSta
       body: Column(
         children: <Widget>[
           // Sayfaların gösterildiği alan
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: widget.pages, // Swipe ile geçişi engellemek için
-            ),
-          ),
+          Expanded(child: TabBarView(controller: _tabController, physics: const NeverScrollableScrollPhysics(), children: widget.pages)),
 
           // Alttaki tab bar
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            margin: EdgeInsets.all(0),
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: TabBar(
-                controller: _tabController,
-                indicatorColor: Colors.transparent,
-                indicatorSize: TabBarIndicatorSize.tab,
-                indicatorWeight: 1,
-                unselectedLabelColor: MyColors.grey_20,
-                tabs: getTabs(),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: AppConstants.cardShadow, // AppConstants'tan shadow
+            ),
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                height: AppConstants.buttonHeight + AppConstants.paddingMedium * 2, // Sabit yükseklik
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorColor: Colors.transparent,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicatorWeight: 1,
+                  dividerColor: Colors.transparent,
+                  labelColor: Theme.of(context).primaryColor,
+                  unselectedLabelColor: MyColors.grey_20,
+                  labelStyle: const TextStyle(
+                    fontSize: AppConstants.fontSizeSmall, // 12.0
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontSize: AppConstants.fontSizeSmall, // 12.0
+                    fontWeight: FontWeight.normal,
+                    height: 1.2,
+                  ),
+                  tabs:
+                      getTabs().map((tab) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppConstants.paddingSmall, // 4.0
+                            vertical: AppConstants.paddingSmall, // 4.0
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (tab.icon != null)
+                                SizedBox(
+                                  height: AppConstants.iconSizeSmall, // 16.0
+                                  child: tab.icon!,
+                                ),
+                              SizedBox(height: AppConstants.paddingMedium),
+                              if (tab.text != null)
+                                Flexible(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: AppConstants.paddingExtraSmall), // 2.0
+                                    child: Text(
+                                      tab.text!,
+                                      textAlign: TextAlign.center,
+                                      maxLines: AppConstants.maxLinesMedium, // 2 satır
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: AppConstants.fontSizeExtraSmall, // 10.0 → 12.0 yaptık
+                                        height: 1.1,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                ),
               ),
             ),
           ),

@@ -64,6 +64,8 @@ class AppConstants {
   static const double iconSizeExtraLarge = 32;
 
   /// Font sizes
+  /// 8.0
+  static const double fontSizeTiny = 8;
 
   /// 10.0
   static const double fontSizeExtraSmall = 10;

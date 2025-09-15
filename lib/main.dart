@@ -11,12 +11,11 @@ import 'firebase_options.dart';
 import 'global/constant/theme.dart';
 import 'global/managers/dio_service.dart';
 import 'global/managers/token_manager.dart';
-
 import 'global/widgets/custom_navbar.dart';
 import 'pages/alarm/views/alarm_view.dart';
 import 'pages/device/view/device_setup_list_view.dart';
-import 'pages/login/views/login_view.dart';
 import 'pages/login/viewmodels/login_view_model.dart';
+import 'pages/login/views/login_view.dart';
 import 'pages/plant/services/plant_service.dart';
 import 'pages/plant/views/plant_list_view.dart';
 import 'pages/profile/service/user_service.dart';
@@ -59,8 +58,13 @@ class MyApp extends StatelessWidget {
           // Diğer ViewModel'ler...
         ],
         child: CustomNavbar(
-          pages: [PlantListView(), AlarmsPage(), DeviceSetupListView(), UserListView()],
-          icons: [Icon(Icons.home), Icon(Icons.notifications), Icon(Icons.ad_units_outlined), Icon(Icons.person_4_rounded)],
+          pages: [PlantListView(), DeviceSetupListView(), AlarmsPage(), UserListView()],
+          tabs: const [
+            Tab(icon: Icon(Icons.home), text: "Tesisler"),
+            Tab(icon: Icon(Icons.ad_units_outlined), text: "Cihazlar"),
+            Tab(icon: Icon(Icons.error), text: "Alarmlar"),
+            Tab(icon: Icon(Icons.person_4_rounded), text: "Profil"),
+          ],
         ),
       );
     } else {
@@ -149,8 +153,13 @@ class MyApp extends StatelessWidget {
             (_) => MultiProvider(
               providers: [ChangeNotifierProvider(create: (_) => UserViewModel(UserService(), PlantService()))],
               child: CustomNavbar(
-                pages: [PlantListView(), AlarmsPage(), DeviceSetupListView(), UserListView()],
-                icons: [Icon(Icons.home), Icon(Icons.error), Icon(Icons.devices), Icon(Icons.person_4_rounded)],
+                pages: [PlantListView(), DeviceSetupListView(), AlarmsPage(), UserListView()],
+                tabs: const [
+                  Tab(icon: Icon(Icons.home), text: "Tesisler"),
+                  Tab(icon: Icon(Icons.ad_units_outlined), text: "Cihazlar"),
+                  Tab(icon: Icon(Icons.error), text: "Alarmlar"),
+                  Tab(icon: Icon(Icons.person_4_rounded), text: "Profil"),
+                ],
               ),
             ),
       },

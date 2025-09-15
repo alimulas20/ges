@@ -72,6 +72,8 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
           builder: (context, viewModel, child) {
             return Column(
               children: [
+                _buildLevelFilterChips(viewModel),
+                const SizedBox(height: AppConstants.paddingMedium),
                 if (_showFilters) _buildFilters(viewModel),
                 if (viewModel.isLoading)
                   const LinearProgressIndicator()
@@ -232,8 +234,6 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                   ),
                   const SizedBox(height: AppConstants.paddingMedium),
                 ],
-                _buildFilterSection('Alarm Seviyesi', Icons.warning, _buildLevelFilterChips()),
-                const SizedBox(height: AppConstants.paddingMedium),
                 _buildFilterSection(
                   'Tarih Seçimi',
                   Icons.calendar_today,
@@ -303,49 +303,81 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildLevelFilterChips() {
-    return Wrap(
-      spacing: AppConstants.paddingSmall,
-      runSpacing: AppConstants.paddingSmall,
-      children:
-          _alarmLevels.map((level) {
-            final isSelected = _selectedLevels.contains(level);
-            final levelColor = _getLevelColor(level);
+  Widget _buildLevelFilterChips(AlarmsViewModel viewModel) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+      padding: const EdgeInsets.all(AppConstants.paddingMedium),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        boxShadow: AppConstants.cardShadow,
+        border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.1), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning, size: 20, color: Theme.of(context).primaryColor),
+              const SizedBox(width: AppConstants.paddingSmall),
+              Text('Alarm Seviyeleri', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+              const Spacer(),
+              Text('Toplam: ${viewModel.alarms.length}', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w600)),
+            ],
+          ),
+          const SizedBox(height: AppConstants.paddingMedium),
+          Wrap(
+            spacing: AppConstants.paddingSmall,
+            runSpacing: AppConstants.paddingSmall,
+            children:
+                _alarmLevels.map((level) {
+                  final isSelected = _selectedLevels.contains(level);
+                  final levelColor = _getLevelColor(level);
+                  final alarmCount = viewModel.alarms.where((alarm) => alarm.level == level).length;
 
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: isSelected ? [BoxShadow(color: levelColor.withOpacity(0.3), blurRadius: 8, spreadRadius: 1, offset: const Offset(0, 2))] : null,
-              ),
-              child: FilterChip(
-                label: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(width: 8, height: 8, decoration: BoxDecoration(color: isSelected ? Colors.white : levelColor, shape: BoxShape.circle)),
-                    const SizedBox(width: 6),
-                    Text(level, style: TextStyle(color: isSelected ? Colors.white : levelColor, fontWeight: FontWeight.w600, fontSize: 12)),
-                  ],
-                ),
-                selected: isSelected,
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedLevels.add(level);
-                    } else {
-                      _selectedLevels.remove(level);
-                    }
-                  });
-                  _loadAlarms();
-                },
-                selectedColor: levelColor,
-                checkmarkColor: Colors.white,
-                backgroundColor: levelColor.withOpacity(0.1),
-                side: BorderSide(color: levelColor.withOpacity(0.3), width: 1),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            );
-          }).toList(),
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: isSelected ? [BoxShadow(color: levelColor.withOpacity(0.3), blurRadius: 8, spreadRadius: 1, offset: const Offset(0, 2))] : null,
+                    ),
+                    child: FilterChip(
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(width: 8, height: 8, decoration: BoxDecoration(color: isSelected ? Colors.white : levelColor, shape: BoxShape.circle)),
+                          const SizedBox(width: 6),
+                          Text(level, style: TextStyle(color: isSelected ? Colors.white : levelColor, fontWeight: FontWeight.w600, fontSize: 12)),
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: isSelected ? Colors.white.withOpacity(0.3) : levelColor.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                            child: Text(alarmCount.toString(), style: TextStyle(color: isSelected ? Colors.white : levelColor, fontWeight: FontWeight.bold, fontSize: 10)),
+                          ),
+                        ],
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedLevels.add(level);
+                          } else {
+                            _selectedLevels.remove(level);
+                          }
+                        });
+                        _loadAlarms();
+                      },
+                      selectedColor: levelColor,
+                      checkmarkColor: Colors.white,
+                      backgroundColor: levelColor.withOpacity(0.1),
+                      side: BorderSide(color: levelColor.withOpacity(0.3), width: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  );
+                }).toList(),
+          ),
+        ],
+      ),
     );
   }
 

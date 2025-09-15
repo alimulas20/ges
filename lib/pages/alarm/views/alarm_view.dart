@@ -395,35 +395,143 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
   }
 
   Widget _buildAlarmCard(AlarmDto alarm, BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
-      child: InkWell(
-        onTap: () => _showAlarmDetails(alarm.id, context),
-        child: IntrinsicHeight(
+    final levelColor = _getLevelColor(alarm.level);
+    final isActive = alarm.clearedAt == null;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Theme.of(context).cardColor, Theme.of(context).cardColor.withOpacity(0.95)]),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        boxShadow: [
+          BoxShadow(color: levelColor.withOpacity(0.1), blurRadius: 8, spreadRadius: 1, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, spreadRadius: 0, offset: const Offset(0, 1)),
+        ],
+        border: Border.all(color: levelColor.withOpacity(0.2), width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+          onTap: () => _showAlarmDetails(alarm.id, context),
           child: Padding(
             padding: const EdgeInsets.all(AppConstants.paddingLarge),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch, // Bu satır önemli
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(width: 8, color: _getLevelColor(alarm.level), margin: const EdgeInsets.only(right: AppConstants.paddingMedium)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(alarm.name, style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: AppConstants.paddingSmall),
-                      Text(alarm.plantName, style: Theme.of(context).textTheme.bodySmall),
-                      if (alarm.deviceSetupName != null) Text(alarm.deviceSetupName!, style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                // Header Row
+                Row(
                   children: [
-                    Text(alarm.level, style: TextStyle(color: _getLevelColor(alarm.level), fontWeight: FontWeight.bold)),
-                    const SizedBox(height: AppConstants.paddingSmall),
-                    Text(DateFormat('dd.MM.yyyy HH:mm').format(alarm.occuredAt), style: Theme.of(context).textTheme.bodySmall),
-                    if (alarm.clearedAt != null) Text('Temizlenme: ${DateFormat('dd.MM.yyyy HH:mm').format(alarm.clearedAt!)}', style: Theme.of(context).textTheme.bodySmall),
+                    // Level Indicator
+                    Container(width: 4, height: 40, decoration: BoxDecoration(color: levelColor, borderRadius: BorderRadius.circular(2))),
+                    const SizedBox(width: AppConstants.paddingMedium),
+                    // Alarm Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  alarm.name,
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.titleMedium?.color),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: AppConstants.paddingSmall),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(color: levelColor, borderRadius: BorderRadius.circular(12)),
+                                child: Text(alarm.level, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppConstants.paddingSmall),
+                          Row(
+                            children: [
+                              Icon(Icons.business, size: 14, color: Theme.of(context).textTheme.bodySmall?.color),
+                              const SizedBox(width: 4),
+                              Expanded(child: Text(alarm.plantName, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            ],
+                          ),
+                          if (alarm.deviceSetupName != null) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Icon(Icons.ad_units, size: 14, color: Theme.of(context).textTheme.bodySmall?.color),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    alarm.deviceSetupName!,
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppConstants.paddingMedium),
+                // Status and Time Row
+                Row(
+                  children: [
+                    // Status Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isActive ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: isActive ? Colors.red.withOpacity(0.3) : Colors.green.withOpacity(0.3), width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(isActive ? Icons.warning : Icons.check_circle, size: 12, color: isActive ? Colors.red : Colors.green),
+                          const SizedBox(width: 4),
+                          Text(isActive ? 'Aktif' : 'Temizlendi', style: TextStyle(color: isActive ? Colors.red : Colors.green, fontWeight: FontWeight.w600, fontSize: 10)),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    // Time Info
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.access_time, size: 12, color: Theme.of(context).textTheme.bodySmall?.color),
+                            const SizedBox(width: 4),
+                            Text(DateFormat('dd.MM.yyyy').format(alarm.occuredAt), style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                        Text(
+                          DateFormat('HH:mm').format(alarm.occuredAt),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7)),
+                        ),
+                        if (alarm.clearedAt != null) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check, size: 10, color: Colors.green),
+                              const SizedBox(width: 2),
+                              Text(
+                                'Temizlenme: ${DateFormat('dd.MM HH:mm').format(alarm.clearedAt!)}',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.green, fontWeight: FontWeight.w500, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ],

@@ -112,7 +112,14 @@ class ProductionChart extends StatelessWidget {
             },
           ),
         ),
-        gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: maxY / 10),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: maxY / 10,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(color: Colors.grey.withOpacity(0.3), strokeWidth: 1);
+          },
+        ),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -133,11 +140,13 @@ class ProductionChart extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: AppConstants.chartLeftAxisWidth,
+              reservedSize: AppConstants.chartLeftAxisWidthLarge,
+              interval: maxY / 10, // 5 eşit aralık
               getTitlesWidget: (value, meta) {
-                print(value);
-                print(meta);
-                return Text(value.toInt().toString(), style: TextStyle(fontSize: AppConstants.fontSizeExtraSmall, color: Colors.grey));
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Text(value.toInt().toString(), style: TextStyle(fontSize: AppConstants.fontSizeExtraSmall, color: Colors.grey), textAlign: TextAlign.right),
+                );
               },
             ),
           ),

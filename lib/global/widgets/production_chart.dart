@@ -160,7 +160,7 @@ class ProductionChart extends StatelessWidget {
             dataPoints.asMap().entries.map((entry) {
               return BarChartGroupData(
                 x: entry.key,
-                barRods: [BarChartRodData(toY: entry.value.totalProduction, color: lineColor, width: 16, borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall))],
+                barRods: [BarChartRodData(toY: entry.value.totalProduction, color: lineColor, width: 8, borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall))],
                 //showingTooltipIndicators: [0],
               );
             }).toList(),

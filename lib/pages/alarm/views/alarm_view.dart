@@ -549,35 +549,183 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: Text('Alarm Detayı - ${alarm.level}'),
-            content: SingleChildScrollView(
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge)),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 700, maxHeight: 700),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+                gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Theme.of(context).cardColor, Theme.of(context).cardColor.withOpacity(0.95)]),
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildDetailRow('Kod', alarm.alarmCode),
-                  _buildDetailRow('Hata', alarm.name),
-                  _buildDetailRow('Açıklama', alarm.description),
-                  _buildDetailRow('Kaynak', alarm.source),
-                  _buildDetailRow('Tesis', alarm.plantName),
-                  if (alarm.deviceSetupName != null) _buildDetailRow('Inverter', alarm.deviceSetupName!),
-                  _buildDetailRow('Oluşma Zamanı', DateFormat('dd.MM.yyyy HH:mm').format(alarm.occuredAt)),
-                  if (alarm.clearedAt != null) _buildDetailRow('Temizlenme Zamanı', DateFormat('dd.MM.yyyy HH:mm').format(alarm.clearedAt!)),
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: [_getLevelColor(alarm.level).withOpacity(0.1), _getLevelColor(alarm.level).withOpacity(0.05)]),
+                      borderRadius: const BorderRadius.only(topLeft: Radius.circular(AppConstants.borderRadiusLarge), topRight: Radius.circular(AppConstants.borderRadiusLarge)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: _getLevelColor(alarm.level), borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.warning, color: Colors.white, size: 24),
+                        ),
+                        const SizedBox(width: AppConstants.paddingMedium),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Alarm Detayı', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(color: _getLevelColor(alarm.level), borderRadius: BorderRadius.circular(12)),
+                                child: Text(alarm.level, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                          style: IconButton.styleFrom(backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1), foregroundColor: Theme.of(context).primaryColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Content
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildDetailCard('Genel Bilgiler', Icons.info_outline, [
+                            _buildDetailItem('Alarm Kodu', alarm.alarmCode, Icons.tag),
+                            _buildDetailItem('Hata Adı', alarm.name, Icons.error_outline),
+                            _buildDescriptionItem('Açıklama', alarm.description, Icons.description),
+                            _buildDetailItem('Kaynak', alarm.source, Icons.source),
+                          ]),
+                          const SizedBox(height: AppConstants.paddingMedium),
+                          _buildDetailCard('Lokasyon Bilgileri', Icons.location_on, [
+                            _buildDetailItem('Tesis', alarm.plantName, Icons.business),
+                            if (alarm.deviceSetupName != null) _buildDetailItem('Inverter', alarm.deviceSetupName!, Icons.ad_units),
+                          ]),
+                          const SizedBox(height: AppConstants.paddingMedium),
+                          _buildDetailCard('Zaman Bilgileri', Icons.access_time, [
+                            _buildDetailItem('Oluşma Zamanı', DateFormat('dd.MM.yyyy HH:mm:ss').format(alarm.occuredAt), Icons.schedule),
+                            if (alarm.clearedAt != null) _buildDetailItem('Temizlenme Zamanı', DateFormat('dd.MM.yyyy HH:mm:ss').format(alarm.clearedAt!), Icons.check_circle),
+                          ]),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Footer
+                  Container(
+                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.05),
+                      borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(AppConstants.borderRadiusLarge), bottomRight: Radius.circular(AppConstants.borderRadiusLarge)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close, size: 18),
+                          label: const Text('Kapat'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: AppConstants.paddingMedium),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Kapat'))],
           ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailCard(String title, IconData icon, List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+        border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.1), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppConstants.paddingMedium),
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(AppConstants.borderRadiusMedium), topRight: Radius.circular(AppConstants.borderRadiusMedium)),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: Theme.of(context).primaryColor),
+                const SizedBox(width: AppConstants.paddingSmall),
+                Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+              ],
+            ),
+          ),
+          Padding(padding: const EdgeInsets.all(AppConstants.paddingMedium), child: Column(children: children)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingSmall),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [SizedBox(width: 100, child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold))), const SizedBox(width: AppConstants.paddingMedium), Expanded(child: Text(value))],
+        children: [
+          Icon(icon, size: 16, color: Theme.of(context).primaryColor.withOpacity(0.7)),
+          const SizedBox(width: AppConstants.paddingSmall),
+          SizedBox(width: 120, child: Text('$label:', style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 13))),
+          const SizedBox(width: AppConstants.paddingSmall),
+          Expanded(child: Text(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescriptionItem(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingSmall),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: Theme.of(context).primaryColor.withOpacity(0.7)),
+              const SizedBox(width: AppConstants.paddingSmall),
+              Text('$label:', style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: AppConstants.paddingSmall),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppConstants.paddingMedium),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.1), width: 1),
+            ),
+            child: Text(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500, height: 1.4)),
+          ),
+        ],
       ),
     );
   }

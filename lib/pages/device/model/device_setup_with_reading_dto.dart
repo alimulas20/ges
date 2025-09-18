@@ -45,8 +45,21 @@ class InverterReadingDTO {
   final double totalYield;
   final double gridFrequency;
   final double internalTemperature;
+  final int deviceStatus;
+  final String statusName;
+  final String statusDescription;
 
-  InverterReadingDTO({required this.createdDate, required this.activePower, required this.yieldToday, required this.totalYield, required this.gridFrequency, required this.internalTemperature});
+  InverterReadingDTO({
+    required this.createdDate,
+    required this.activePower,
+    required this.yieldToday,
+    required this.totalYield,
+    required this.gridFrequency,
+    required this.internalTemperature,
+    required this.deviceStatus,
+    required this.statusName,
+    required this.statusDescription,
+  });
 
   factory InverterReadingDTO.fromJson(Map<String, dynamic> json) {
     return InverterReadingDTO(
@@ -56,6 +69,9 @@ class InverterReadingDTO {
       totalYield: json['totalYield'].toDouble(),
       gridFrequency: json['gridFrequency'].toDouble(),
       internalTemperature: json['internalTemperature'].toDouble(),
+      deviceStatus: json['deviceStatus'] ?? 0,
+      statusName: json['statusName'] ?? '',
+      statusDescription: json['statusDescription'] ?? '',
     );
   }
 }
@@ -124,6 +140,8 @@ class InverterReadingDetailDTO {
   final double phaseCV;
   final double phaseCA;
   final int deviceStatus;
+  final String statusName;
+  final String statusDescription;
   final double yieldToday;
   final double totalYield;
   final double activePower;
@@ -145,6 +163,8 @@ class InverterReadingDetailDTO {
     required this.phaseCV,
     required this.phaseCA,
     required this.deviceStatus,
+    required this.statusName,
+    required this.statusDescription,
     required this.yieldToday,
     required this.totalYield,
     required this.activePower,
@@ -167,7 +187,9 @@ class InverterReadingDetailDTO {
       phaseBA: json['phaseBA'].toDouble(),
       phaseCV: json['phaseCV'].toDouble(),
       phaseCA: json['phaseCA'].toDouble(),
-      deviceStatus: json['deviceStatus'],
+      deviceStatus: json['deviceStatus'] ?? 0,
+      statusName: json['statusName'] ?? '',
+      statusDescription: json['statusDescription'] ?? '',
       yieldToday: json['yieldToday'].toDouble(),
       totalYield: json['totalYield'].toDouble(),
       activePower: json['activePower'].toDouble(),

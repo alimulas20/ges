@@ -11,8 +11,9 @@ import '../viewmodels/alarm_viewmodel.dart';
 
 class AlarmsPage extends StatefulWidget {
   final int? deviceSetupId;
+  final int? plantId;
 
-  const AlarmsPage({super.key, this.deviceSetupId});
+  const AlarmsPage({super.key, this.deviceSetupId, this.plantId});
 
   @override
   State<AlarmsPage> createState() => _AlarmsPageState();
@@ -34,6 +35,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
     _tabController = TabController(length: 2, vsync: this, initialIndex: 1); // Geçmiş alarmlar default
     _viewModel = AlarmsViewModel(AlarmService(), PlantService(), DeviceSetupService());
     _selectedDeviceSetupId = widget.deviceSetupId;
+    _selectedPlantId = widget.plantId;
     _selectedDate = null; // Tarih seçimi default boş
     _loadAlarms();
   }
@@ -395,7 +397,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
   }
 
   Widget _buildAlarmCard(AlarmDto alarm, BuildContext context) {
-    final levelColor = _getLevelColor(alarm.level);
+    final levelColor = _getLevelColor(alarm.level ?? '');
     final isActive = alarm.clearedAt == null;
 
     return Container(
@@ -434,7 +436,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                             children: [
                               Expanded(
                                 child: Text(
-                                  alarm.name,
+                                  alarm.name ?? '',
                                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.titleMedium?.color),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -444,7 +446,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(color: levelColor, borderRadius: BorderRadius.circular(12)),
-                                child: Text(alarm.level, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
+                                child: Text(alarm.level ?? '', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
                               ),
                             ],
                           ),
@@ -453,7 +455,9 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                             children: [
                               Icon(Icons.business, size: 14, color: Theme.of(context).textTheme.bodySmall?.color),
                               const SizedBox(width: 4),
-                              Expanded(child: Text(alarm.plantName, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                              Expanded(
+                                child: Text(alarm.plantName ?? '', style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              ),
                             ],
                           ),
                           if (alarm.deviceSetupName != null) ...[
@@ -564,14 +568,14 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                   Container(
                     padding: const EdgeInsets.all(AppConstants.paddingLarge),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [_getLevelColor(alarm.level).withOpacity(0.1), _getLevelColor(alarm.level).withOpacity(0.05)]),
+                      gradient: LinearGradient(colors: [_getLevelColor(alarm.level ?? '').withOpacity(0.1), _getLevelColor(alarm.level ?? '').withOpacity(0.05)]),
                       borderRadius: const BorderRadius.only(topLeft: Radius.circular(AppConstants.borderRadiusLarge), topRight: Radius.circular(AppConstants.borderRadiusLarge)),
                     ),
                     child: Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(color: _getLevelColor(alarm.level), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: _getLevelColor(alarm.level ?? ''), borderRadius: BorderRadius.circular(12)),
                           child: const Icon(Icons.warning, color: Colors.white, size: 24),
                         ),
                         const SizedBox(width: AppConstants.paddingMedium),
@@ -583,8 +587,8 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                               const SizedBox(height: 4),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(color: _getLevelColor(alarm.level), borderRadius: BorderRadius.circular(12)),
-                                child: Text(alarm.level, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                decoration: BoxDecoration(color: _getLevelColor(alarm.level ?? ''), borderRadius: BorderRadius.circular(12)),
+                                child: Text(alarm.level ?? '', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                               ),
                             ],
                           ),
@@ -606,13 +610,13 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                         children: [
                           _buildDetailCard('Genel Bilgiler', Icons.info_outline, [
                             _buildDetailItem('Alarm Kodu', alarm.alarmCode, Icons.tag),
-                            _buildDetailItem('Hata Adı', alarm.name, Icons.error_outline),
+                            _buildDetailItem('Hata Adı', alarm.name ?? '', Icons.error_outline),
                             _buildDescriptionItem('Açıklama', alarm.description, Icons.description),
                             _buildDetailItem('Kaynak', alarm.source, Icons.source),
                           ]),
                           const SizedBox(height: AppConstants.paddingMedium),
                           _buildDetailCard('Lokasyon Bilgileri', Icons.location_on, [
-                            _buildDetailItem('Tesis', alarm.plantName, Icons.business),
+                            _buildDetailItem('Tesis', alarm.plantName ?? '', Icons.business),
                             if (alarm.deviceSetupName != null) _buildDetailItem('Inverter', alarm.deviceSetupName!, Icons.ad_units),
                           ]),
                           const SizedBox(height: AppConstants.paddingMedium),

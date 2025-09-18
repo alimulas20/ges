@@ -1,57 +1,110 @@
 class AlarmDto {
   final int id;
-  final String level;
-  final String name;
-  final String plantName;
-  final String? deviceSetupName;
+  final int deviceSetupId;
   final DateTime occuredAt;
   final DateTime? clearedAt;
+  final String source;
+  final int? alarmDefinitionId;
+  final String? alarmId;
+  final String? alarmName;
+  final String? alarmDescription;
+  final String? level;
+  final String? name;
+  final String? plantName;
+  final String? deviceSetupName;
 
-  AlarmDto({required this.id, required this.level, required this.name, required this.plantName, this.deviceSetupName, required this.occuredAt, this.clearedAt});
+  AlarmDto({
+    required this.id,
+    required this.deviceSetupId,
+    required this.occuredAt,
+    this.clearedAt,
+    required this.source,
+    this.alarmDefinitionId,
+    this.alarmId,
+    this.alarmName,
+    this.alarmDescription,
+    this.level,
+    this.name,
+    this.plantName,
+    this.deviceSetupName,
+  });
 
   factory AlarmDto.fromJson(Map<String, dynamic> json) {
     return AlarmDto(
       id: json['id'],
+      deviceSetupId: json['deviceSetupId'],
+      occuredAt: DateTime.parse(json['occuredAt']),
+      clearedAt: json['clearedAt'] != null ? DateTime.parse(json['clearedAt']) : null,
+      source: json['source'] ?? '',
+      alarmDefinitionId: json['alarmDefinitionId'],
+      alarmId: json['alarmId'],
+      alarmName: json['alarmName'],
+      alarmDescription: json['alarmDescription'],
       level: json['level'],
       name: json['name'],
       plantName: json['plantName'],
       deviceSetupName: json['deviceSetupName'],
-      occuredAt: DateTime.parse(json['occuredAt']),
-      clearedAt: json['clearedAt'] != null ? DateTime.parse(json['clearedAt']) : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'deviceSetupId': deviceSetupId,
+      'occuredAt': occuredAt.toIso8601String(),
+      'clearedAt': clearedAt?.toIso8601String(),
+      'source': source,
+      'alarmDefinitionId': alarmDefinitionId,
+      'alarmId': alarmId,
+      'alarmName': alarmName,
+      'alarmDescription': alarmDescription,
+      'level': level,
+      'name': name,
+      'plantName': plantName,
+      'deviceSetupName': deviceSetupName,
+    };
   }
 }
 
 class AlarmDetailDto extends AlarmDto {
   final String alarmCode;
-  final String source;
   final String description;
 
   AlarmDetailDto({
     required super.id,
-    required super.level,
-    required super.name,
-    required super.plantName,
-    super.deviceSetupName,
+    required super.deviceSetupId,
     required super.occuredAt,
     super.clearedAt,
+    required super.source,
+    super.alarmDefinitionId,
+    super.alarmId,
+    super.alarmName,
+    super.alarmDescription,
+    super.level,
+    super.name,
+    super.plantName,
+    super.deviceSetupName,
     required this.alarmCode,
-    required this.source,
     required this.description,
   });
 
   factory AlarmDetailDto.fromJson(Map<String, dynamic> json) {
     return AlarmDetailDto(
       id: json['id'],
+      deviceSetupId: json['deviceSetupId'],
+      occuredAt: DateTime.parse(json['occuredAt']),
+      clearedAt: json['clearedAt'] != null ? DateTime.parse(json['clearedAt']) : null,
+      source: json['source'] ?? '',
+      alarmDefinitionId: json['alarmDefinitionId'],
+      alarmId: json['alarmId'],
+      alarmName: json['alarmName'],
+      alarmDescription: json['alarmDescription'],
       level: json['level'],
       name: json['name'],
       plantName: json['plantName'],
       deviceSetupName: json['deviceSetupName'],
-      occuredAt: DateTime.parse(json['occuredAt']),
-      clearedAt: json['clearedAt'] != null ? DateTime.parse(json['clearedAt']) : null,
-      alarmCode: json['alarmCode'],
-      source: json['source'],
-      description: json['description'],
+      alarmCode: json['alarmCode'] ?? '',
+      description: json['description'] ?? '',
     );
   }
 }

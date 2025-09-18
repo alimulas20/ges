@@ -1,3 +1,4 @@
+import '../../alarm/model/alarm_dto.dart';
 import 'weather_data_dto.dart';
 
 class PlantWithLatestWeatherDto {
@@ -14,6 +15,7 @@ class PlantWithLatestWeatherDto {
   final double dailyProduction;
   final WeatherDataDto? latestWeather;
   final String? plantPictureUrl;
+  final List<AlarmDto>? alarms;
 
   // Harita için statik veriler
   final double? mapZoomLevel;
@@ -37,6 +39,7 @@ class PlantWithLatestWeatherDto {
     required this.dailyProduction,
     this.latestWeather,
     this.plantPictureUrl,
+    this.alarms,
     this.mapZoomLevel,
     this.mapImageUrl,
     this.mapTopLeftLat,
@@ -60,6 +63,7 @@ class PlantWithLatestWeatherDto {
       dailyProduction: json['dailyProduction']?.toDouble() ?? 0.0,
       latestWeather: json['latestWeather'] != null ? WeatherDataDto.fromJson(json['latestWeather']) : null,
       plantPictureUrl: json['plantPictureUrl'],
+      alarms: json['alarms'] != null ? (json['alarms'] as List).map((e) => AlarmDto.fromJson(e)).toList() : null,
       mapZoomLevel: json['mapZoomLevel']?.toDouble(),
       mapImageUrl: json['mapImageUrl'],
       mapTopLeftLat: json['mapTopLeftLat']?.toDouble(),
@@ -84,6 +88,7 @@ class PlantWithLatestWeatherDto {
       'dailyProduction': dailyProduction,
       'latestWeather': latestWeather?.toJson(),
       'plantPictureUrl': plantPictureUrl,
+      'alarms': alarms?.map((e) => e.toJson()).toList(),
       'mapZoomLevel': mapZoomLevel,
       'mapImageUrl': mapImageUrl,
       'mapTopLeftLat': mapTopLeftLat,

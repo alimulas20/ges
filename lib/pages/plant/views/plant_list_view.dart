@@ -231,7 +231,7 @@ class _PlantListViewState extends State<PlantListView> {
             MaterialPageRoute(
               builder:
                   (_) => CustomNavbar(
-                    pages: [PlantStatusView(), MapView(plant: plant), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
+                    pages: [PlantStatusView(plantId: plant.id), MapView(plant: plant), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
                     tabs: const [
                       Tab(icon: Icon(Icons.adobe_sharp), text: "Status"),
                       Tab(icon: Icon(Icons.map), text: "Harita"),

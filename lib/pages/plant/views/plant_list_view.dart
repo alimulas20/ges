@@ -233,7 +233,7 @@ class _PlantListViewState extends State<PlantListView> {
                   (_) => CustomNavbar(
                     pages: [PlantStatusView(plantId: plant.id), MapView(plant: plant), DeviceSetupListView(plantId: plant.id), PlantProductionView(plantId: plant.id)],
                     tabs: const [
-                      Tab(icon: Icon(Icons.adobe_sharp), text: "Status"),
+                      Tab(icon: Icon(Icons.monitor), text: "Genel Görünüm"),
                       Tab(icon: Icon(Icons.map), text: "Harita"),
                       Tab(icon: Icon(Icons.ad_units_outlined), text: "Cihazlar"),
                       Tab(icon: Icon(Icons.show_chart), text: "İstatistik"),

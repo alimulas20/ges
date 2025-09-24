@@ -7,6 +7,7 @@ import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/compact_switch.dart';
 import '../model/user_model.dart';
 import '../viewmodel/user_viewmodel.dart';
+import '../widgets/plant_selection_dialog.dart';
 
 class UserDetailView extends StatefulWidget {
   final UserDto user;
@@ -224,34 +225,7 @@ class _UserDetailViewState extends State<UserDetailView> {
       return;
     }
 
-    final selectedPlants = await showDialog<List<int>>(
-      context: context,
-      builder: (context) {
-        final selected = <int>[];
-        return AlertDialog(
-          title: const Text('Tesis Ekle'),
-          content: SingleChildScrollView(
-            child: Column(
-              children:
-                  availablePlants.map((plant) {
-                    return CheckboxListTile(
-                      title: Text(plant.name),
-                      value: selected.contains(plant.id),
-                      onChanged: (bool? value) {
-                        if (value == true) {
-                          selected.add(plant.id);
-                        } else {
-                          selected.remove(plant.id);
-                        }
-                      },
-                    );
-                  }).toList(),
-            ),
-          ),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')), TextButton(onPressed: () => Navigator.pop(context, selected), child: const Text('Ekle'))],
-        );
-      },
-    );
+    final selectedPlants = await PlantSelectionDialog.show(context, availablePlants: availablePlants, title: 'Tesis Ekle');
 
     if (selectedPlants != null && selectedPlants.isNotEmpty) {
       setState(() {

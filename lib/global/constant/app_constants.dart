@@ -159,6 +159,19 @@ class AppConstants {
   /// 50.0 (large width for left chart axis)
   static const double chartLeftAxisWidthLarge = 50;
 
+  /// Alpha values for opacity
+  /// 0.1 (10% opacity)
+  static const double alphaLow = 0.1;
+
+  /// 0.3 (30% opacity)
+  static const double alphaMedium = 0.3;
+
+  /// 0.7 (70% opacity)
+  static const double alphaHigh = 0.7;
+
+  /// 0.9 (90% opacity)
+  static const double alphaVeryHigh = 0.9;
+
   static const List<BoxShadow> cardShadow = [
     BoxShadow(
       color: Color(0x19000000), // %10 opacity siyah

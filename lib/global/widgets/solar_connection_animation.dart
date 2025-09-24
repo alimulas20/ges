@@ -48,8 +48,8 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity - 10,
-      height: 600,
+      width: double.infinity,
+      height: AppConstants.imageLargeSize * 3, // 600px
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), color: Colors.grey[100]),
       child: Stack(
         children: [
@@ -58,7 +58,7 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
             borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
             child: SizedBox(
               width: double.infinity,
-              height: 600,
+              height: AppConstants.imageLargeSize * 3, // 600px
               child: RiveAnimation.asset(
                 'assets/animations/solar connection',
                 controllers: _controller != null ? [_controller!] : [],
@@ -69,7 +69,6 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
                     _controller!.isActive = true;
                   } catch (e) {
                     // Try Timeline 2
-
                     _controller = SimpleAnimation('Timeline 2');
                     _controller!.isActive = true;
                   }
@@ -77,26 +76,41 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
                 fit: BoxFit.contain,
                 placeHolder: Container(
                   width: double.infinity,
-                  height: 300,
+                  height: AppConstants.imageLargeSize * 3, // 600px
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: widget.isOnline ? [Colors.green.withOpacity(0.3), Colors.green.withOpacity(0.1)] : [Colors.red.withOpacity(0.3), Colors.red.withOpacity(0.1)]),
+                    gradient: LinearGradient(
+                      colors:
+                          widget.isOnline
+                              ? [Colors.green.withAlpha((AppConstants.alphaMedium * 255).round()), Colors.green.withAlpha((AppConstants.alphaLow * 255).round())]
+                              : [Colors.red.withAlpha((AppConstants.alphaMedium * 255).round()), Colors.red.withAlpha((AppConstants.alphaLow * 255).round())],
+                    ),
                     borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
                   ),
-                  child: Center(child: CircularProgressIndicator(color: widget.isOnline ? Colors.green : Colors.red)),
+                  child: Center(child: CircularProgressIndicator(color: widget.isOnline ? Colors.green : Colors.red, strokeWidth: AppConstants.chartLineThickness)),
                 ),
               ),
             ),
           ),
-          // Production Value - Only in center-right
+          // Production Value - Center-right, 20 units above center
           Positioned(
-            right: 20,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(color: Colors.black.withOpacity(0.7), borderRadius: BorderRadius.circular(8)),
-                child: Text('${widget.productionValue.toStringAsFixed(1)} ${widget.unit}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            right: AppConstants.paddingLarge, // 20px
+            top: (AppConstants.imageLargeSize * 3) / 2 - AppConstants.paddingSuperLarge * 2, // Center - 20px
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingLarge, // 12px
+                vertical: AppConstants.paddingMedium, // 8px
+              ),
+              decoration: BoxDecoration(
+                color: Colors.black.withAlpha((AppConstants.alphaHigh * 255).round()),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium), // 8px
+              ),
+              child: Text(
+                '${widget.productionValue.toStringAsFixed(AppConstants.decimalPlaces)} ${widget.unit}',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: AppConstants.fontSizeLarge, // 16px
+                ),
               ),
             ),
           ),

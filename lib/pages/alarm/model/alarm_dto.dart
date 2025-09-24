@@ -31,8 +31,8 @@ class AlarmDto {
 
   factory AlarmDto.fromJson(Map<String, dynamic> json) {
     return AlarmDto(
-      id: json['id'],
-      deviceSetupId: json['deviceSetupId'],
+      id: json['id'] ?? 0,
+      deviceSetupId: json['deviceSetupId'] ?? 0,
       occuredAt: DateTime.parse(json['occuredAt']),
       clearedAt: json['clearedAt'] != null ? DateTime.parse(json['clearedAt']) : null,
       source: json['source'] ?? '',
@@ -90,8 +90,8 @@ class AlarmDetailDto extends AlarmDto {
 
   factory AlarmDetailDto.fromJson(Map<String, dynamic> json) {
     return AlarmDetailDto(
-      id: json['id'],
-      deviceSetupId: json['deviceSetupId'],
+      id: json['id'] ?? 0,
+      deviceSetupId: json['deviceSetupId'] ?? 0,
       occuredAt: DateTime.parse(json['occuredAt']),
       clearedAt: json['clearedAt'] != null ? DateTime.parse(json['clearedAt']) : null,
       source: json['source'] ?? '',
@@ -115,7 +115,7 @@ class PlantDto {
 
   PlantDto({required this.id, required this.name});
   factory PlantDto.fromJson(Map<String, dynamic> json) {
-    return PlantDto(id: json['id'], name: json['name']);
+    return PlantDto(id: json['id'] ?? 0, name: json['name'] ?? '');
   }
 }
 

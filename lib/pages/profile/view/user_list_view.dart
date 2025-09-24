@@ -77,13 +77,24 @@ class _UserListViewState extends State<UserListView> {
           children: [
             _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
             const SizedBox(height: AppConstants.paddingExtraLarge),
-            TextButton.icon(
-              label: Text("Çıkış Yap"),
-              onPressed: () {
-                TokenManager.clearToken();
-                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-              },
-              icon: Icon(Icons.logout),
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  TokenManager.clearToken();
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text("Çıkış Yap"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError,
+                  padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingMedium),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+                  elevation: AppConstants.elevationSmall,
+                ),
+              ),
             ),
           ],
         ),
@@ -97,13 +108,24 @@ class _UserListViewState extends State<UserListView> {
           const SizedBox(height: AppConstants.paddingExtraLarge),
           _buildAdminView(viewModel, theme, colorScheme),
           const SizedBox(height: AppConstants.paddingExtraLarge),
-          TextButton.icon(
-            label: Text("Çıkış Yap"),
-            onPressed: () {
-              TokenManager.clearToken();
-              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-            },
-            icon: Icon(Icons.logout),
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                TokenManager.clearToken();
+                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+              },
+              icon: const Icon(Icons.logout),
+              label: const Text("Çıkış Yap"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+                padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingMedium),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+                elevation: AppConstants.elevationSmall,
+              ),
+            ),
           ),
         ],
       ),
@@ -112,65 +134,111 @@ class _UserListViewState extends State<UserListView> {
 
   Widget _buildCurrentUserCard(UserDto user, ThemeData theme, ColorScheme colorScheme) {
     return Card(
-      margin: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+      margin: const EdgeInsets.all(AppConstants.paddingMedium),
+      elevation: AppConstants.elevationSmall,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge)),
       child: Padding(
-        padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+        padding: const EdgeInsets.all(AppConstants.paddingLarge),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                Center(
-                  child: CircleAvatar(
-                    radius: AppConstants.iconSizeExtraLarge,
-                    backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
-                    child: user.profilePictureUrl.isEmpty ? Text('${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}', style: TextStyle(fontSize: AppConstants.fontSizeTitle)) : null,
+            // Profile Header Section
+            Container(
+              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [colorScheme.primary.withOpacity(0.1), colorScheme.primary.withOpacity(0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: CircleAvatar(
+                      radius: AppConstants.imageMediumSize / 2,
+                      backgroundColor: colorScheme.primary.withOpacity(0.1),
+                      backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
+                      child:
+                          user.profilePictureUrl.isEmpty
+                              ? Text(
+                                '${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}',
+                                style: TextStyle(fontSize: AppConstants.fontSizeHeadline, fontWeight: FontWeight.bold, color: colorScheme.primary),
+                              )
+                              : null,
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Container(
-                    decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
-                    child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary, size: AppConstants.iconSizeSmall), onPressed: () => _navigateToUserDetail(context, user)),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle), boxShadow: AppConstants.cardShadow),
+                      child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary, size: AppConstants.iconSizeSmall), onPressed: () => _navigateToUserDetail(context, user)),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            const SizedBox(height: AppConstants.paddingExtraLarge),
-            Center(child: Text('${user.firstName} ${user.lastName}', style: theme.textTheme.titleLarge)),
+
+            const SizedBox(height: AppConstants.paddingLarge),
+
+            // User Info Section
+            Center(
+              child: Column(
+                children: [
+                  Text('${user.firstName} ${user.lastName}', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface), textAlign: TextAlign.center),
+                  const SizedBox(height: AppConstants.paddingSmall),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+                    decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+                    child: Text(user.email, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: AppConstants.paddingLarge),
+
+            // User Details Section
+            _buildSectionCard('Kullanıcı Bilgileri', Icons.person_outline, [
+              _buildDetailRow(Icons.person_outline, 'Kullanıcı Adı', user.username, theme, colorScheme),
+              if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Telefon', user.phone!, theme, colorScheme),
+              if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Rol', user.role!, theme, colorScheme),
+            ], colorScheme),
+
             const SizedBox(height: AppConstants.paddingMedium),
-            Center(child: Text(user.email, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant))),
-            const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
 
-            // Kullanıcı Detayları Bölümü
-            _buildDetailRow(Icons.person_outline, 'Kullanıcı Adı', user.username, theme, colorScheme),
-            if (user.phone != null && user.phone!.isNotEmpty) _buildDetailRow(Icons.phone, 'Telefon', user.phone!, theme, colorScheme),
+            // Notification Preferences Section
+            _buildSectionCard('Bildirim Tercihleri', Icons.notifications_outlined, [
+              _buildNotificationPreference('Anlık Bildirimler', user.receivePush, theme, colorScheme),
+              _buildNotificationPreference('E-Posta Bildirimleri', user.receiveMail, theme, colorScheme),
+              _buildNotificationPreference('SMS Bildirimleri', user.receiveSMS, theme, colorScheme),
+            ], colorScheme),
 
-            if (user.role != null) _buildDetailRow(Icons.assignment_ind_outlined, 'Rol', user.role!, theme, colorScheme),
-
-            const SizedBox(height: AppConstants.paddingMedium),
-            const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
-
-            // Bildirim Tercihleri
-            Text('Bildirim Tercihleri', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
-            const SizedBox(height: AppConstants.paddingMedium),
-            _buildNotificationPreference('Anlık Bildirimler', user.receivePush, theme, colorScheme),
-            _buildNotificationPreference('E-Posta Bildirimleri', user.receiveMail, theme, colorScheme),
-            _buildNotificationPreference('SMS Bildirimleri', user.receiveSMS, theme, colorScheme),
-
-            // İlişkili Tesisler
+            // Associated Plants Section
             if (user.plants.isNotEmpty) ...[
               const SizedBox(height: AppConstants.paddingMedium),
-              const Divider(height: AppConstants.paddingUltraLarge, thickness: 1),
-              Text('İlişkili Tesisler', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge)),
-              const SizedBox(height: AppConstants.paddingMedium),
-              Wrap(
-                spacing: AppConstants.paddingMedium,
-                runSpacing: AppConstants.paddingMedium,
-                children: user.plants.map((plant) => Chip(label: Text(plant.plantName ?? 'Tesis ${plant.plantId}'), backgroundColor: colorScheme.primaryContainer)).toList(),
-              ),
+              _buildSectionCard('İlişkili Tesisler', Icons.business_outlined, [
+                Wrap(
+                  spacing: AppConstants.paddingSmall,
+                  runSpacing: AppConstants.paddingSmall,
+                  children:
+                      user.plants
+                          .map(
+                            (plant) => Container(
+                              padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+                                border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                plant.plantName ?? 'Tesis ${plant.plantId}',
+                                style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w500, fontSize: AppConstants.fontSizeSmall),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                ),
+              ], colorScheme),
             ],
           ],
         ),
@@ -178,31 +246,62 @@ class _UserListViewState extends State<UserListView> {
     );
   }
 
+  Widget _buildSectionCard(String title, IconData icon, List<Widget> children, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.paddingMedium),
+      decoration: BoxDecoration(color: colorScheme.surface, borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium), border: Border.all(color: colorScheme.outline.withOpacity(0.2))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: AppConstants.iconSizeMedium, color: colorScheme.primary),
+              const SizedBox(width: AppConstants.paddingSmall),
+              Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeMedium, color: colorScheme.onSurface)),
+            ],
+          ),
+          const SizedBox(height: AppConstants.paddingMedium),
+          ...children,
+        ],
+      ),
+    );
+  }
+
   Widget _buildDetailRow(IconData icon, String label, String value, ThemeData theme, ColorScheme colorScheme, {Color? statusColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingSmall),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppConstants.paddingExtraSmall),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+      decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest.withOpacity(0.3), borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall)),
       child: Row(
         children: [
-          Icon(icon, size: AppConstants.iconSizeMedium, color: colorScheme.onSurfaceVariant),
-          const SizedBox(width: AppConstants.paddingLarge),
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-          const Spacer(),
-          Text(value, style: TextStyle(color: statusColor ?? colorScheme.onSurfaceVariant, fontWeight: statusColor != null ? FontWeight.bold : FontWeight.normal)),
+          Icon(icon, size: AppConstants.iconSizeSmall, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: AppConstants.paddingMedium),
+          Expanded(child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: colorScheme.onSurface, fontSize: AppConstants.fontSizeSmall))),
+          Text(value, style: TextStyle(color: statusColor ?? colorScheme.onSurfaceVariant, fontWeight: statusColor != null ? FontWeight.bold : FontWeight.w500, fontSize: AppConstants.fontSizeSmall)),
         ],
       ),
     );
   }
 
   Widget _buildNotificationPreference(String label, bool isActive, ThemeData theme, ColorScheme colorScheme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingSmall),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: AppConstants.paddingExtraSmall),
+      padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+      decoration: BoxDecoration(
+        color: isActive ? colorScheme.primaryContainer.withOpacity(0.3) : colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+        border: Border.all(color: isActive ? colorScheme.primary.withOpacity(0.3) : colorScheme.outline.withOpacity(0.2)),
+      ),
       child: Row(
         children: [
-          Icon(isActive ? Icons.notifications_active : Icons.notifications_off, size: AppConstants.iconSizeMedium, color: isActive ? colorScheme.tertiary : colorScheme.outline),
-          const SizedBox(width: AppConstants.paddingLarge),
-          Text(label),
-          const Spacer(),
-          Icon(isActive ? Icons.check_circle : Icons.remove_circle_outline, color: isActive ? colorScheme.tertiary : colorScheme.outline),
+          Icon(isActive ? Icons.notifications_active : Icons.notifications_off, size: AppConstants.iconSizeSmall, color: isActive ? colorScheme.primary : colorScheme.outline),
+          const SizedBox(width: AppConstants.paddingMedium),
+          Expanded(child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: colorScheme.onSurface, fontSize: AppConstants.fontSizeSmall))),
+          Container(
+            padding: const EdgeInsets.all(AppConstants.paddingExtraSmall),
+            decoration: BoxDecoration(color: isActive ? colorScheme.primary : colorScheme.outline.withOpacity(0.3), borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
+            child: Icon(isActive ? Icons.check : Icons.close, size: AppConstants.iconSizeExtraSmall, color: isActive ? colorScheme.onPrimary : colorScheme.outline),
+          ),
         ],
       ),
     );
@@ -210,33 +309,73 @@ class _UserListViewState extends State<UserListView> {
 
   Widget _buildAdminView(UserViewModel viewModel, ThemeData theme, ColorScheme colorScheme) {
     if (viewModel.plantUsers.isEmpty) {
-      return const Padding(padding: EdgeInsets.only(bottom: AppConstants.paddingExtraLarge), child: Center(child: Text('Kullanıcı bulunamadı')));
+      return Container(
+        margin: const EdgeInsets.all(AppConstants.paddingMedium),
+        padding: const EdgeInsets.all(AppConstants.paddingLarge),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+        ),
+        child: Center(child: Text('Kullanıcı bulunamadı', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeMedium))),
+      );
     }
 
-    return Column(
-      children: [
-        ...viewModel.plantUsers.map((plantUsers) {
-          return ExpansionTile(
-            title: Text(plantUsers.plantName),
-            subtitle: Text('${plantUsers.users.length} kullanıcı'),
-            children: plantUsers.users.map((user) => _buildUserTile(user, theme, colorScheme)).toList(),
-          );
-        }),
-        SizedBox(height: AppConstants.paddingHuge),
-      ],
+    return Container(
+      margin: const EdgeInsets.all(AppConstants.paddingMedium),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Kullanıcı Yönetimi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge, color: colorScheme.onSurface)),
+          const SizedBox(height: AppConstants.paddingMedium),
+          ...viewModel.plantUsers.map((plantUsers) {
+            return Card(
+              margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
+              elevation: AppConstants.elevationSmall,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+              child: ExpansionTile(
+                leading: Icon(Icons.business, color: colorScheme.primary),
+                title: Text(plantUsers.plantName, style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
+                subtitle: Text('${plantUsers.users.length} kullanıcı', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeSmall)),
+                children: plantUsers.users.map((user) => _buildUserTile(user, theme, colorScheme)).toList(),
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
   Widget _buildUserTile(UserDto user, ThemeData theme, ColorScheme colorScheme) {
-    return ListTile(
-      leading:
-          user.profilePictureUrl.isNotEmpty
-              ? CircleAvatar(backgroundImage: NetworkImage(user.profilePictureUrl))
-              : CircleAvatar(child: Text(user.firstName.substring(0, 1) + user.lastName.substring(0, 1))),
-      title: Text('${user.firstName} ${user.lastName}'),
-      subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user.email)]),
-      trailing: IconButton(icon: Icon(Icons.edit, color: colorScheme.primary), onPressed: () => _navigateToUserDetail(context, user)),
-      onTap: () => _navigateToUserDetail(context, user),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingExtraSmall),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+        leading: CircleAvatar(
+          radius: AppConstants.iconSizeMedium / 2,
+          backgroundColor: colorScheme.primary.withOpacity(0.1),
+          backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
+          child:
+              user.profilePictureUrl.isEmpty
+                  ? Text(
+                    user.firstName.substring(0, 1) + user.lastName.substring(0, 1),
+                    style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeSmall),
+                  )
+                  : null,
+        ),
+        title: Text('${user.firstName} ${user.lastName}', style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface, fontSize: AppConstants.fontSizeSmall)),
+        subtitle: Text(user.email, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeExtraSmall)),
+        trailing: Container(
+          decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall)),
+          child: IconButton(icon: Icon(Icons.edit, color: colorScheme.primary, size: AppConstants.iconSizeSmall), onPressed: () => _navigateToUserDetail(context, user)),
+        ),
+        onTap: () => _navigateToUserDetail(context, user),
+      ),
     );
   }
 

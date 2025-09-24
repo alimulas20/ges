@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/utils/snack_bar_utils.dart';
 import '../../../global/widgets/compact_switch.dart';
 import '../model/user_model.dart';
 import '../viewmodel/user_viewmodel.dart';
@@ -21,6 +22,7 @@ class UserDetailView extends StatefulWidget {
 class _UserDetailViewState extends State<UserDetailView> {
   late UserDto _editedUser;
   final ImagePicker _picker = ImagePicker();
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -47,7 +49,9 @@ class _UserDetailViewState extends State<UserDetailView> {
           _editedUser = _editedUser.copyWith(profilePictureUrl: url);
         });
       } catch (e) {
-        mounted ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Resim yüklenemedi: $e'))) : null;
+        if (mounted) {
+          SnackBarUtils.showError(context, 'Resim yüklenemedi: $e');
+        }
       }
     }
   }
@@ -63,7 +67,20 @@ class _UserDetailViewState extends State<UserDetailView> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${_editedUser.firstName} ${_editedUser.lastName}', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
-        actions: [if (canEdit && _hasChanges()) IconButton(icon: const Icon(Icons.save), onPressed: () => _saveChanges(context))],
+        actions: [
+          if (canEdit && _hasChanges())
+            IconButton(
+              icon:
+                  _isSaving
+                      ? SizedBox(
+                        width: AppConstants.iconSizeMedium,
+                        height: AppConstants.iconSizeMedium,
+                        child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary)),
+                      )
+                      : const Icon(Icons.save),
+              onPressed: _isSaving ? null : () => _saveChanges(context),
+            ),
+        ],
         toolbarHeight: AppConstants.appBarHeight,
       ),
       body: Padding(
@@ -221,7 +238,7 @@ class _UserDetailViewState extends State<UserDetailView> {
     final availablePlants = viewModel.plantsDropdown.where((plant) => !_editedUser.plants.any((p) => p.plantId == plant.id)).toList();
 
     if (availablePlants.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Eklenebilecek başka tesis bulunamadı')));
+      SnackBarUtils.showInfo(context, 'Eklenebilecek başka tesis bulunamadı');
       return;
     }
 
@@ -234,12 +251,39 @@ class _UserDetailViewState extends State<UserDetailView> {
     }
   }
 
-  void _saveChanges(BuildContext context) {
-    final viewModel = Provider.of<UserViewModel>(context, listen: false);
-    viewModel.updateUser(_editedUser).then((_) {
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
+  void _saveChanges(BuildContext context) async {
+    if (_isSaving) return; // Prevent multiple saves
+
+    setState(() {
+      _isSaving = true;
     });
+
+    try {
+      final viewModel = Provider.of<UserViewModel>(context, listen: false);
+      await viewModel.updateUser(_editedUser);
+
+      if (mounted) {
+        // Başarılı kayıt mesajı göster
+        SnackBarUtils.showSuccess(context, 'Kullanıcı bilgileri başarıyla güncellendi');
+
+        // Kısa bir gecikme sonra sayfayı kapat
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        // Hata mesajı göster ama sayfayı kapatma
+        SnackBarUtils.showError(context, 'Kaydetme hatası: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
   }
 }

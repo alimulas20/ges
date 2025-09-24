@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:solar/global/managers/token_manager.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/utils/snack_bar_utils.dart';
 import '../../plant/services/plant_service.dart';
 import '../model/user_model.dart';
 import '../service/user_service.dart';
@@ -390,7 +391,7 @@ class _UserListViewState extends State<UserListView> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kullanıcı detayları alınamadı: $e')));
+      SnackBarUtils.showError(context, 'Kullanıcı detayları alınamadı: $e');
     }
   }
 

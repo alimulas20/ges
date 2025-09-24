@@ -38,8 +38,8 @@ class UserViewModel with ChangeNotifier {
     try {
       _currentUser = await _service.getCurrentUser();
       final roles = await TokenManager.getRoles();
-      _isAdmin = roles.contains('Admin');
-      _isSuperAdmin = roles.contains('SuperAdmin');
+      _isAdmin = roles.contains('Manager');
+      _isSuperAdmin = roles.contains('Admin');
 
       if (_isAdmin || _isSuperAdmin) {
         _plantUsers = await _service.getUsers();

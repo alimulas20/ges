@@ -215,7 +215,7 @@ class _PlantStatusViewState extends State<PlantStatusView> {
           childAspectRatio: 1.5,
           children: [
             _buildNewInfoCard('Günlük Üretim', '${plantStatus.todayProduction.toStringAsFixed(2)} kWh', Icons.solar_power, Colors.orange),
-            _buildNewInfoCard('Toplam Üretim', '${plantStatus.totalProduction.toStringAsFixed(2)} kWh', Icons.trending_up, Colors.green),
+            _buildNewInfoCard('Toplam Üretim', '${(plantStatus.totalProduction / 1000).toStringAsFixed(2)} MWh', Icons.trending_up, Colors.green),
             _buildNewInfoCard('Tesis Kapasitesi', '${plantStatus.totalStringCapacityKWp.toStringAsFixed(2)} kWp', Icons.battery_charging_full, Colors.blue),
             _buildNewInfoCard('Anlık Üretim', '${plantStatus.currentPVGeneration.toStringAsFixed(2)} kW', Icons.flash_on, Colors.amber),
           ],

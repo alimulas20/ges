@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../alarm/model/alarm_dto.dart';
 import '../../alarm/service/alarm_service.dart';
-import '../models/plant_with_latest_weather_dto.dart';
+import '../models/plant_status_dto.dart';
 import '../services/plant_service.dart';
 
 class PlantStatusViewModel with ChangeNotifier {
@@ -10,8 +10,7 @@ class PlantStatusViewModel with ChangeNotifier {
   final AlarmService _alarmService;
   final int plantId;
 
-  PlantWithLatestWeatherDto? _plant;
-  List<AlarmDto> _alarms = [];
+  PlantStatusDto? _plantStatus;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -19,27 +18,27 @@ class PlantStatusViewModel with ChangeNotifier {
     _loadData();
   }
 
-  PlantWithLatestWeatherDto? get plant => _plant;
-  List<AlarmDto> get alarms => _alarms;
+  PlantStatusDto? get plantStatus => _plantStatus;
+  List<AlarmDto> get alarms => _plantStatus?.alarms ?? [];
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
   // Check if plant is online based on system alarms
   bool get isOnline {
-    if (_alarms.isEmpty) return true;
+    if (alarms.isEmpty) return true;
 
     // If there are any system alarms, plant is offline
-    return !_alarms.any((alarm) => alarm.source.toLowerCase() == 'system');
+    return !alarms.any((alarm) => alarm.source.toLowerCase() == 'system');
   }
 
   // Get system alarms only
   List<AlarmDto> get systemAlarms {
-    return _alarms.where((alarm) => alarm.source.toLowerCase() == 'system').toList();
+    return alarms.where((alarm) => alarm.source.toLowerCase() == 'system').toList();
   }
 
   // Get non-system alarms for display
   List<AlarmDto> get displayAlarms {
-    return _alarms.where((alarm) => alarm.source.toLowerCase() != 'system').toList();
+    return alarms.where((alarm) => alarm.source.toLowerCase() != 'system').toList();
   }
 
   Future<void> _loadData() async {
@@ -48,12 +47,8 @@ class PlantStatusViewModel with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Load plant data
-      final plants = await _plantService.getPlantswithWeather();
-      _plant = plants.firstWhere((p) => p.id == plantId);
-
-      // Load alarms for this plant
-      _alarms = await _alarmService.getAlarms(plantId: plantId, activeOnly: true, levels: ['Major', 'Minor', 'Warning']);
+      // Load plant status data with alarms included
+      _plantStatus = await _plantService.getPlantStatus(plantId);
 
       _errorMessage = null;
     } catch (e) {

@@ -436,7 +436,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                             children: [
                               Expanded(
                                 child: Text(
-                                  alarm.name ?? '',
+                                  alarm.alarmName ?? '',
                                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.titleMedium?.color),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -610,7 +610,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                         children: [
                           _buildDetailCard('Genel Bilgiler', Icons.info_outline, [
                             _buildDetailItem('Alarm Kodu', alarm.alarmCode, Icons.tag),
-                            _buildDetailItem('Hata Adı', alarm.name ?? '', Icons.error_outline),
+                            _buildDetailItem('Hata Adı', alarm.alarmName ?? '', Icons.error_outline),
                             _buildDescriptionItem('Açıklama', alarm.description, Icons.description),
                             _buildDetailItem('Kaynak', alarm.source, Icons.source),
                           ]),

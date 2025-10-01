@@ -6,7 +6,7 @@ import '../../../global/widgets/alarm_detail_dialog.dart';
 import '../../../global/widgets/solar_connection_animation.dart';
 import '../../alarm/model/alarm_dto.dart';
 import '../../alarm/service/alarm_service.dart';
-import '../models/plant_with_latest_weather_dto.dart';
+import '../models/plant_status_dto.dart';
 import '../services/plant_service.dart';
 import '../viewmodels/plant_status_viewmodel.dart';
 
@@ -55,7 +55,7 @@ class _PlantStatusViewState extends State<PlantStatusView> {
               );
             }
 
-            if (viewModel.plant == null) {
+            if (viewModel.plantStatus == null) {
               return const Center(child: Text('Tesis bulunamadı'));
             }
 
@@ -67,13 +67,16 @@ class _PlantStatusViewState extends State<PlantStatusView> {
                   // Alarm List Section
                   if (viewModel.displayAlarms.isNotEmpty) ...[_buildAlarmSection(viewModel.displayAlarms), const SizedBox(height: AppConstants.paddingLarge)],
 
-                  // Animation and Status Section
-                  _buildStatusSection(viewModel),
+                  // Animation and Status Section with PV Generation overlay
+                  _buildStatusSectionWithPVGeneration(viewModel),
 
                   const SizedBox(height: AppConstants.paddingHuge),
 
                   // Production Information Cards
-                  _buildProductionInfoCards(viewModel.plant!),
+                  const SizedBox(height: AppConstants.paddingLarge),
+
+                  // New Plant Status Information Cards
+                  if (viewModel.plantStatus != null) _buildNewStatusInfoCards(viewModel.plantStatus!),
 
                   // Add bottom padding to prevent overflow
                   const SizedBox(height: AppConstants.paddingLarge),
@@ -143,7 +146,7 @@ class _PlantStatusViewState extends State<PlantStatusView> {
     );
   }
 
-  Widget _buildStatusSection(PlantStatusViewModel viewModel) {
+  Widget _buildStatusSectionWithPVGeneration(PlantStatusViewModel viewModel) {
     return Container(
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.cardShadow),
@@ -156,7 +159,7 @@ class _PlantStatusViewState extends State<PlantStatusView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(viewModel.plant!.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(viewModel.plantStatus!.plantName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: AppConstants.paddingSmall),
                     Row(
                       children: [
@@ -177,33 +180,64 @@ class _PlantStatusViewState extends State<PlantStatusView> {
           const SizedBox(height: AppConstants.paddingLarge),
 
           // Solar Connection Animation
-          SolarConnectionAnimation(isOnline: viewModel.isOnline, productionValue: viewModel.plant!.dailyProduction, unit: 'kWh'),
+          SolarConnectionAnimation(isOnline: viewModel.isOnline, productionValue: viewModel.plantStatus!.currentPVGeneration, unit: 'kWh'),
         ],
       ),
     );
   }
 
-  Widget _buildProductionInfoCards(PlantWithLatestWeatherDto plant) {
+  Widget _buildProductionInfoCards(PlantStatusDto plantStatus) {
     return Column(
       children: [
         // Daily Production Card
-        _buildInfoCard('Günlük Üretim', '${plant.dailyProduction.toStringAsFixed(2)} kWh', Icons.solar_power, Colors.orange),
+        _buildInfoCard('Günlük Üretim', '${plantStatus.todayProduction.toStringAsFixed(2)} kWh', Icons.solar_power, Colors.orange),
 
         const SizedBox(height: AppConstants.paddingMedium),
 
         // Plant Capacity Card
-        _buildInfoCard('Tesis Kapasitesi', '${plant.totalStringCapacityKWp.toStringAsFixed(2)} kWp', Icons.battery_charging_full, Colors.blue),
-
-        const SizedBox(height: AppConstants.paddingMedium),
-
-        // Plant Type Card
-        _buildInfoCard('Tesis Tipi', plant.plantType, Icons.category, Colors.purple),
-
-        const SizedBox(height: AppConstants.paddingMedium),
-
-        // Grid Connection Date Card
-        _buildInfoCard('Şebekeye Bağlantı Tarihi', '${plant.gridConnectionDate.day}/${plant.gridConnectionDate.month}/${plant.gridConnectionDate.year}', Icons.calendar_today, Colors.green),
+        _buildInfoCard('Tesis Kapasitesi', '${plantStatus.totalStringCapacityKWp.toStringAsFixed(2)} kWp', Icons.battery_charging_full, Colors.blue),
       ],
+    );
+  }
+
+  Widget _buildNewStatusInfoCards(PlantStatusDto plantStatus) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Tesis Durumu', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: AppConstants.paddingMedium),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: AppConstants.paddingMedium,
+          mainAxisSpacing: AppConstants.paddingMedium,
+          childAspectRatio: 1.5,
+          children: [
+            _buildNewInfoCard('Günlük Üretim', '${plantStatus.todayProduction.toStringAsFixed(2)} kWh', Icons.solar_power, Colors.orange),
+            _buildNewInfoCard('Toplam Üretim', '${plantStatus.totalProduction.toStringAsFixed(2)} kWh', Icons.trending_up, Colors.green),
+            _buildNewInfoCard('Tesis Kapasitesi', '${plantStatus.totalStringCapacityKWp.toStringAsFixed(2)} kWp', Icons.battery_charging_full, Colors.blue),
+            _buildNewInfoCard('Anlık Üretim', '${plantStatus.currentPVGeneration.toStringAsFixed(2)} kW', Icons.flash_on, Colors.amber),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNewInfoCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.paddingMedium),
+      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.cardShadow),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 32),
+          const SizedBox(height: AppConstants.paddingSmall),
+          Text(title, style: TextStyle(color: Colors.grey[600], fontSize: AppConstants.fontSizeSmall, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
+          const SizedBox(height: 4),
+          Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color), textAlign: TextAlign.center),
+        ],
+      ),
     );
   }
 

@@ -3,6 +3,7 @@
 import '../../../global/dtos/dropdown_dto.dart';
 import '../../../global/managers/dio_service.dart';
 import '../models/plant_production_model.dart';
+import '../models/plant_status_dto.dart';
 import '../models/plant_with_latest_weather_dto.dart';
 
 class PlantService {
@@ -45,6 +46,20 @@ class PlantService {
       }
     } catch (e) {
       throw Exception('Failed to load plant list: $e');
+    }
+  }
+
+  Future<PlantStatusDto> getPlantStatus(int plantId) async {
+    try {
+      final response = await DioService.dio.get('/plant/$plantId/status');
+
+      if (response.statusCode == 200) {
+        return PlantStatusDto.fromJson(response.data);
+      } else {
+        throw Exception('Failed to load plant status: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load plant status: $e');
     }
   }
 }

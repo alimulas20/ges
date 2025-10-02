@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:rive/rive.dart' hide LinearGradient;
 
@@ -87,27 +89,89 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
             ),
           ),
         ),
-        // Production Value - Center-right, 20 units above center
+        // Production Value - Enhanced card with glassmorphism effect
         Positioned(
           right: AppConstants.paddingLarge, // 20px
-          top: (AppConstants.imageLargeSize * 3) / 2 - AppConstants.paddingSuperLarge * 2, // Center - 20px
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppConstants.paddingLarge, // 12px
-              vertical: AppConstants.paddingMedium, // 8px
-            ),
-            decoration: BoxDecoration(
-              color: Colors.black.withAlpha((AppConstants.alphaHigh * 255).round()),
-              borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium), // 8px
-            ),
-            child: Text(
-              '${widget.productionValue.toStringAsFixed(AppConstants.decimalPlaces)} ${widget.unit}',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: AppConstants.fontSizeLarge, // 16px
-              ),
-            ),
+          top: (AppConstants.imageLargeSize), // 600/2 - 20 = 280px (orta noktanın 20px üstü)
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 800),
+            tween: Tween(begin: 0.0, end: 1.0),
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: 0.8 + (0.2 * value),
+                child: Opacity(
+                  opacity: value,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), // 12px
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppConstants.paddingLarge + 4, // 16px
+                          vertical: AppConstants.paddingMedium + 4, // 12px
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Colors.white.withOpacity(0.3), Colors.white.withOpacity(0.1)]),
+                          borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), // 12px
+                          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 25, offset: const Offset(0, 10)),
+                            BoxShadow(color: Colors.white.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, -3)),
+                            // Glow effect
+                            BoxShadow(color: widget.isOnline ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 0)),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Production icon with pulse animation
+                            TweenAnimationBuilder<double>(
+                              duration: const Duration(seconds: 2),
+                              tween: Tween(begin: 0.8, end: 1.2),
+                              builder: (context, scale, child) {
+                                return Transform.scale(
+                                  scale: scale,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(color: widget.isOnline ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2), shape: BoxShape.circle),
+                                    child: Icon(Icons.flash_on, color: widget.isOnline ? Colors.green[300] : Colors.red[300], size: 16),
+                                  ),
+                                );
+                              },
+                              onEnd: () {
+                                // Restart the animation
+                                setState(() {});
+                              },
+                            ),
+                            const SizedBox(height: 4),
+                            // Production value with enhanced typography
+                            Text(
+                              widget.productionValue.toStringAsFixed(AppConstants.decimalPlaces),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: AppConstants.fontSizeLarge + 2, // 18px
+                                letterSpacing: 0.5,
+                                shadows: [Shadow(color: Colors.black.withOpacity(0.3), offset: const Offset(0, 1), blurRadius: 2)],
+                              ),
+                            ),
+                            Text(
+                              widget.unit,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontWeight: FontWeight.w600,
+                                fontSize: AppConstants.fontSizeSmall, // 12px
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],

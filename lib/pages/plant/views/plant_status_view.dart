@@ -180,23 +180,9 @@ class _PlantStatusViewState extends State<PlantStatusView> {
           const SizedBox(height: AppConstants.paddingLarge),
 
           // Solar Connection Animation
-          SolarConnectionAnimation(isOnline: viewModel.isOnline, productionValue: viewModel.plantStatus!.currentPVGeneration, unit: 'kWh'),
+          SolarConnectionAnimation(isOnline: viewModel.isOnline, productionValue: viewModel.plantStatus!.currentPVGeneration, unit: 'kW'),
         ],
       ),
-    );
-  }
-
-  Widget _buildProductionInfoCards(PlantStatusDto plantStatus) {
-    return Column(
-      children: [
-        // Daily Production Card
-        _buildInfoCard('Günlük Üretim', '${plantStatus.todayProduction.toStringAsFixed(2)} kWh', Icons.solar_power, Colors.orange),
-
-        const SizedBox(height: AppConstants.paddingMedium),
-
-        // Plant Capacity Card
-        _buildInfoCard('Tesis Kapasitesi', '${plantStatus.totalStringCapacityKWp.toStringAsFixed(2)} kWp', Icons.battery_charging_full, Colors.blue),
-      ],
     );
   }
 

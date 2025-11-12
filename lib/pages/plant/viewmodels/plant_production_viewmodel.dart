@@ -41,10 +41,10 @@ class PlantProductionViewModel with ChangeNotifier {
       switch (_selectedTimePeriod) {
         case ProductionTimePeriod.daily:
           final maxValue = prodList.isEmpty ? 0 : _productionData!.dataPoints.map((d) => d.totalProduction).reduce(max);
-          _bottomDescription = "Toplam Üretim : $maxValue kWh";
+          _bottomDescription = "Maksimum Güç : $maxValue kW";
           break;
         default:
-          _bottomDescription = 'Toplam Üretim: ${_productionData?.dataPoints.map((e) => e.totalProduction).reduce((a, b) => a + b).toStringAsFixed(2)} kWh';
+          _bottomDescription = 'Maksimum Üretim: ${_productionData?.dataPoints.map((e) => e.totalProduction).reduce(max).toStringAsFixed(2)} kWh';
       }
       _errorMessage = null;
     } catch (e) {

@@ -108,7 +108,7 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
         // Production Value - Enhanced card with glassmorphism effect
         Positioned(
           right: AppConstants.paddingLarge, // 20px
-          top: (AppConstants.imageLargeSize), // 600/2 - 20 = 280px (orta noktanın 20px üstü)
+          top: (AppConstants.imageLargeSize) * 1.2, // 600/2 - 20 = 280px (orta noktanın 20px üstü)
           child: TweenAnimationBuilder<double>(
             duration: const Duration(milliseconds: 800),
             tween: Tween(begin: 0.0, end: 1.0),
@@ -118,67 +118,67 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
                 child: Opacity(
                   opacity: value,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), // 12px
+                    borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium), // 8px
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: AppConstants.paddingLarge + 4, // 16px
-                          vertical: AppConstants.paddingMedium + 4, // 12px
+                          horizontal: AppConstants.paddingMedium, // 12px
+                          vertical: AppConstants.paddingSmall + 2, // 8px
                         ),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Colors.grey.shade200, Colors.grey.shade100]),
-                          borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), // 12px
-                          border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                          color: Colors.white.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium), // 8px
+                          border: Border.all(color: Colors.blue.shade300, width: 1.5),
                           boxShadow: [
-                            BoxShadow(color: Colors.grey.shade700, blurRadius: 25, offset: const Offset(0, 10)),
-                            BoxShadow(color: Colors.grey.shade100, blurRadius: 15, offset: const Offset(0, -3)),
-                            // Glow effect
-                            BoxShadow(color: widget.isOnline ? Colors.green.shade200 : Colors.red.shade200, blurRadius: 20, offset: const Offset(0, 0)),
+                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 4)),
+                            BoxShadow(color: Colors.blue.shade100, blurRadius: 10, offset: const Offset(0, 0)),
                           ],
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Production icon with pulse animation
-                            TweenAnimationBuilder<double>(
-                              duration: const Duration(seconds: 2),
-                              tween: Tween(begin: 0.8, end: 1.2),
-                              builder: (context, scale, child) {
-                                return Transform.scale(
-                                  scale: scale,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(color: widget.isOnline ? Colors.green.shade200 : Colors.red.shade200, shape: BoxShape.circle),
-                                    child: Icon(Icons.flash_on, color: widget.isOnline ? Colors.green[300] : Colors.red[300], size: 16),
-                                  ),
-                                );
-                              },
-                              onEnd: () {
-                                // Restart the animation
-                                setState(() {});
-                              },
+                            // Label text
+                            Text(
+                              'Aktif Güç',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontWeight: FontWeight.w600,
+                                fontSize: AppConstants.fontSizeSmall, // 12px
+                                letterSpacing: 0.2,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             // Production value with enhanced typography
-                            Text(
-                              widget.productionValue.toStringAsFixed(AppConstants.decimalPlaces),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: AppConstants.fontSizeLarge + 2, // 18px
-                                letterSpacing: 0.5,
-                                shadows: [Shadow(color: Colors.grey.shade800, offset: const Offset(0, 1), blurRadius: 2)],
-                              ),
-                            ),
-                            Text(
-                              widget.unit,
-                              style: TextStyle(
-                                color: Colors.grey.shade100,
-                                fontWeight: FontWeight.w600,
-                                fontSize: AppConstants.fontSizeSmall, // 12px
-                                letterSpacing: 0.3,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  widget.productionValue.toStringAsFixed(AppConstants.decimalPlaces),
+                                  style: TextStyle(
+                                    color: Colors.blue.shade800,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: AppConstants.fontSizeLarge + 2, // 18px
+                                    letterSpacing: 0.3,
+                                    height: 1.0,
+                                  ),
+                                ),
+                                const SizedBox(width: 3),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 1),
+                                  child: Text(
+                                    widget.unit,
+                                    style: TextStyle(
+                                      color: Colors.blue.shade600,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: AppConstants.fontSizeSmall + 1, // 13px
+                                      letterSpacing: 0.1,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

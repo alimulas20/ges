@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:rive/rive.dart';
 
 import 'firebase_options.dart';
 import 'global/constant/theme.dart';
@@ -24,6 +25,7 @@ import 'pages/profile/viewmodel/user_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await RiveNative.init();
   await initializeDateFormatting('tr_TR', null);
   Intl.defaultLocale = 'tr_TR';
   if (!kIsWeb) {

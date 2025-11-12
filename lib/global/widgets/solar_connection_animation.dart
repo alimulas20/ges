@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:rive/rive.dart' hide LinearGradient;
+import 'package:rive/rive.dart';
 
 import '../constant/app_constants.dart';
 
@@ -17,14 +17,15 @@ class SolarConnectionAnimation extends StatefulWidget {
 }
 
 class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
-  RiveAnimationController? _controller;
+  late final FileLoader _fileLoader;
+  RiveWidgetController? _controller;
+  SingleAnimationPainter? _animationPainter;
   bool _isAnimationLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    // Try Timeline 1 first, will be updated in onInit if needed
-    _controller = SimpleAnimation('Timeline 1');
+    _fileLoader = FileLoader.fromAsset('assets/animations/solar connection', riveFactory: Factory.rive);
   }
 
   @override
@@ -36,15 +37,22 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
   }
 
   void _updateAnimation() {
-    if (_isAnimationLoaded && _controller != null) {
-      // Try to restart the animation
-      _controller!.isActive = false;
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          _controller!.isActive = true;
-        }
-      });
+    if (_isAnimationLoaded && _animationPainter != null) {
+      // Try to restart the animation by recreating the painter
+      _animationPainter?.dispose();
+      _setupAnimation();
     }
+  }
+
+  void _setupAnimation() {
+    if (_controller == null) return;
+
+    // In Rive 0.14, animations are handled differently
+    // The default animation should auto-play if set in the Rive file
+    // For custom animation control, you may need to use StateMachine or
+    // configure the animation in the Rive file itself
+    _animationPainter?.dispose();
+    setState(() {});
   }
 
   @override
@@ -57,35 +65,43 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
           child: SizedBox(
             width: double.infinity,
             height: AppConstants.imageLargeSize * 3, // 600px
-            child: RiveAnimation.asset(
-              'assets/animations/solar connection',
-              controllers: _controller != null ? [_controller!] : [],
-              onInit: (artboard) {
-                _isAnimationLoaded = true;
-                try {
-                  _controller = SimpleAnimation('Timeline 1');
-                  _controller!.isActive = true;
-                } catch (e) {
-                  // Try Timeline 2
-                  _controller = SimpleAnimation('Timeline 2');
-                  _controller!.isActive = true;
-                }
-              },
-              fit: BoxFit.contain,
-              placeHolder: Container(
-                width: double.infinity,
-                height: AppConstants.imageLargeSize * 3, // 600px
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors:
-                        widget.isOnline
-                            ? [Colors.green.withAlpha((AppConstants.alphaMedium * 255).round()), Colors.green.withAlpha((AppConstants.alphaLow * 255).round())]
-                            : [Colors.red.withAlpha((AppConstants.alphaMedium * 255).round()), Colors.red.withAlpha((AppConstants.alphaLow * 255).round())],
+            child: RiveWidgetBuilder(
+              fileLoader: _fileLoader,
+              builder: (context, state) {
+                return switch (state) {
+                  RiveLoading() => Container(
+                    width: double.infinity,
+                    height: AppConstants.imageLargeSize * 3, // 600px
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: widget.isOnline ? [Colors.green.shade300, Colors.green.shade100] : [Colors.red.shade300, Colors.red.shade100]),
+                      borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+                    ),
+                    child: Center(child: CircularProgressIndicator(color: widget.isOnline ? Colors.green : Colors.red, strokeWidth: AppConstants.chartLineThickness)),
                   ),
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
-                ),
-                child: Center(child: CircularProgressIndicator(color: widget.isOnline ? Colors.green : Colors.red, strokeWidth: AppConstants.chartLineThickness)),
-              ),
+                  RiveFailed() => Container(
+                    width: double.infinity,
+                    height: AppConstants.imageLargeSize * 3,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(colors: widget.isOnline ? [Colors.green.shade300, Colors.green.shade200] : [Colors.red.shade300, Colors.red.shade100]),
+                      borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+                    ),
+                    child: Center(child: Text('Failed to load: ${state.error}')),
+                  ),
+                  RiveLoaded() => Builder(
+                    builder: (context) {
+                      if (_controller != state.controller) {
+                        _controller = state.controller;
+                        _isAnimationLoaded = true;
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _setupAnimation();
+                        });
+                      }
+
+                      return RiveWidget(controller: state.controller, fit: Fit.contain);
+                    },
+                  ),
+                };
+              },
             ),
           ),
         ),
@@ -111,14 +127,14 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
                           vertical: AppConstants.paddingMedium + 4, // 12px
                         ),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Colors.white.withOpacity(0.3), Colors.white.withOpacity(0.1)]),
+                          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Colors.grey.shade200, Colors.grey.shade100]),
                           borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), // 12px
-                          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
+                          border: Border.all(color: Colors.grey.shade300, width: 1.5),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 25, offset: const Offset(0, 10)),
-                            BoxShadow(color: Colors.white.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, -3)),
+                            BoxShadow(color: Colors.grey.shade700, blurRadius: 25, offset: const Offset(0, 10)),
+                            BoxShadow(color: Colors.grey.shade100, blurRadius: 15, offset: const Offset(0, -3)),
                             // Glow effect
-                            BoxShadow(color: widget.isOnline ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 0)),
+                            BoxShadow(color: widget.isOnline ? Colors.green.shade200 : Colors.red.shade200, blurRadius: 20, offset: const Offset(0, 0)),
                           ],
                         ),
                         child: Column(
@@ -133,7 +149,7 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
                                   scale: scale,
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(color: widget.isOnline ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2), shape: BoxShape.circle),
+                                    decoration: BoxDecoration(color: widget.isOnline ? Colors.green.shade200 : Colors.red.shade200, shape: BoxShape.circle),
                                     child: Icon(Icons.flash_on, color: widget.isOnline ? Colors.green[300] : Colors.red[300], size: 16),
                                   ),
                                 );
@@ -152,13 +168,13 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
                                 fontWeight: FontWeight.w800,
                                 fontSize: AppConstants.fontSizeLarge + 2, // 18px
                                 letterSpacing: 0.5,
-                                shadows: [Shadow(color: Colors.black.withOpacity(0.3), offset: const Offset(0, 1), blurRadius: 2)],
+                                shadows: [Shadow(color: Colors.grey.shade800, offset: const Offset(0, 1), blurRadius: 2)],
                               ),
                             ),
                             Text(
                               widget.unit,
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.grey.shade100,
                                 fontWeight: FontWeight.w600,
                                 fontSize: AppConstants.fontSizeSmall, // 12px
                                 letterSpacing: 0.3,
@@ -180,7 +196,8 @@ class _SolarConnectionAnimationState extends State<SolarConnectionAnimation> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _animationPainter?.dispose();
+    _fileLoader.dispose();
     super.dispose();
   }
 }

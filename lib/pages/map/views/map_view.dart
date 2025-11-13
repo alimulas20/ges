@@ -4,10 +4,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:solar/pages/plant/models/plant_with_latest_weather_dto.dart';
+
 import '../../../global/constant/app_constants.dart';
+import '../models/pv_string_model.dart';
 import '../services/map_service.dart';
 import '../viewmodels/map_viewmodel.dart';
-import '../models/pv_string_model.dart';
 
 class MapView extends StatefulWidget {
   final PlantWithLatestWeatherDto plant;
@@ -21,6 +22,7 @@ class MapView extends StatefulWidget {
 class MapViewState extends State<MapView> {
   late final MapViewModel _viewModel;
   final MapController _mapController = MapController();
+  double _currentZoom = 19.6;
 
   // Varsayılan değerler
   LatLng? get _initialTopLeft {
@@ -49,6 +51,7 @@ class MapViewState extends State<MapView> {
   void initState() {
     super.initState();
     _viewModel = MapViewModel(MapService());
+    _currentZoom = _initialZoom;
     _loadData();
   }
 
@@ -79,8 +82,26 @@ class MapViewState extends State<MapView> {
             appBar: AppBar(
               title: const Text('PV Isı Haritası', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
               actions: [
-                IconButton(icon: const Icon(Icons.zoom_in), onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 0.5)),
-                IconButton(icon: const Icon(Icons.zoom_out), onPressed: () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 0.5)),
+                IconButton(
+                  icon: const Icon(Icons.zoom_in),
+                  onPressed: () {
+                    final newZoom = _mapController.camera.zoom + 0.5;
+                    _mapController.move(_mapController.camera.center, newZoom);
+                    setState(() {
+                      _currentZoom = newZoom;
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.zoom_out),
+                  onPressed: () {
+                    final newZoom = _mapController.camera.zoom - 0.5;
+                    _mapController.move(_mapController.camera.center, newZoom);
+                    setState(() {
+                      _currentZoom = newZoom;
+                    });
+                  },
+                ),
                 IconButton(icon: const Icon(Icons.center_focus_strong), onPressed: _centerMap),
               ],
               toolbarHeight: AppConstants.appBarHeight,
@@ -95,6 +116,14 @@ class MapViewState extends State<MapView> {
                     minZoom: 0,
                     maxZoom: 25,
                     onTap: (_, __) => viewModel.selectString(null),
+                    onPositionChanged: (position, hasGesture) {
+                      final newZoom = _mapController.camera.zoom;
+                      if (_currentZoom != newZoom) {
+                        setState(() {
+                          _currentZoom = newZoom;
+                        });
+                      }
+                    },
                     cameraConstraint:
                         _initialBottomRight != null && _initialTopLeft != null
                             ? CameraConstraint.contain(bounds: LatLngBounds.fromPoints([_initialTopLeft!, _initialBottomRight!]))
@@ -113,25 +142,27 @@ class MapViewState extends State<MapView> {
                         return Polygon(points: polygonPoints[index], color: polygonColors[index], borderColor: borderColors[index], borderStrokeWidth: 2);
                       }),
                     ),
-                    MarkerLayer(
-                      markers: List.generate(polygonPoints.length, (index) {
-                        final center = viewModel.calculateCenter(polygonPoints[index]);
-                        final string = stringAssociations[index];
-                        return Marker(
-                          point: center,
-                          width: 60,
-                          height: 30,
-                          child: GestureDetector(
-                            onTap: () => viewModel.selectString(string),
-                            child: Container(
-                              padding: EdgeInsets.all(2),
-                              decoration: BoxDecoration(color: viewModel.getStringColor(string), shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
-                              child: Center(child: Text(string.technicalName.replaceAll("MPPT-", ""), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+                    // MarkerLayer sadece zoom > 19 olduğunda görünsün
+                    if (_currentZoom > 19.5)
+                      MarkerLayer(
+                        markers: List.generate(polygonPoints.length, (index) {
+                          final center = viewModel.calculateCenter(polygonPoints[index]);
+                          final string = stringAssociations[index];
+                          return Marker(
+                            point: center,
+                            width: 60,
+                            height: 30,
+                            child: GestureDetector(
+                              onTap: () => viewModel.selectString(string),
+                              child: Container(
+                                padding: EdgeInsets.all(2),
+                                decoration: BoxDecoration(color: viewModel.getStringColor(string), shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                                child: Center(child: Text(string.technicalName.replaceAll("MPPT-", ""), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+                              ),
                             ),
-                          ),
-                        );
-                      }),
-                    ),
+                          );
+                        }),
+                      ),
                   ],
                 ),
                 Align(

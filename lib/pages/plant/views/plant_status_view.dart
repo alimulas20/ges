@@ -203,6 +203,7 @@ class _PlantStatusViewState extends State<PlantStatusView> {
             _buildNewInfoCard('Günlük Üretim', '${plantStatus.todayProduction.toStringAsFixed(2)} kWh', Icons.solar_power, Colors.orange),
             _buildNewInfoCard('Toplam Üretim', '${(plantStatus.totalProduction / 1000).toStringAsFixed(2)} MWh', Icons.trending_up, Colors.green),
             _buildNewInfoCard('Tesis Kapasitesi', '${plantStatus.totalStringCapacityKWp.toStringAsFixed(2)} kWp', Icons.battery_charging_full, Colors.blue),
+            _buildNewInfoCard('Nominal Güç', '${plantStatus.inverterNominalPower.toStringAsFixed(2)} kW', Icons.speed, Colors.purple),
             _buildNewInfoCard('Anlık Üretim', '${plantStatus.currentPVGeneration.toStringAsFixed(2)} kW', Icons.flash_on, Colors.amber),
           ],
         ),
@@ -222,33 +223,6 @@ class _PlantStatusViewState extends State<PlantStatusView> {
           Text(title, style: TextStyle(color: Colors.grey[600], fontSize: AppConstants.fontSizeSmall, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
           const SizedBox(height: 4),
           Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color), textAlign: TextAlign.center),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.paddingLarge),
-      decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.cardShadow),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppConstants.paddingMedium),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: AppConstants.paddingLarge),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: TextStyle(color: Colors.grey[600], fontSize: AppConstants.fontSizeSmall, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 4),
-                Text(value, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
-              ],
-            ),
-          ),
         ],
       ),
     );

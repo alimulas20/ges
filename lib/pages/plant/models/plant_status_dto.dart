@@ -4,6 +4,7 @@ class PlantStatusDto {
   final int plantId;
   final String plantName;
   final double totalStringCapacityKWp;
+  final double inverterNominalPower;
   final double todayProduction;
   final double totalProduction;
   final double currentPVGeneration;
@@ -13,6 +14,7 @@ class PlantStatusDto {
     required this.plantId,
     required this.plantName,
     required this.totalStringCapacityKWp,
+    required this.inverterNominalPower,
     required this.todayProduction,
     required this.totalProduction,
     required this.currentPVGeneration,
@@ -24,6 +26,7 @@ class PlantStatusDto {
       plantId: json['plantId'] ?? 0,
       plantName: json['plantName'] ?? '',
       totalStringCapacityKWp: (json['totalStringCapacityKWp'] ?? 0).toDouble(),
+      inverterNominalPower: (json['inverterNominalPower'] ?? 0).toDouble(),
       todayProduction: (json['todayProduction'] ?? 0).toDouble(),
       totalProduction: (json['totalProduction'] ?? 0).toDouble(),
       currentPVGeneration: (json['currentPVGeneration'] ?? 0).toDouble(),
@@ -36,6 +39,7 @@ class PlantStatusDto {
       'plantId': plantId,
       'plantName': plantName,
       'totalStringCapacityKWp': totalStringCapacityKWp,
+      'inverterNominalPower': inverterNominalPower,
       'todayProduction': todayProduction,
       'totalProduction': totalProduction,
       'currentPVGeneration': currentPVGeneration,

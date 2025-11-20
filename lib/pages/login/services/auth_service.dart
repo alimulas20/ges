@@ -1,12 +1,14 @@
 // auth_service.dart
 import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:solar/global/constant/url_constant.dart';
 import 'package:solar/main.dart';
+
 import '../../../global/managers/token_manager.dart';
-import '../models/token_response.dart';
 import '../models/login_model.dart';
+import '../models/token_response.dart';
 
 class AuthService {
   final String _baseUrl = UrlConstants.baseUrl;
@@ -21,8 +23,8 @@ class AuthService {
       final jsonData = json.decode(response.body);
       final token = TokenResponse.fromJson(jsonData);
       await TokenManager.saveToken(token);
-      await MyApp().setupFirebaseToken();
-      await MyApp().setupFirebaseMessaging();
+      await MyApp.setupFirebaseToken();
+      await MyApp.setupFirebaseMessaging();
       return token;
     } else {
       throw Exception('Login failed: ${response.statusCode}');

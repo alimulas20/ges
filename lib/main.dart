@@ -25,34 +25,28 @@ import 'pages/profile/viewmodel/user_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await RiveNative.init();
-  await initializeDateFormatting('tr_TR', null);
-  Intl.defaultLocale = 'tr_TR';
-  if (!kIsWeb) {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    FlutterError.onError = (errorDetails) {
-      FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
-    };
-    // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
-    PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      return true;
-    };
-  }
-
+  final initializationFuture = _AppInitializer.initialize();
   DioService.init();
-
-  runApp(const MyApp());
+  runApp(MyApp(initializationFuture: initializationFuture));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key, required this.initializationFuture});
 
-  Future<Widget> getInitialPage() async {
-    final auth = await TokenManager.getAuth();
-    if (auth != null) {
-      setupFirebaseToken();
-      setupFirebaseMessaging();
+  final Future<void> initializationFuture;
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+
+  Future<Widget> _getInitialPage(Future<void> initializationFuture) async {
+    // Sadece access_token kontrolü yap, daha hızlı
+    final accessToken = await TokenManager.getAccessToken();
+    if (accessToken != null) {
+      // Firebase setup işlemlerini arka planda çalıştır, widget'ı hemen döndür
+      initializationFuture.then((_) {
+        MyApp.setupFirebaseToken().catchError((e) => debugPrint('Firebase token setup error: $e'));
+        MyApp.setupFirebaseMessaging().catchError((e) => debugPrint('Firebase messaging setup error: $e'));
+      });
       return MultiProvider(
         providers: [
           // Tüm uygulama boyunca kullanılacak Provider'ları burada tanımlayın
@@ -69,12 +63,12 @@ class MyApp extends StatelessWidget {
           ],
         ),
       );
-    } else {
-      return ChangeNotifierProvider(create: (_) => LoginViewModel(), child: LoginView());
     }
+    return ChangeNotifierProvider(create: (_) => LoginViewModel(), child: LoginView());
   }
 
-  Future<void> setupFirebaseMessaging() async {
+  static Future<void> setupFirebaseMessaging() async {
+    await _AppInitializer.initialize();
     if (kIsWeb) return;
     final messaging = FirebaseMessaging.instance;
 
@@ -95,16 +89,18 @@ class MyApp extends StatelessWidget {
     }
   }
 
-  void _showNotification(RemoteMessage message) {
+  static void _showNotification(RemoteMessage message) {
     // Bildirimi göster
     // FlutterLocalNotificationsPlugin kullanabilirsiniz
   }
 
-  void _handleNotificationClick(RemoteMessage message) {
+  static void _handleNotificationClick(RemoteMessage message) {
     // Bildirime tıklandığında yapılacak işlemler
     // Örneğin belirli bir sayfaya yönlendirme
   }
-  Future<void> setupFirebaseToken() async {
+
+  static Future<void> setupFirebaseToken() async {
+    await _AppInitializer.initialize();
     if (kIsWeb) return;
     try {
       // Firebase Messaging instance'ını al
@@ -128,6 +124,10 @@ class MyApp extends StatelessWidget {
       debugPrint('Firebase token error: $e');
     }
   }
+}
+
+class _MyAppState extends State<MyApp> {
+  late final Future<Widget> _initialPageFuture = widget._getInitialPage(widget.initializationFuture);
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +138,7 @@ class MyApp extends StatelessWidget {
       title: 'PV Monitoring',
       theme: materialTheme.light(),
       home: FutureBuilder<Widget>(
-        future: getInitialPage(),
+        future: _initialPageFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -166,5 +166,40 @@ class MyApp extends StatelessWidget {
             ),
       },
     );
+  }
+}
+
+class _AppInitializer {
+  static Future<void>? _initialization;
+
+  static Future<void> initialize() {
+    _initialization ??= _runInitialization();
+    return _initialization!;
+  }
+
+  static Future<void> _runInitialization() async {
+    await Future.wait([_initRive(), _initIntl(), _initFirebase()]);
+  }
+
+  static Future<void> _initRive() async {
+    await RiveNative.init();
+  }
+
+  static Future<void> _initIntl() async {
+    await initializeDateFormatting('tr_TR', null);
+    Intl.defaultLocale = 'tr_TR';
+  }
+
+  static Future<void> _initFirebase() async {
+    if (kIsWeb) return;
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    FlutterError.onError = (errorDetails) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+    };
+    // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
   }
 }

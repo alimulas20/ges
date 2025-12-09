@@ -6,6 +6,7 @@ import 'package:solar/global/managers/token_manager.dart';
 import '../../../global/constant/app_constants.dart';
 import '../../../global/utils/snack_bar_utils.dart';
 import '../../plant/services/plant_service.dart';
+import '../../plant/views/plant_update_view.dart';
 import '../model/user_model.dart';
 import '../service/user_service.dart';
 import '../viewmodel/user_viewmodel.dart';
@@ -21,6 +22,8 @@ class UserListView extends StatefulWidget {
 
 class _UserListViewState extends State<UserListView> {
   late final UserViewModel _viewModel;
+  bool _isUserManagementExpanded = false;
+  bool _isPlantManagementExpanded = false;
 
   @override
   void initState() {
@@ -309,39 +312,76 @@ class _UserListViewState extends State<UserListView> {
   }
 
   Widget _buildAdminView(UserViewModel viewModel, ThemeData theme, ColorScheme colorScheme) {
-    if (viewModel.plantUsers.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.all(AppConstants.paddingMedium),
-        padding: const EdgeInsets.all(AppConstants.paddingLarge),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
-          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
-        ),
-        child: Center(child: Text('Kullanıcı bulunamadı', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeMedium))),
-      );
-    }
-
     return Container(
       margin: const EdgeInsets.all(AppConstants.paddingMedium),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Kullanıcı Yönetimi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge, color: colorScheme.onSurface)),
+          // Kullanıcı Yönetimi - Expandable
+          Card(
+            elevation: AppConstants.elevationSmall,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+            child: ExpansionTile(
+              initiallyExpanded: _isUserManagementExpanded,
+              onExpansionChanged: (expanded) {
+                setState(() {
+                  _isUserManagementExpanded = expanded;
+                });
+              },
+              leading: Icon(Icons.people, color: colorScheme.primary),
+              title: Text('Kullanıcı Yönetimi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge, color: colorScheme.onSurface)),
+              subtitle: Text('${viewModel.plantUsers.fold<int>(0, (sum, plantUsers) => sum + plantUsers.users.length)} kullanıcı', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeSmall)),
+              children: [
+                if (viewModel.plantUsers.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    child: Center(child: Text('Kullanıcı bulunamadı', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeMedium))),
+                  )
+                else
+                  ...viewModel.plantUsers.map((plantUsers) {
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+                      elevation: AppConstants.elevationSmall,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+                      child: ExpansionTile(
+                        leading: Icon(Icons.business, color: colorScheme.primary, size: AppConstants.iconSizeSmall),
+                        title: Text(plantUsers.plantName, style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface, fontSize: AppConstants.fontSizeSmall)),
+                        subtitle: Text('${plantUsers.users.length} kullanıcı', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeExtraSmall)),
+                        children: plantUsers.users.map((user) => _buildUserTile(user, theme, colorScheme)).toList(),
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          ),
           const SizedBox(height: AppConstants.paddingMedium),
-          ...viewModel.plantUsers.map((plantUsers) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
-              elevation: AppConstants.elevationSmall,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
-              child: ExpansionTile(
-                leading: Icon(Icons.business, color: colorScheme.primary),
-                title: Text(plantUsers.plantName, style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
-                subtitle: Text('${plantUsers.users.length} kullanıcı', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeSmall)),
-                children: plantUsers.users.map((user) => _buildUserTile(user, theme, colorScheme)).toList(),
-              ),
-            );
-          }),
+          // Tesis Yönetimi - Expandable
+          Card(
+            elevation: AppConstants.elevationSmall,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+            child: ExpansionTile(
+              initiallyExpanded: _isPlantManagementExpanded,
+              onExpansionChanged: (expanded) {
+                setState(() {
+                  _isPlantManagementExpanded = expanded;
+                });
+              },
+              leading: Icon(Icons.business_outlined, color: colorScheme.primary),
+              title: Text('Tesis Yönetimi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.fontSizeLarge, color: colorScheme.onSurface)),
+              subtitle: Text('${viewModel.plantsDropdown.length} tesis', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeSmall)),
+              children: [
+                if (viewModel.plantsDropdown.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    child: Center(child: Text('Tesis bulunamadı', style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeMedium))),
+                  )
+                else
+                  ...viewModel.plantsDropdown.map((plant) {
+                    return _buildPlantTile(plant, theme, colorScheme);
+                  }),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -401,5 +441,55 @@ class _UserListViewState extends State<UserListView> {
         _viewModel.refresh();
       }
     });
+  }
+
+  Widget _buildPlantTile(dynamic plant, ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingExtraSmall),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.1)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+        leading: Container(
+          width: AppConstants.iconSizeMedium,
+          height: AppConstants.iconSizeMedium,
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
+          ),
+          child: Icon(Icons.business, color: colorScheme.primary, size: AppConstants.iconSizeSmall),
+        ),
+        title: Text(plant.name, style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface, fontSize: AppConstants.fontSizeSmall)),
+        trailing: Container(
+          decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall)),
+          child: IconButton(
+            icon: Icon(Icons.edit, color: colorScheme.primary, size: AppConstants.iconSizeSmall),
+            onPressed: () => _navigateToPlantDetail(context, plant.id),
+          ),
+        ),
+        onTap: () => _navigateToPlantDetail(context, plant.id),
+      ),
+    );
+  }
+
+  void _navigateToPlantDetail(BuildContext context, int plantId) async {
+    try {
+      final needsRefresh = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PlantUpdateView(plantId: plantId),
+        ),
+      );
+
+      if (needsRefresh == true) {
+        await _viewModel.refresh();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      SnackBarUtils.showError(context, 'Tesis detayları alınamadı: $e');
+    }
   }
 }

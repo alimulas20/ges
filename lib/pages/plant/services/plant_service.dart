@@ -1,7 +1,10 @@
 // services/api_service.dart
 
+import 'package:dio/dio.dart';
+
 import '../../../global/dtos/dropdown_dto.dart';
 import '../../../global/managers/dio_service.dart';
+import '../models/plant_dto.dart';
 import '../models/plant_production_model.dart';
 import '../models/plant_status_dto.dart';
 import '../models/plant_with_latest_weather_dto.dart';
@@ -60,6 +63,37 @@ class PlantService {
       }
     } catch (e) {
       throw Exception('Failed to load plant status: $e');
+    }
+  }
+
+  Future<PlantDto> getPlantById(int plantId) async {
+    try {
+      final response = await DioService.dio.get('/plant/$plantId');
+      if (response.statusCode == 200) {
+        return PlantDto.fromJson(response.data);
+      } else {
+        throw Exception('Failed to load plant: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load plant: $e');
+    }
+  }
+
+  Future<void> updatePlant(int plantId, PlantUpdateDto dto) async {
+    try {
+      await DioService.dio.put('/plant/$plantId', data: dto.toJson());
+    } catch (e) {
+      throw Exception('Failed to update plant: $e');
+    }
+  }
+
+  Future<String?> setPlantPicture(int plantId, dynamic file) async {
+    try {
+      FormData formData = FormData.fromMap({'id': plantId, 'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last)});
+      var response = await DioService.dio.post<String>('/plant/SetPicture', data: formData);
+      return response.data;
+    } catch (e) {
+      throw Exception('Failed to set plant picture: $e');
     }
   }
 }

@@ -15,7 +15,8 @@ class CustomDatePicker {
           initialDate: initialDate,
           firstDate: firstDate ?? DateTime(2000),
           lastDate: lastDate ?? DateTime.now(),
-          builder: (context, child) {
+          locale: const Locale('tr', 'TR'),
+          builder: (BuildContext context, Widget? child) {
             return Theme(
               data: Theme.of(context).copyWith(
                 colorScheme: ColorScheme.light(
@@ -26,7 +27,7 @@ class CustomDatePicker {
                 ),
                 textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.primary)),
               ),
-              child: child!,
+              child: Localizations.override(context: context, locale: const Locale('tr', 'TR'), child: child!),
             );
           },
         );
@@ -71,7 +72,6 @@ Future<DateTime?> showYearPicker({required BuildContext context, required DateTi
           child: YearPicker(
             firstDate: firstDate,
             lastDate: lastDate,
-            initialDate: initialDate,
             selectedDate: initialDate,
             onChanged: (DateTime date) {
               Navigator.of(context).pop(date);
@@ -154,7 +154,7 @@ class _MonthPickerDialogState extends State<MonthPickerDialog> {
                             ? Theme.of(context).colorScheme.onSurface
                             : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                   ),
-                  child: Text(DateFormat('MMM').format(DateTime(0, month))),
+                  child: Text(DateFormat('MMM', 'tr_TR').format(DateTime(0, month))),
                 ),
               );
             },

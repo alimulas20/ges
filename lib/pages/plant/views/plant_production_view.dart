@@ -128,20 +128,6 @@ class _PlantProductionViewState extends State<PlantProductionView> {
     );
   }
 
-  String _getTimePeriodDescription(ProductionTimePeriod timePeriod, DateTime selectedDate) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
-    switch (timePeriod) {
-      case ProductionTimePeriod.daily:
-        return dateFormat.format(selectedDate);
-      case ProductionTimePeriod.monthly:
-        return DateFormat('MMMM yyyy').format(selectedDate);
-      case ProductionTimePeriod.yearly:
-        return selectedDate.year.toString();
-      case ProductionTimePeriod.lifetime:
-        return 'Tüm Zamanlar';
-    }
-  }
-
   Widget _buildControls(PlantProductionViewModel viewModel) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

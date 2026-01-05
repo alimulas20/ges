@@ -42,6 +42,13 @@ class ProductionDataPointDTO {
   }
 }
 
+class PlantPredictionResponse {
+  final List<ProductionDataPointDTO> dataPoints;
+  final double totalAcEnergyKwh;
+
+  PlantPredictionResponse({required this.dataPoints, required this.totalAcEnergyKwh});
+}
+
 enum ProductionTimePeriod { daily, monthly, yearly, lifetime }
 
 extension ProductionTimePeriodExtension on ProductionTimePeriod {

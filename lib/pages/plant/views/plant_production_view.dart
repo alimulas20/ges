@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart' hide DatePickerMode;
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/custom_date_picker.dart'; // Yeni eklediğimiz import
+import '../../../global/widgets/production_chart.dart';
 import '../models/plant_production_model.dart';
 import '../services/plant_service.dart';
-
-import '../../../global/widgets/production_chart.dart';
 import '../viewmodels/plant_production_viewmodel.dart';
-import '../../../global/widgets/custom_date_picker.dart'; // Yeni eklediğimiz import
 
 class PlantProductionView extends StatefulWidget {
   final int plantId;
@@ -59,7 +58,7 @@ class _PlantProductionViewState extends State<PlantProductionView> {
                   const SizedBox(height: AppConstants.paddingUltraLarge),
 
                   // Total production card - TABLONUN ÜSTÜNDE GÖRÜNTÜLE
-                  if (viewModel.productionData != null) _buildTotalProductionCard(viewModel.productionData!),
+                  if (viewModel.productionData != null) _buildTotalProductionCard(viewModel.productionData!, viewModel.predictedTotalEnergy, viewModel.selectedDate, viewModel.selectedTimePeriod),
 
                   const SizedBox(height: AppConstants.paddingUltraLarge),
 
@@ -67,6 +66,7 @@ class _PlantProductionViewState extends State<PlantProductionView> {
                   if (viewModel.productionData != null)
                     ProductionChart(
                       dataPoints: viewModel.productionData!.dataPoints,
+                      predictionDataPoints: viewModel.predictionData,
                       bottomDescription: viewModel.bottomDescription,
                       timePeriod: viewModel.selectedTimePeriod,
                       unit: viewModel.productionData?.unit ?? "",
@@ -81,7 +81,7 @@ class _PlantProductionViewState extends State<PlantProductionView> {
   }
 
   // Toplam üretim kartı
-  Widget _buildTotalProductionCard(PlantProductionDTO productionData) {
+  Widget _buildTotalProductionCard(PlantProductionDTO productionData, double? predictedTotalEnergy, DateTime selectedDate, ProductionTimePeriod timePeriod) {
     return Container(
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.elevatedShadow),
       child: Card(
@@ -104,11 +104,23 @@ class _PlantProductionViewState extends State<PlantProductionView> {
                   Text("kWh", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.secondary)),
                 ],
               ),
+              // Tahmin edilen üretim (sadece bugün ve prediction varsa)
+              if (predictedTotalEnergy != null) ...[
+                const SizedBox(height: AppConstants.paddingLarge),
+                const Divider(),
+                const SizedBox(height: AppConstants.paddingMedium),
+                Text('Bugün Tahmin Edilen Üretim', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: Colors.orange)),
+                const SizedBox(height: AppConstants.paddingSmall),
+                Row(
+                  children: [
+                    Text(predictedTotalEnergy.toStringAsFixed(2), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.orange, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: AppConstants.paddingSmall),
+                    Text("kWh", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.orange.withOpacity(0.8))),
+                  ],
+                ),
+              ],
               const SizedBox(height: AppConstants.paddingSmall),
-              Text(
-                _getTimePeriodDescription(productionData.timePeriod, productionData.selectedDate),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(153)),
-              ),
+              //Text(_getTimePeriodDescription(timePeriod, selectedDate), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(153))),
             ],
           ),
         ),

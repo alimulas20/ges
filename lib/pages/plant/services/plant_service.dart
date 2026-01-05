@@ -39,6 +39,49 @@ class PlantService {
     }
   }
 
+  Future<PlantPredictionResponse> getPlantProductionPrediction(int plantId, ProductionTimePeriod timePeriod, DateTime selectedDate) async {
+    try {
+      final requestData = {'plantId': plantId, 'date': selectedDate.toIso8601String()};
+
+      final response = await DioService.dio.post('/Prediction/predict', data: requestData);
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        final List<dynamic> hourlyData = responseData['hourly'] ?? [];
+        final totalAcEnergyKwh = (responseData['totalAcEnergyKwh'] ?? 0.0).toDouble();
+
+        // HourlyPredictionDto'dan ProductionDataPointDTO'ya dönüştür
+        final dataPoints =
+            hourlyData.map((json) {
+              // DateTimeOffset string'ini parse et (ISO8601 formatında)
+              final timestampStr = json['timestamp'] as String;
+              DateTime timestamp;
+
+              // DateTimeOffset formatını parse et (örn: "2024-01-01T10:00:00+03:00" veya "2024-01-01T10:00:00Z")
+              if (timestampStr.contains('+') || timestampStr.contains('Z')) {
+                // UTC'ye çevir
+                timestamp = DateTime.parse(timestampStr).toLocal();
+              } else {
+                timestamp = DateTime.parse(timestampStr);
+              }
+
+              final acPowerKw = (json['acPowerKw'] ?? 0.0).toDouble();
+
+              // Time label oluştur (saat formatında)
+              final timeLabel = '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
+
+              return ProductionDataPointDTO(timestamp: timestamp, totalProduction: acPowerKw, timeLabel: timeLabel);
+            }).toList();
+
+        return PlantPredictionResponse(dataPoints: dataPoints, totalAcEnergyKwh: totalAcEnergyKwh);
+      } else {
+        throw Exception('Failed to load plant production prediction: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to load plant production prediction: $e');
+    }
+  }
+
   Future<List<DropdownDto>> getPlantsDropdown() async {
     try {
       final response = await DioService.dio.get('/Plant/Dropdown');

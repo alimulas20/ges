@@ -6,9 +6,12 @@ import 'package:provider/provider.dart';
 import 'package:solar/pages/plant/models/plant_with_latest_weather_dto.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/managers/token_manager.dart';
+import '../../plant/services/plant_service.dart';
 import '../models/pv_string_model.dart';
 import '../services/map_service.dart';
 import '../viewmodels/map_viewmodel.dart';
+import 'map_config_view.dart';
 
 class MapView extends StatefulWidget {
   final PlantWithLatestWeatherDto plant;
@@ -23,28 +26,36 @@ class MapViewState extends State<MapView> {
   late final MapViewModel _viewModel;
   final MapController _mapController = MapController();
   double _currentZoom = 19.6;
+  bool _isAdmin = false;
 
-  // Varsayılan değerler
+  // Güncel plant bilgileri (backend'den yüklenen)
+  PlantWithLatestWeatherDto? _currentPlant;
+
+  // Varsayılan değerler (güncel plant varsa ondan, yoksa widget.plant'tan)
   LatLng? get _initialTopLeft {
-    if (widget.plant.mapTopLeftLat != null && widget.plant.mapTopLeftLng != null) {
-      return LatLng(widget.plant.mapTopLeftLat!, widget.plant.mapTopLeftLng!);
+    final plant = _currentPlant ?? widget.plant;
+    if (plant.mapTopLeftLat != null && plant.mapTopLeftLng != null) {
+      return LatLng(plant.mapTopLeftLat!, plant.mapTopLeftLng!);
     }
     return null;
   }
 
   LatLng? get _initialBottomRight {
-    if (widget.plant.mapBottomRightLat != null && widget.plant.mapBottomRightLng != null) {
-      return LatLng(widget.plant.mapBottomRightLat!, widget.plant.mapBottomRightLng!);
+    final plant = _currentPlant ?? widget.plant;
+    if (plant.mapBottomRightLat != null && plant.mapBottomRightLng != null) {
+      return LatLng(plant.mapBottomRightLat!, plant.mapBottomRightLng!);
     }
     return null;
   }
 
   double get _initialZoom {
-    return widget.plant.mapZoomLevel ?? 19.6;
+    final plant = _currentPlant ?? widget.plant;
+    return plant.mapZoomLevel ?? 19.6;
   }
 
   String? get _mapImageUrl {
-    return widget.plant.mapImageUrl;
+    final plant = _currentPlant ?? widget.plant;
+    return plant.mapImageUrl;
   }
 
   @override
@@ -52,10 +63,31 @@ class MapViewState extends State<MapView> {
     super.initState();
     _viewModel = MapViewModel(MapService());
     _currentZoom = _initialZoom;
+    _checkAdminStatus();
     _loadData();
   }
 
+  Future<void> _checkAdminStatus() async {
+    final roles = await TokenManager.getRoles();
+    setState(() {
+      _isAdmin = roles.contains('Admin') || roles.contains('Manager');
+    });
+  }
+
   Future<void> _loadData() async {
+    // Plant bilgilerini backend'den yeniden yükle (güncel koordinatlar için)
+    try {
+      final plantService = PlantService();
+      final plants = await plantService.getPlantswithWeather();
+      final updatedPlant = plants.firstWhere((p) => p.id == widget.plant.id, orElse: () => widget.plant);
+      setState(() {
+        _currentPlant = updatedPlant;
+      });
+    } catch (e) {
+      debugPrint('Plant bilgileri yüklenemedi, widget.plant kullanılıyor: $e');
+      // Hata durumunda widget.plant kullanılacak (_currentPlant null kalacak)
+    }
+
     await _viewModel.fetchPVStrings(widget.plant.id);
     if (_viewModel.pvStrings.isNotEmpty) {
       _centerMap();
@@ -103,6 +135,18 @@ class MapViewState extends State<MapView> {
                   },
                 ),
                 IconButton(icon: const Icon(Icons.center_focus_strong), onPressed: _centerMap),
+                if (_isAdmin)
+                  IconButton(
+                    icon: const Icon(Icons.settings),
+                    tooltip: 'Harita Konfigürasyonu',
+                    onPressed: () {
+                      final plantToPass = _currentPlant ?? widget.plant;
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => MapConfigView(plant: plantToPass))).then((_) {
+                        // Harita konfigürasyonundan dönünce verileri yenile
+                        _loadData();
+                      });
+                    },
+                  ),
               ],
               toolbarHeight: AppConstants.appBarHeight,
             ),
@@ -124,10 +168,8 @@ class MapViewState extends State<MapView> {
                         });
                       }
                     },
-                    cameraConstraint:
-                        _initialBottomRight != null && _initialTopLeft != null
-                            ? CameraConstraint.contain(bounds: LatLngBounds.fromPoints([_initialTopLeft!, _initialBottomRight!]))
-                            : CameraConstraint.unconstrained(),
+                    // Camera constraint kaldırıldı - görsel kaydırma sırasında sorun çıkmasın diye
+                    cameraConstraint: CameraConstraint.unconstrained(),
                   ),
                   children: [
                     // Sadece mapImageUrl null değilse overlay image göster

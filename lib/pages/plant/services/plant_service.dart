@@ -139,4 +139,47 @@ class PlantService {
       throw Exception('Failed to set plant picture: $e');
     }
   }
+
+  Future<String?> setMapPicture(int plantId, dynamic file, double? mapTopLeftLat, double? mapTopLeftLng, double? mapBottomRightLat, double? mapBottomRightLng, double? mapZoomLevel) async {
+    try {
+      FormData formData = FormData.fromMap({
+        'id': plantId,
+        'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
+        if (mapTopLeftLat != null) 'mapTopLeftLat': mapTopLeftLat,
+        if (mapTopLeftLng != null) 'mapTopLeftLng': mapTopLeftLng,
+        if (mapBottomRightLat != null) 'mapBottomRightLat': mapBottomRightLat,
+        if (mapBottomRightLng != null) 'mapBottomRightLng': mapBottomRightLng,
+        if (mapZoomLevel != null) 'mapZoomLevel': mapZoomLevel,
+      });
+      var response = await DioService.dio.post<String>('/plant/SetMapPicture', data: formData);
+      return response.data;
+    } catch (e) {
+      throw Exception('Failed to set map picture: $e');
+    }
+  }
+
+  Future<void> updateMapCoordinates(int plantId, double? mapTopLeftLat, double? mapTopLeftLng, double? mapBottomRightLat, double? mapBottomRightLng, double? mapZoomLevel) async {
+    try {
+      await DioService.dio.put(
+        '/plant/$plantId/SetMapCoordinates',
+        data: {
+          if (mapTopLeftLat != null) 'mapTopLeftLat': mapTopLeftLat,
+          if (mapTopLeftLng != null) 'mapTopLeftLng': mapTopLeftLng,
+          if (mapBottomRightLat != null) 'mapBottomRightLat': mapBottomRightLat,
+          if (mapBottomRightLng != null) 'mapBottomRightLng': mapBottomRightLng,
+          if (mapZoomLevel != null) 'mapZoomLevel': mapZoomLevel,
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to update map coordinates: $e');
+    }
+  }
+
+  Future<void> requestPVGenerationRead(int plantId) async {
+    try {
+      await DioService.dio.post('/plant/$plantId/request-pv-generation-read');
+    } catch (e) {
+      throw Exception('Failed to send PV generation read request: $e');
+    }
+  }
 }

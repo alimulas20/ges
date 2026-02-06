@@ -18,4 +18,16 @@ class MapService {
       throw Exception('Failed to load PV strings: $e');
     }
   }
+
+  Future<void> addLocationSeries(int pvStringId, String name, List<Map<String, dynamic>> points) async {
+    try {
+      final response = await DioService.dio.post('/PVStrings/$pvStringId/locationseries', data: {'name': name, 'points': points});
+
+      if (response.statusCode != 204 && response.statusCode != 200) {
+        throw Exception('Failed to add location series: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to add location series: $e');
+    }
+  }
 }

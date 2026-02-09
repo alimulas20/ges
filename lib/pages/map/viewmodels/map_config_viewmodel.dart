@@ -33,6 +33,9 @@ class MapConfigViewModel with ChangeNotifier {
   double _imageOffsetLat = 0.0;
   double _imageOffsetLng = 0.0;
 
+  // Zoom değişikliği için offset
+  double _zoomOffset = 0.0;
+
   // Harita koordinatları
   LatLng? _currentTopLeft;
   LatLng? _currentBottomRight;
@@ -44,6 +47,16 @@ class MapConfigViewModel with ChangeNotifier {
   List<PVStringModel> get allPVStrings => _allPVStrings;
   PVStringModel? get selectedPVString => _selectedPVString;
   bool get isDrawingMode => _isDrawingMode;
+
+  // Seçili location series (polygon tıklama için)
+  ({LocationSeries series, PVStringModel pvString})? _selectedLocationSeries;
+
+  ({LocationSeries series, PVStringModel pvString})? get selectedLocationSeries => _selectedLocationSeries;
+
+  void selectLocationSeries(({LocationSeries series, PVStringModel pvString})? locationSeries) {
+    _selectedLocationSeries = locationSeries;
+    notifyListeners();
+  }
 
   // Inverter'a göre gruplanmış PV String'ler
   Map<String, List<PVStringModel>> get pvStringsByInverter {
@@ -78,7 +91,14 @@ class MapConfigViewModel with ChangeNotifier {
   // Orijinal koordinatlar (offset'siz)
   LatLng? get originalTopLeft => _currentTopLeft;
   LatLng? get originalBottomRight => _currentBottomRight;
-  double get currentZoom => _currentZoom;
+
+  // Offset'li zoom level'ı döndür
+  double get currentZoom => _currentZoom + _zoomOffset;
+
+  // Orijinal zoom level (offset'siz)
+  double get originalZoom => _currentZoom;
+
+  double get zoomOffset => _zoomOffset;
   ColorMode get colorMode => _colorMode;
   ShowMode get showMode => _showMode;
   bool get isMapEditMode => _isMapEditMode;
@@ -129,6 +149,7 @@ class MapConfigViewModel with ChangeNotifier {
       // Edit mode kapanırken offset'leri sıfırla
       _imageOffsetLat = 0.0;
       _imageOffsetLng = 0.0;
+      _zoomOffset = 0.0;
     }
     notifyListeners();
   }
@@ -148,6 +169,7 @@ class MapConfigViewModel with ChangeNotifier {
   void resetImageAdjustments() {
     _imageOffsetLat = 0.0;
     _imageOffsetLng = 0.0;
+    _zoomOffset = 0.0;
     notifyListeners();
   }
 
@@ -167,14 +189,23 @@ class MapConfigViewModel with ChangeNotifier {
       final topLeftWithOffset = LatLng(_currentTopLeft!.latitude + _imageOffsetLat, _currentTopLeft!.longitude + _imageOffsetLng);
       final bottomRightWithOffset = LatLng(_currentBottomRight!.latitude + _imageOffsetLat, _currentBottomRight!.longitude + _imageOffsetLng);
 
+      // Zoom offset'ini de hesapla
+      final zoomWithOffset = _currentZoom + _zoomOffset;
+
       // Backend'e gönder (topLeft ve bottomRight koordinatları + zoom level)
-      await _plantService.updateMapCoordinates(plantId, topLeftWithOffset.latitude, topLeftWithOffset.longitude, bottomRightWithOffset.latitude, bottomRightWithOffset.longitude, _currentZoom);
+      await _plantService.updateMapCoordinates(plantId, topLeftWithOffset.latitude, topLeftWithOffset.longitude, bottomRightWithOffset.latitude, bottomRightWithOffset.longitude, zoomWithOffset);
 
       // Koordinatları güncelle ve offset'leri sıfırla
       _currentTopLeft = topLeftWithOffset;
       _currentBottomRight = bottomRightWithOffset;
       _imageOffsetLat = 0.0;
       _imageOffsetLng = 0.0;
+
+      // Zoom offset'ini de uygula ve sıfırla
+      if (_zoomOffset != 0.0) {
+        _currentZoom = zoomWithOffset;
+        _zoomOffset = 0.0;
+      }
 
       _errorMessage = null;
     } catch (e) {
@@ -187,36 +218,19 @@ class MapConfigViewModel with ChangeNotifier {
     }
   }
 
-  Future<void> adjustZoomLevel(int plantId, double deltaZoom, {Function(double)? onZoomChanged}) async {
-    if (_currentZoom + deltaZoom < 0 || _currentZoom + deltaZoom > 25) {
+  void adjustZoomLevel(double deltaZoom, {Function(double)? onZoomChanged}) {
+    // Zoom offset'ini biriktir (kaydetme gibi)
+    final newZoom = _currentZoom + _zoomOffset + deltaZoom;
+    if (newZoom < 0 || newZoom > 25) {
       return; // Zoom sınırları dışına çıkma
     }
 
-    _isSaving = true;
-    _errorMessage = null;
+    _zoomOffset += deltaZoom;
+
+    // Harita kontrolünü güncelle (callback varsa)
+    onZoomChanged?.call(newZoom);
+
     notifyListeners();
-
-    try {
-      final newZoom = _currentZoom + deltaZoom;
-
-      // Backend'e gönder (zoom level'ı güncelle)
-      await _plantService.updateMapCoordinates(plantId, _currentTopLeft?.latitude, _currentTopLeft?.longitude, _currentBottomRight?.latitude, _currentBottomRight?.longitude, newZoom);
-
-      // Zoom level'ı güncelle
-      _currentZoom = newZoom;
-
-      // Harita kontrolünü güncelle (callback varsa)
-      onZoomChanged?.call(newZoom);
-
-      _errorMessage = null;
-    } catch (e) {
-      _errorMessage = 'Zoom level güncellenemedi: ${e.toString()}';
-      debugPrint('Error: $e');
-      rethrow;
-    } finally {
-      _isSaving = false;
-      notifyListeners();
-    }
   }
 
   void addPointToPolygon(LatLng point) {
@@ -238,6 +252,7 @@ class MapConfigViewModel with ChangeNotifier {
     // Koordinatlar güncellendiğinde offset'leri sıfırla (yeni koordinatlar zaten güncel)
     _imageOffsetLat = 0.0;
     _imageOffsetLng = 0.0;
+    _zoomOffset = 0.0;
     notifyListeners();
   }
 
@@ -370,6 +385,85 @@ class MapConfigViewModel with ChangeNotifier {
     return _pvStrings.expand((string) {
       return string.locationSeries.map((_) => string);
     }).toList();
+  }
+
+  // Location series'leri ve PV string'leri birlikte döndür (silme/güncelleme için)
+  List<({LocationSeries series, PVStringModel pvString})> getLocationSeriesList() {
+    final result = <({LocationSeries series, PVStringModel pvString})>[];
+    for (var pvString in _pvStrings) {
+      for (var series in pvString.locationSeries) {
+        result.add((series: series, pvString: pvString));
+      }
+    }
+    return result;
+  }
+
+  // Polygon index'ine göre location series ve PV string'i bul
+  ({LocationSeries? series, PVStringModel? pvString}) getLocationSeriesByIndex(int polygonIndex) {
+    final allSeries = getLocationSeriesList();
+    if (polygonIndex >= 0 && polygonIndex < allSeries.length) {
+      return allSeries[polygonIndex];
+    }
+    return (series: null, pvString: null);
+  }
+
+  Future<void> updateLocationSeries(int locationSeriesId, String name, List<LatLng> points) async {
+    if (points.length < 3) {
+      _errorMessage = 'Polygon için en az 3 nokta gerekli';
+      notifyListeners();
+      return;
+    }
+
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final pointsData =
+          points.asMap().entries.map((entry) {
+            return {'latitude': entry.value.latitude, 'longitude': entry.value.longitude, 'order': entry.key};
+          }).toList();
+
+      await _mapService.updateLocationSeries(locationSeriesId, name, pointsData);
+
+      _errorMessage = null;
+
+      // PV string'leri yeniden yükle
+      if (_currentPlantId != null) {
+        await loadPVStringsWithGeneration(_currentPlantId!);
+      }
+    } catch (e) {
+      _errorMessage = 'Location series güncellenemedi: ${e.toString()}';
+      debugPrint('Error: $e');
+      rethrow;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteLocationSeries(int locationSeriesId) async {
+    _isSaving = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _mapService.deleteLocationSeries(locationSeriesId);
+
+      _errorMessage = null;
+
+      // PV string'leri yeniden yükle
+      if (_currentPlantId != null) {
+        await loadPVStringsWithGeneration(_currentPlantId!);
+      }
+    } catch (e) {
+      _errorMessage = 'Location series silinemedi: ${e.toString()}';
+      debugPrint('Error: $e');
+      rethrow;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
   }
 
   void setColorMode(ColorMode mode) {

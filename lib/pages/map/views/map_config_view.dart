@@ -327,6 +327,9 @@ class MapConfigViewState extends State<MapConfigView> {
                     onTap: (tapPosition, point) {
                       if (viewModel.isDrawingMode) {
                         viewModel.addPointToPolygon(point);
+                      } else {
+                        // Marker dışına tıklanınca seçimi temizle
+                        viewModel.selectLocationSeries(null);
                       }
                     },
                     onPositionChanged: (position, hasGesture) {
@@ -369,14 +372,23 @@ class MapConfigViewState extends State<MapConfigView> {
                           if (string == null) {
                             return Marker(point: center, width: 0, height: 0, child: const SizedBox.shrink());
                           }
+                          // Location series bilgisini al
+                          final locationSeriesInfo = viewModel.getLocationSeriesByIndex(index);
                           return Marker(
                             point: center,
                             width: 60,
                             height: 30,
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(color: viewModel.getStringColor(string), shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
-                              child: Center(child: Text(string.technicalName.replaceAll("MPPT-", ""), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+                            child: GestureDetector(
+                              onTap: () {
+                                if (locationSeriesInfo.series != null && locationSeriesInfo.pvString != null) {
+                                  viewModel.selectLocationSeries((series: locationSeriesInfo.series!, pvString: locationSeriesInfo.pvString!));
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(color: viewModel.getStringColor(string), shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                                child: Center(child: Text(string.technicalName.replaceAll("MPPT-", ""), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+                              ),
                             ),
                           );
                         }),
@@ -552,60 +564,34 @@ class MapConfigViewState extends State<MapConfigView> {
                                 const SizedBox(width: 16),
                                 IconButton(
                                   icon: const Icon(Icons.remove_circle_outline, color: Colors.white),
-                                  onPressed:
-                                      viewModel.isSaving
-                                          ? null
-                                          : () async {
-                                            try {
-                                              await viewModel.adjustZoomLevel(
-                                                widget.plant.id,
-                                                -0.1,
-                                                onZoomChanged: (newZoom) {
-                                                  // Harita zoom'unu güncelle
-                                                  _mapController.move(_mapController.camera.center, newZoom);
-                                                  setState(() {
-                                                    _currentZoom = newZoom;
-                                                  });
-                                                },
-                                              );
-                                              if (mounted) {
-                                                SnackBarUtils.showSuccess(context, 'Zoom level azaltıldı');
-                                              }
-                                            } catch (e) {
-                                              if (mounted) {
-                                                SnackBarUtils.showError(context, 'Zoom level güncellenemedi: $e');
-                                              }
-                                            }
-                                          },
+                                  onPressed: () {
+                                    viewModel.adjustZoomLevel(
+                                      -0.1,
+                                      onZoomChanged: (newZoom) {
+                                        // Harita zoom'unu güncelle
+                                        _mapController.move(_mapController.camera.center, newZoom);
+                                        setState(() {
+                                          _currentZoom = newZoom;
+                                        });
+                                      },
+                                    );
+                                  },
                                   tooltip: 'Zoom Azalt',
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-                                  onPressed:
-                                      viewModel.isSaving
-                                          ? null
-                                          : () async {
-                                            try {
-                                              await viewModel.adjustZoomLevel(
-                                                widget.plant.id,
-                                                0.1,
-                                                onZoomChanged: (newZoom) {
-                                                  // Harita zoom'unu güncelle
-                                                  _mapController.move(_mapController.camera.center, newZoom);
-                                                  setState(() {
-                                                    _currentZoom = newZoom;
-                                                  });
-                                                },
-                                              );
-                                              if (mounted) {
-                                                SnackBarUtils.showSuccess(context, 'Zoom level artırıldı');
-                                              }
-                                            } catch (e) {
-                                              if (mounted) {
-                                                SnackBarUtils.showError(context, 'Zoom level güncellenemedi: $e');
-                                              }
-                                            }
-                                          },
+                                  onPressed: () {
+                                    viewModel.adjustZoomLevel(
+                                      0.1,
+                                      onZoomChanged: (newZoom) {
+                                        // Harita zoom'unu güncelle
+                                        _mapController.move(_mapController.camera.center, newZoom);
+                                        setState(() {
+                                          _currentZoom = newZoom;
+                                        });
+                                      },
+                                    );
+                                  },
                                   tooltip: 'Zoom Artır',
                                 ),
                               ],
@@ -724,6 +710,8 @@ class MapConfigViewState extends State<MapConfigView> {
                       ),
                     ),
                   ),
+                // Location Series bilgi kartı
+                if (viewModel.selectedLocationSeries != null) _buildLocationSeriesInfoCard(viewModel),
               ],
             ),
             floatingActionButton: _buildFloatingActionButtons(viewModel),
@@ -813,5 +801,147 @@ class MapConfigViewState extends State<MapConfigView> {
     }
 
     return items;
+  }
+
+  Widget _buildLocationSeriesInfoCard(MapConfigViewModel viewModel) {
+    final selected = viewModel.selectedLocationSeries;
+    if (selected == null) return const SizedBox.shrink();
+
+    return Positioned(
+      bottom: 20,
+      left: 20,
+      right: 20,
+      child: Card(
+        elevation: 8,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(selected.series.name, style: Theme.of(context).textTheme.titleLarge),
+                        const SizedBox(height: 4),
+                        Text('PV String: ${selected.pvString.technicalName}', style: Theme.of(context).textTheme.bodyMedium),
+                        Text('Inverter: ${selected.pvString.inverterName}', style: Theme.of(context).textTheme.bodySmall),
+                        Text('Nokta Sayısı: ${selected.series.points.length}', style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => viewModel.selectLocationSeries(null)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text('Düzenle'),
+                      onPressed: () => _showUpdateLocationSeriesDialog(context, viewModel, selected.series, selected.pvString),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.delete, size: 18),
+                      label: const Text('Sil'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      onPressed: () => _showDeleteLocationSeriesDialog(context, viewModel, selected.series),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showUpdateLocationSeriesDialog(BuildContext context, MapConfigViewModel viewModel, LocationSeries series, PVStringModel pvString) async {
+    final nameController = TextEditingController(text: series.name);
+
+    await showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Location Series Düzenle'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: nameController, decoration: const InputDecoration(labelText: 'İsim', border: OutlineInputBorder())),
+                const SizedBox(height: 16),
+                Text('Not: Polygon noktalarını değiştirmek için yeni bir polygon çizin ve bu location series\'i silin.', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('İptal')),
+              ElevatedButton(
+                onPressed: () async {
+                  if (nameController.text.trim().isEmpty) {
+                    SnackBarUtils.showError(context, 'Lütfen bir isim girin');
+                    return;
+                  }
+
+                  Navigator.pop(context);
+
+                  try {
+                    final points = series.points.map((p) => LatLng(p.latitude, p.longitude)).toList();
+                    await viewModel.updateLocationSeries(series.id, nameController.text.trim(), points);
+                    viewModel.selectLocationSeries(null);
+                    if (mounted) {
+                      SnackBarUtils.showSuccess(context, 'Location series güncellendi');
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      SnackBarUtils.showError(context, 'Location series güncellenemedi: $e');
+                    }
+                  }
+                },
+                child: const Text('Güncelle'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  Future<void> _showDeleteLocationSeriesDialog(BuildContext context, MapConfigViewModel viewModel, LocationSeries series) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Silme Onayı'),
+            content: Text('${series.name} location series\'ini silmek istediğinize emin misiniz?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('İptal')),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text('Sil', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm == true && mounted) {
+      try {
+        await viewModel.deleteLocationSeries(series.id);
+        viewModel.selectLocationSeries(null);
+        if (mounted) {
+          SnackBarUtils.showSuccess(context, 'Location series silindi');
+        }
+      } catch (e) {
+        if (mounted) {
+          SnackBarUtils.showError(context, 'Location series silinemedi: $e');
+        }
+      }
+    }
   }
 }

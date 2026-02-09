@@ -30,4 +30,28 @@ class MapService {
       throw Exception('Failed to add location series: $e');
     }
   }
+
+  Future<void> updateLocationSeries(int locationSeriesId, String name, List<Map<String, dynamic>> points) async {
+    try {
+      final response = await DioService.dio.put('/PVStrings/locationseries/$locationSeriesId', data: {'name': name, 'points': points});
+
+      if (response.statusCode != 204 && response.statusCode != 200) {
+        throw Exception('Failed to update location series: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to update location series: $e');
+    }
+  }
+
+  Future<void> deleteLocationSeries(int locationSeriesId) async {
+    try {
+      final response = await DioService.dio.delete('/PVStrings/locationseries/$locationSeriesId');
+
+      if (response.statusCode != 204 && response.statusCode != 200) {
+        throw Exception('Failed to delete location series: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to delete location series: $e');
+    }
+  }
 }

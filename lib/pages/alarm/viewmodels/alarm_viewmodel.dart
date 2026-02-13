@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../global/dtos/dropdown_dto.dart';
+import '../../../global/utils/alert_utils.dart';
 import '../../device/service/device_setup_service.dart';
 import '../../plant/services/plant_service.dart';
 import '../model/alarm_dto.dart';
@@ -40,7 +41,8 @@ class AlarmsViewModel with ChangeNotifier {
       _alarms = await _service.getAlarms(plantId: plantId, deviceSetupId: deviceSetupId, selectedDate: selectedDate, activeOnly: activeOnly, levels: levels);
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

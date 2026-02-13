@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../global/utils/alert_utils.dart';
 import '../../plant/services/plant_service.dart';
 import '../models/pv_string_model.dart';
 import '../services/map_service.dart';
@@ -121,7 +122,7 @@ class MapConfigViewModel with ChangeNotifier {
       _pvStrings = _allPVStrings; // Tüm string'leri göster (gruplu dropdown'da gösterilecek)
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'PV String\'ler yüklenemedi: ${e.toString()}';
+      _errorMessage = 'PV String\'ler yüklenemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
     } finally {
       _isLoading = false;
@@ -209,7 +210,7 @@ class MapConfigViewModel with ChangeNotifier {
 
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Koordinatlar kaydedilemedi: ${e.toString()}';
+      _errorMessage = 'Koordinatlar kaydedilemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
       rethrow;
     } finally {
@@ -275,7 +276,7 @@ class MapConfigViewModel with ChangeNotifier {
       }
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Harita fotoğrafı yüklenemedi: ${e.toString()}';
+      _errorMessage = 'Harita fotoğrafı yüklenemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
       rethrow;
     } finally {
@@ -299,7 +300,7 @@ class MapConfigViewModel with ChangeNotifier {
       await _plantService.updateMapCoordinates(plantId, _currentTopLeft!.latitude, _currentTopLeft!.longitude, _currentBottomRight!.latitude, _currentBottomRight!.longitude, _currentZoom);
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Koordinatlar kaydedilemedi: ${e.toString()}';
+      _errorMessage = 'Koordinatlar kaydedilemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
       rethrow;
     } finally {
@@ -317,7 +318,7 @@ class MapConfigViewModel with ChangeNotifier {
       await _plantService.requestPVGenerationRead(plantId);
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Okuma isteği gönderilemedi: ${e.toString()}';
+      _errorMessage = 'Okuma isteği gönderilemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
       rethrow;
     } finally {
@@ -362,7 +363,7 @@ class MapConfigViewModel with ChangeNotifier {
         await loadPVStringsWithGeneration(_currentPlantId!);
       }
     } catch (e) {
-      _errorMessage = 'Location series kaydedilemedi: ${e.toString()}';
+      _errorMessage = 'Location series kaydedilemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
       rethrow;
     } finally {
@@ -433,7 +434,7 @@ class MapConfigViewModel with ChangeNotifier {
         await loadPVStringsWithGeneration(_currentPlantId!);
       }
     } catch (e) {
-      _errorMessage = 'Location series güncellenemedi: ${e.toString()}';
+      _errorMessage = 'Location series güncellenemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
       rethrow;
     } finally {
@@ -457,7 +458,7 @@ class MapConfigViewModel with ChangeNotifier {
         await loadPVStringsWithGeneration(_currentPlantId!);
       }
     } catch (e) {
-      _errorMessage = 'Location series silinemedi: ${e.toString()}';
+      _errorMessage = 'Location series silinemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
       rethrow;
     } finally {

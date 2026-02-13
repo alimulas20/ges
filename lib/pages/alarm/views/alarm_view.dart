@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../../device/service/device_setup_service.dart';
 import '../../plant/services/plant_service.dart';
 import '../model/alarm_dto.dart';
@@ -80,9 +81,9 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                 if (viewModel.isLoading)
                   const LinearProgressIndicator()
                 else if (viewModel.errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                    child: Column(children: [Text(viewModel.errorMessage!), const SizedBox(height: AppConstants.paddingLarge), ElevatedButton(onPressed: _loadAlarms, child: const Text('Yenile'))]),
+                  ErrorDisplayWidget(
+                    errorMessage: viewModel.errorMessage!,
+                    onRetry: _loadAlarms,
                   )
                 else
                   Expanded(

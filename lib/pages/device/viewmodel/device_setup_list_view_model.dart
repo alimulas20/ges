@@ -1,6 +1,7 @@
 // viewmodels/device_setup_list_view_model.dart
 import 'package:flutter/material.dart';
 
+import '../../../global/utils/alert_utils.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 
@@ -28,7 +29,8 @@ class DeviceSetupListViewModel with ChangeNotifier {
 
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

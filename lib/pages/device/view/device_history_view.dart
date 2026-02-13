@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/widgets/multi_line_chart.dart';
 import '../../../global/widgets/multi_select_dropdown.dart';
 import '../model/device_setup_with_reading_dto.dart';
@@ -45,15 +46,9 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(viewModel.errorMessage!),
-                    const SizedBox(height: AppConstants.paddingExtraLarge),
-                    ElevatedButton(onPressed: () => _viewModel.setSelectedDate(DateTime.now()), child: const Text('Yenile')),
-                  ],
-                ),
+              return ErrorDisplayWidget(
+                errorMessage: viewModel.errorMessage!,
+                onRetry: () => _viewModel.setSelectedDate(DateTime.now()),
               );
             }
 

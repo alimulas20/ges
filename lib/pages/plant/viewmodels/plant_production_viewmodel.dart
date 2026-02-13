@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../../global/utils/alert_utils.dart';
 import '../models/plant_production_model.dart';
 import '../services/plant_service.dart';
 
@@ -89,7 +90,8 @@ class PlantProductionViewModel with ChangeNotifier {
       }
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Üretim verileri alınamadı: ${e.toString()}';
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

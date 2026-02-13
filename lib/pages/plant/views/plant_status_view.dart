@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/error_display_widget.dart';
+import '../../../global/utils/alert_utils.dart';
 import '../../../global/widgets/alarm_detail_dialog.dart';
 import '../../../global/widgets/solar_connection_animation.dart';
 import '../../alarm/model/alarm_dto.dart';
@@ -41,17 +43,9 @@ class _PlantStatusViewState extends State<PlantStatusView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-                    const SizedBox(height: AppConstants.paddingLarge),
-                    Text(viewModel.errorMessage!, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey[600])),
-                    const SizedBox(height: AppConstants.paddingLarge),
-                    ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Yenile')),
-                  ],
-                ),
+              return ErrorDisplayWidget(
+                errorMessage: viewModel.errorMessage!,
+                onRetry: () => viewModel.refresh(),
               );
             }
 
@@ -236,7 +230,11 @@ class _PlantStatusViewState extends State<PlantStatusView> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Alarm detayları yüklenemedi: ${e.toString()}'), backgroundColor: Colors.red));
+        AlertUtils.showError(
+          context,
+          title: 'Alarm Detayları Yüklenemedi',
+          error: e,
+        );
       }
     }
   }

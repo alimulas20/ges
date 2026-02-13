@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_reading_view_model.dart';
@@ -44,15 +45,9 @@ class _DeviceReadingsViewState extends State<DeviceReadingsView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(viewModel.errorMessage!),
-                    const SizedBox(height: AppConstants.paddingExtraLarge),
-                    ElevatedButton(onPressed: _viewModel.fetchDeviceReadings, child: const Text('Yenile')),
-                  ],
-                ),
+              return ErrorDisplayWidget(
+                errorMessage: viewModel.errorMessage!,
+                onRetry: _viewModel.fetchDeviceReadings,
               );
             }
 

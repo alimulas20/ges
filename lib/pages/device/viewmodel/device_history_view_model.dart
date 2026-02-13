@@ -1,6 +1,7 @@
 // viewmodels/device_history_view_model.dart
 import 'package:flutter/material.dart';
 
+import '../../../global/utils/alert_utils.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 
@@ -67,7 +68,8 @@ class DeviceHistoryViewModel with ChangeNotifier {
       }
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Özellikler alınamadı: ${e.toString()}';
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
     } finally {
       _isLoadingAttributes = false;
       notifyListeners();
@@ -86,7 +88,8 @@ class DeviceHistoryViewModel with ChangeNotifier {
       }
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'PV Stringleri alınamadı: ${e.toString()}';
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
     } finally {
       _isLoadingPvStrings = false;
       notifyListeners();
@@ -103,7 +106,8 @@ class DeviceHistoryViewModel with ChangeNotifier {
       _inverterComparisonData = await _service.getInverterHistoryData(deviceSetupId, _selectedDate, _selectedAttributeKeys);
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Inverter verisi alınamadı: ${e.toString()}';
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
     } finally {
       _isLoadingInverterData = false;
       notifyListeners();
@@ -137,7 +141,8 @@ class DeviceHistoryViewModel with ChangeNotifier {
 
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'PV Karşılaştırma verisi alınamadı: ${e.toString()}';
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
     } finally {
       _isLoadingPvComparison = false;
       notifyListeners();

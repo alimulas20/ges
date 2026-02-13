@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_date_picker.dart'; // Yeni eklediğimiz import
+import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/widgets/production_chart.dart';
 import '../models/plant_production_model.dart';
 import '../services/plant_service.dart';
@@ -40,11 +41,9 @@ class _PlantProductionViewState extends State<PlantProductionView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [Text(viewModel.errorMessage!), const SizedBox(height: AppConstants.paddingExtraLarge), ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Yenile'))],
-                ),
+              return ErrorDisplayWidget(
+                errorMessage: viewModel.errorMessage!,
+                onRetry: () => viewModel.refresh(),
               );
             }
 

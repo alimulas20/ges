@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../global/dtos/dropdown_dto.dart';
 import '../../../global/managers/token_manager.dart';
+import '../../../global/utils/alert_utils.dart';
 import '../../plant/services/plant_service.dart';
 import '../model/user_model.dart';
 import '../service/user_service.dart';
@@ -47,7 +48,8 @@ class UserViewModel with ChangeNotifier {
         await loadPlantsDropdown();
       }
     } catch (e) {
-      _error = e.toString();
+      _error = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -66,7 +68,8 @@ class UserViewModel with ChangeNotifier {
       await _service.createUser(dto);
       await refresh();
     } catch (e) {
-      _error = e.toString();
+      _error = 'Kullanıcı oluşturulamadı: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -84,7 +87,8 @@ class UserViewModel with ChangeNotifier {
       await _service.updateUser(dto.id, updateDto);
       await refresh();
     } catch (e) {
-      _error = e.toString();
+      _error = 'Kullanıcı güncellenemedi: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -100,7 +104,8 @@ class UserViewModel with ChangeNotifier {
       await _service.deleteUser(userId);
       await refresh();
     } catch (e) {
-      _error = e.toString();
+      _error = 'Kullanıcı silinemedi: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -139,7 +144,8 @@ class UserViewModel with ChangeNotifier {
       _currentUser = await _service.getCurrentUser();
       return url ?? "";
     } catch (e) {
-      _error = e.toString();
+      _error = 'Profil resmi yüklenemedi: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -156,7 +162,8 @@ class UserViewModel with ChangeNotifier {
     try {
       _plantsDropdown = await _plantService.getPlantsDropdown();
     } catch (e) {
-      _error = e.toString();
+      _error = 'Tesisler yüklenemedi: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();

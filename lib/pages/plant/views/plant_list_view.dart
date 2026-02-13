@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:solar/pages/plant/views/plant_status_view.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/widgets/custom_navbar.dart';
 import '../../../global/widgets/network_image_with_placeholder.dart';
 import '../../alarm/views/alarm_view.dart';
@@ -66,15 +67,9 @@ class _PlantListViewState extends State<PlantListView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingSuperLarge), child: Text(viewModel.errorMessage!, textAlign: TextAlign.center)),
-                    const SizedBox(height: AppConstants.paddingExtraLarge),
-                    ElevatedButton(onPressed: () => viewModel.fetchPlants(), child: const Text('Yenile')),
-                  ],
-                ),
+              return ErrorDisplayWidget(
+                errorMessage: viewModel.errorMessage!,
+                onRetry: () => viewModel.fetchPlants(),
               );
             }
 

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../global/utils/alert_utils.dart';
 import '../models/plant_dto.dart';
 import '../services/plant_service.dart';
 
@@ -26,7 +27,8 @@ class PlantUpdateViewModel with ChangeNotifier {
     try {
       _currentPlant = await _service.getPlantById(plantId);
     } catch (e) {
-      _error = e.toString();
+      _error = 'Tesis bilgileri alınamadı: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -42,7 +44,8 @@ class PlantUpdateViewModel with ChangeNotifier {
       await _service.updatePlant(plantId, dto);
       await loadPlant(plantId); // Reload plant after update
     } catch (e) {
-      _error = e.toString();
+      _error = 'Tesis güncellenemedi: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -60,7 +63,8 @@ class PlantUpdateViewModel with ChangeNotifier {
       await loadPlant(plantId); // Reload plant after picture update
       return url ?? "";
     } catch (e) {
-      _error = e.toString();
+      _error = 'Tesis resmi yüklenemedi: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
       rethrow;
     } finally {
       _isLoading = false;

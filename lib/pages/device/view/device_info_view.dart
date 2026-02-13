@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_info_view_model.dart';
 import '../../../global/extensions/date_time_extensions.dart';
@@ -43,11 +44,9 @@ class _DeviceInfoViewState extends State<DeviceInfoView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [Text(viewModel.errorMessage!), const SizedBox(height: AppConstants.paddingExtraLarge), ElevatedButton(onPressed: _viewModel.fetchDeviceInfo, child: const Text('Yenile'))],
-                ),
+              return ErrorDisplayWidget(
+                errorMessage: viewModel.errorMessage!,
+                onRetry: _viewModel.fetchDeviceInfo,
               );
             }
 

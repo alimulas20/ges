@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../global/utils/alert_utils.dart';
 import '../models/plant_with_latest_weather_dto.dart';
 import '../services/plant_service.dart';
 
@@ -26,7 +27,7 @@ class PlantListViewModel with ChangeNotifier {
       _errorMessage = null;
     } catch (e) {
       _plants = [];
-      _errorMessage = 'Failed to load plants: ${e.toString()}';
+      _errorMessage = AlertUtils.formatErrorMessage(e);
       debugPrint('Error: $e');
     } finally {
       _isLoading = false;

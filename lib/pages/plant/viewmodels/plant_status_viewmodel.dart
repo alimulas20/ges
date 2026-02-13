@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../global/utils/alert_utils.dart';
 import '../../alarm/model/alarm_dto.dart';
 import '../../alarm/service/alarm_service.dart';
 import '../models/plant_status_dto.dart';
@@ -52,7 +53,8 @@ class PlantStatusViewModel with ChangeNotifier {
 
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Veri yüklenirken hata oluştu: ${e.toString()}';
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
       debugPrint('Error loading plant status: $e');
     } finally {
       _isLoading = false;

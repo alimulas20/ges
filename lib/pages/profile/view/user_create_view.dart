@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/utils/alert_utils.dart';
 import '../model/user_model.dart';
 import '../viewmodel/user_viewmodel.dart';
 
@@ -62,7 +63,11 @@ class _UserCreateViewState extends State<UserCreateView> {
       await viewModel.loadPlantsDropdown();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Tesisler yüklenemedi: $e')));
+      AlertUtils.showError(
+        context,
+        title: 'Tesisler Yüklenemedi',
+        error: e,
+      );
     } finally {
       if (mounted) {
         setState(() => _loadingPlants = false);
@@ -189,7 +194,11 @@ class _UserCreateViewState extends State<UserCreateView> {
     final availablePlants = viewModel.plantsDropdown.where((plant) => !_selectedPlantIds.contains(plant.id)).toList();
 
     if (availablePlants.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tüm kullanılabilir tesisler zaten seçili')));
+      AlertUtils.showInfo(
+        context,
+        title: 'Bilgi',
+        message: 'Tüm kullanılabilir tesisler zaten seçili',
+      );
       return;
     }
 
@@ -270,7 +279,11 @@ class _UserCreateViewState extends State<UserCreateView> {
           })
           .catchError((error) {
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kullanıcı oluşturulurken hata: $error')));
+            AlertUtils.showError(
+              context,
+              title: 'Kullanıcı Oluşturulamadı',
+              error: error,
+            );
           });
     }
   }

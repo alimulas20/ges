@@ -5,6 +5,7 @@ import 'package:solar/global/constant/type_constants.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../../alarm/views/alarm_view.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
@@ -50,15 +51,9 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingSuperLarge), child: Text(viewModel.errorMessage!, textAlign: TextAlign.center)),
-                    const SizedBox(height: AppConstants.paddingExtraLarge),
-                    ElevatedButton(onPressed: () => viewModel.fetchDevices(widget.plantId), child: const Text('Yenile')),
-                  ],
-                ),
+              return ErrorDisplayWidget(
+                errorMessage: viewModel.errorMessage!,
+                onRetry: () => viewModel.fetchDevices(widget.plantId),
               );
             }
 

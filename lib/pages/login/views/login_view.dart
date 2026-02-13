@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:solar/global/extensions/string_extension.dart';
+import '../../../global/utils/alert_utils.dart';
 import '../../../global/widgets/app_text_field.dart';
 import '../viewmodels/login_view_model.dart';
 
@@ -58,7 +59,11 @@ class LoginView extends StatelessWidget {
                               if (success) {
                                 Navigator.pushReplacementNamed(context, '/home');
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Giriş Başarısız'), behavior: SnackBarBehavior.floating));
+                                AlertUtils.showError(
+                                  context,
+                                  title: 'Giriş Başarısız',
+                                  message: 'Kullanıcı adı veya şifre hatalı. Lütfen tekrar deneyin.',
+                                );
                               }
                             },
                     style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),

@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/utils/alert_utils.dart';
 import '../../../global/utils/snack_bar_utils.dart';
 import '../../../global/widgets/compact_switch.dart';
 import '../model/user_model.dart';
@@ -276,7 +277,11 @@ class _UserDetailViewState extends State<UserDetailView> {
     } catch (e) {
       if (mounted) {
         // Hata mesajı göster ama sayfayı kapatma
-        SnackBarUtils.showError(context, 'Kaydetme hatası: ${e.toString()}');
+        AlertUtils.showError(
+          context,
+          title: 'Kaydetme Hatası',
+          error: e,
+        );
       }
     } finally {
       if (mounted) {

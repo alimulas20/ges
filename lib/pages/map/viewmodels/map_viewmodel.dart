@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../global/utils/alert_utils.dart';
 import '../models/pv_string_model.dart';
 import '../services/map_service.dart';
 
@@ -37,7 +38,8 @@ class MapViewModel with ChangeNotifier {
       _pvStrings = data;
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = 'Veri alınamadı: ${e.toString()}';
+      _errorMessage = AlertUtils.formatErrorMessage(e);
+      debugPrint('Error: $e');
       debugPrint('Error: $e');
     } finally {
       _isLoading = false;

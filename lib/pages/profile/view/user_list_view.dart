@@ -5,6 +5,7 @@ import 'package:solar/global/managers/token_manager.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../../global/utils/snack_bar_utils.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../../plant/services/plant_service.dart';
 import '../../plant/views/plant_update_view.dart';
 import '../model/user_model.dart';
@@ -63,11 +64,10 @@ class _UserListViewState extends State<UserListView> {
     }
 
     if (viewModel.error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [Text(viewModel.error!), const SizedBox(height: AppConstants.paddingExtraLarge), ElevatedButton(onPressed: () => viewModel.refresh(), child: const Text('Tekrar Dene'))],
-        ),
+      return ErrorDisplayWidget(
+        errorMessage: viewModel.error!,
+        onRetry: () => viewModel.refresh(),
+        retryButtonText: 'Tekrar Dene',
       );
     }
 

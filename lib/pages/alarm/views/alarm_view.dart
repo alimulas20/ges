@@ -29,6 +29,9 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
   DateTime? _selectedDate;
   late final AlarmsViewModel _viewModel;
   bool _showFilters = false;
+  late ScrollController _scrollController;
+  double _lastScrollOffset = 0;
+  bool _ignoreScrollClose = false;
 
   @override
   void initState() {
@@ -38,7 +41,60 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
     _selectedDeviceSetupId = widget.deviceSetupId;
     _selectedPlantId = widget.plantId;
     _selectedDate = null; // Tarih seçimi default boş
+    _scrollController = ScrollController();
+    _scrollController.addListener(_handleScroll);
     _loadAlarms();
+  }
+
+  void _handleScroll() {
+    // Filtre açılırken scroll'u görmezden gel
+    if (_ignoreScrollClose) return;
+
+    final currentOffset = _scrollController.offset;
+    // Yukarı kaydırma tespit edildiğinde (scroll pozisyonu artıyorsa) ve filtreler açıksa kapat
+    if (currentOffset > _lastScrollOffset && currentOffset > 50 && _showFilters) {
+      setState(() {
+        _showFilters = false;
+      });
+    }
+    _lastScrollOffset = currentOffset;
+  }
+
+  void _toggleFilters() {
+    final wasOpening = !_showFilters;
+    setState(() {
+      _showFilters = !_showFilters;
+    });
+
+    // Filtre açılıyorsa scroll'u durdur ve bir süre scroll listener'ı devre dışı bırak
+    if (wasOpening && _scrollController.hasClients) {
+      // Scroll'u durdur (momentum'u kes)
+      final currentOffset = _scrollController.offset;
+      _scrollController.position.jumpTo(currentOffset);
+
+      // Scroll listener'ı geçici olarak devre dışı bırak
+      _ignoreScrollClose = true;
+
+      // 600ms sonra tekrar aktif et (filtre açılma animasyonu tamamlanana kadar)
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (mounted) {
+          setState(() {
+            _ignoreScrollClose = false;
+          });
+        }
+      });
+    } else {
+      // Filtre kapanıyorsa flag'i hemen sıfırla
+      _ignoreScrollClose = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_handleScroll);
+    _scrollController.dispose();
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAlarms() async {
@@ -56,17 +112,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
     return Scaffold(
       appBar: AppBar(
         title: const Text('Alarmlar', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
-        actions: [
-          IconButton(
-            icon: Icon(_showFilters ? Icons.filter_list : Icons.filter_list_off),
-            onPressed: () {
-              setState(() {
-                _showFilters = !_showFilters;
-              });
-            },
-            tooltip: _showFilters ? 'Filtreleri Gizle' : 'Filtreleri Göster',
-          ),
-        ],
+        actions: [IconButton(icon: Icon(_showFilters ? Icons.filter_list : Icons.filter_list_off), onPressed: _toggleFilters, tooltip: _showFilters ? 'Filtreleri Gizle' : 'Filtreleri Göster')],
         bottom: TabBar(controller: _tabController, tabs: const [Tab(text: 'Aktif Alarmlar'), Tab(text: 'Geçmiş Alarmlar')], onTap: (index) => _loadAlarms()),
       ),
       body: ChangeNotifierProvider.value(
@@ -77,14 +123,11 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
               children: [
                 _buildLevelFilterChips(viewModel),
                 const SizedBox(height: AppConstants.paddingMedium),
-                if (_showFilters) _buildFilters(viewModel),
+                AnimatedSize(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut, child: _showFilters ? _buildFilters(viewModel) : const SizedBox.shrink()),
                 if (viewModel.isLoading)
                   const LinearProgressIndicator()
                 else if (viewModel.errorMessage != null)
-                  ErrorDisplayWidget(
-                    errorMessage: viewModel.errorMessage!,
-                    onRetry: _loadAlarms,
-                  )
+                  ErrorDisplayWidget(errorMessage: viewModel.errorMessage!, onRetry: _loadAlarms)
                 else
                   Expanded(
                     child: RefreshIndicator(
@@ -93,6 +136,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                           viewModel.alarms.isEmpty
                               ? const Center(child: Text('Alarm bulunamadı'))
                               : ListView.builder(
+                                controller: _scrollController,
                                 padding: const EdgeInsets.all(AppConstants.paddingMedium),
                                 itemCount: viewModel.alarms.length,
                                 itemBuilder: (context, index) {
@@ -256,7 +300,7 @@ class _AlarmsPageState extends State<AlarmsPage> with SingleTickerProviderStateM
                               style: TextStyle(color: _selectedDate == null ? Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7) : Theme.of(context).primaryColor),
                             ),
                             onPressed: () async {
-                              final date = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
+                              final date = await showDatePicker(context: context, initialDate: _selectedDate ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now());
                               if (date != null) {
                                 setState(() => _selectedDate = date);
                                 _loadAlarms();

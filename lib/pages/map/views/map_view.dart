@@ -315,7 +315,7 @@ class MapViewState extends State<MapView> {
               Text('Panel: ${pvString.panelType.displayName}'),
               Text('Panel Özellikleri: ${pvString.panelType.specs}'),
               Text('Panel Sayısı: ${pvString.panelCount}'),
-              Text('Beklenen Maksimum Voltaj: ${pvString.panelCount * pvString.panelType.voltageAtMaxPower}'),
+              Text('Beklenen Maksimum Voltaj: ${(pvString.panelCount * pvString.panelType.voltageAtMaxPower).toStringAsFixed(2)}'),
               Text('Toplam Kapasite: ${(pvString.panelCount * pvString.panelType.maxPower).toStringAsFixed(0)} W'),
               const Divider(),
               Text('Son Üretim', style: Theme.of(context).textTheme.titleMedium),

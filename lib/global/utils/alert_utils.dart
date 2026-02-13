@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../widgets/custom_alert_dialog.dart';
 
 class AlertUtils {
   /// Shows a user-friendly error dialog
   /// Automatically formats error messages to be more readable
-  static Future<void> showError(
-    BuildContext context, {
-    String? title,
-    String? message,
-    Object? error,
-    String? confirmText,
-    VoidCallback? onConfirm,
-  }) {
+  static Future<void> showError(BuildContext context, {String? title, String? message, Object? error, String? confirmText, VoidCallback? onConfirm}) {
     final errorTitle = title ?? 'Hata';
     String errorMessage;
 
@@ -23,68 +17,22 @@ class AlertUtils {
       errorMessage = 'Bir hata oluştu. Lütfen tekrar deneyin.';
     }
 
-    return CustomAlertDialog.show(
-      context,
-      title: errorTitle,
-      message: errorMessage,
-      type: AlertType.error,
-      confirmText: confirmText,
-      onConfirm: onConfirm,
-    );
+    return CustomAlertDialog.show(context, title: errorTitle, message: errorMessage, type: AlertType.error, confirmText: confirmText, onConfirm: onConfirm);
   }
 
   /// Shows a warning dialog
-  static Future<void> showWarning(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String? confirmText,
-    VoidCallback? onConfirm,
-  }) {
-    return CustomAlertDialog.show(
-      context,
-      title: title,
-      message: message,
-      type: AlertType.warning,
-      confirmText: confirmText,
-      onConfirm: onConfirm,
-    );
+  static Future<void> showWarning(BuildContext context, {required String title, required String message, String? confirmText, VoidCallback? onConfirm}) {
+    return CustomAlertDialog.show(context, title: title, message: message, type: AlertType.warning, confirmText: confirmText, onConfirm: onConfirm);
   }
 
   /// Shows an info dialog
-  static Future<void> showInfo(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String? confirmText,
-    VoidCallback? onConfirm,
-  }) {
-    return CustomAlertDialog.show(
-      context,
-      title: title,
-      message: message,
-      type: AlertType.info,
-      confirmText: confirmText,
-      onConfirm: onConfirm,
-    );
+  static Future<void> showInfo(BuildContext context, {required String title, required String message, String? confirmText, VoidCallback? onConfirm}) {
+    return CustomAlertDialog.show(context, title: title, message: message, type: AlertType.info, confirmText: confirmText, onConfirm: onConfirm);
   }
 
   /// Shows a success dialog
-  static Future<void> showSuccess(
-    BuildContext context, {
-    required String title,
-    required String message,
-    String? confirmText,
-    VoidCallback? onConfirm,
-  }) {
-    return CustomAlertDialog.show(
-      context,
-      title: title,
-      message: message,
-      type: AlertType.success,
-      confirmText: confirmText,
-      onConfirm: onConfirm,
-    );
+  static Future<void> showSuccess(BuildContext context, {required String title, required String message, String? confirmText, VoidCallback? onConfirm}) {
+    return CustomAlertDialog.show(context, title: title, message: message, type: AlertType.success, confirmText: confirmText, onConfirm: onConfirm);
   }
 
   /// Formats error messages to be more user-friendly
@@ -143,4 +91,3 @@ class AlertUtils {
     return errorString;
   }
 }
-

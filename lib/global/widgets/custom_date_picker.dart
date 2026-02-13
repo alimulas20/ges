@@ -116,7 +116,19 @@ class _MonthPickerDialogState extends State<MonthPickerDialog> {
           children: [
             IconButton(icon: Icon(Icons.arrow_back_ios, size: 16), onPressed: _selectedYear > widget.firstDate.year ? () => setState(() => _selectedYear--) : null),
             Text(_selectedYear.toString(), style: Theme.of(context).textTheme.headlineSmall),
-            IconButton(icon: Icon(Icons.arrow_forward_ios, size: 16), onPressed: _selectedYear < widget.lastDate.year ? () => setState(() => _selectedYear++) : null),
+            IconButton(
+              icon: Icon(Icons.arrow_forward_ios, size: 16), 
+              onPressed: () {
+                final now = DateTime.now();
+                // Gelecek yıllara geçişi engelle
+                if (_selectedYear < now.year) {
+                  setState(() => _selectedYear++);
+                } else if (_selectedYear == now.year) {
+                  // Şu anki yılda ise, gelecek yıla geçişi engelle
+                  return;
+                }
+              }
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -129,7 +141,16 @@ class _MonthPickerDialogState extends State<MonthPickerDialog> {
             itemBuilder: (context, index) {
               final month = index + 1;
               final date = DateTime(_selectedYear, month);
-              final isSelectable = date.isAfter(widget.firstDate.subtract(const Duration(days: 1))) && date.isBefore(widget.lastDate.add(const Duration(days: 32)));
+              
+              // Gelecek ayları engelle: Eğer seçilen yıl şu anki yıl ise, sadece şu ana kadar olan ayları seçilebilir yap
+              final now = DateTime.now();
+              final isFutureMonth = _selectedYear == now.year && month > now.month;
+              
+              // Tarih aralığı kontrolü
+              final isInRange = date.isAfter(widget.firstDate.subtract(const Duration(days: 1))) && 
+                                date.isBefore(widget.lastDate.add(const Duration(days: 32)));
+              
+              final isSelectable = isInRange && !isFutureMonth;
 
               final isSelected = _selectedDate.year == _selectedYear && _selectedDate.month == month;
 

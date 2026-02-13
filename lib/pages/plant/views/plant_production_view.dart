@@ -179,22 +179,28 @@ class _PlantProductionViewState extends State<PlantProductionView> {
 
   Future<void> _selectDate(BuildContext context, PlantProductionViewModel viewModel) async {
     DatePickerMode mode;
+    DateTime lastDate;
 
     switch (viewModel.selectedTimePeriod) {
       case ProductionTimePeriod.daily:
         mode = DatePickerMode.day;
+        lastDate = DateTime.now();
         break;
       case ProductionTimePeriod.monthly:
         mode = DatePickerMode.month;
+        // Şu anki ayın son günü
+        final now = DateTime.now();
+        lastDate = DateTime(now.year, now.month + 1, 0); // Ayın son günü
         break;
       case ProductionTimePeriod.yearly:
         mode = DatePickerMode.year;
+        lastDate = DateTime.now();
         break;
       case ProductionTimePeriod.lifetime:
         return; // Lifetime için date picker göstermiyoruz
     }
 
-    final DateTime? picked = await CustomDatePicker.showCustomDatePicker(context: context, initialDate: viewModel.selectedDate, mode: mode, firstDate: DateTime(2000), lastDate: DateTime.now());
+    final DateTime? picked = await CustomDatePicker.showCustomDatePicker(context: context, initialDate: viewModel.selectedDate, mode: mode, firstDate: DateTime(2000), lastDate: lastDate);
 
     if (picked != null && picked != viewModel.selectedDate) {
       viewModel.setSelectedDate(picked);

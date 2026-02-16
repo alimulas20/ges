@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
-import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/utils/alert_utils.dart';
 import '../../../global/widgets/alarm_detail_dialog.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/widgets/solar_connection_animation.dart';
 import '../../alarm/model/alarm_dto.dart';
 import '../../alarm/service/alarm_service.dart';
@@ -43,10 +43,7 @@ class _PlantStatusViewState extends State<PlantStatusView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return ErrorDisplayWidget(
-                errorMessage: viewModel.errorMessage!,
-                onRetry: () => viewModel.refresh(),
-              );
+              return ErrorDisplayWidget(errorMessage: viewModel.errorMessage!, onRetry: () => viewModel.refresh());
             }
 
             if (viewModel.plantStatus == null) {
@@ -196,8 +193,8 @@ class _PlantStatusViewState extends State<PlantStatusView> {
           children: [
             _buildNewInfoCard('Günlük Üretim', '${plantStatus.todayProduction.toStringAsFixed(2)} kWh', Icons.solar_power, Colors.orange),
             _buildNewInfoCard('Toplam Üretim', '${(plantStatus.totalProduction / 1000).toStringAsFixed(2)} MWh', Icons.trending_up, Colors.green),
-            _buildNewInfoCard('Tesis Kapasitesi', '${plantStatus.totalStringCapacityKWp.toStringAsFixed(2)} kWp', Icons.battery_charging_full, Colors.blue),
-            _buildNewInfoCard('Nominal Güç', '${plantStatus.inverterNominalPower.toStringAsFixed(2)} kW', Icons.speed, Colors.purple),
+            _buildNewInfoCard('Tesis Kapasitesi(DC)', '${plantStatus.totalStringCapacityKWp.toStringAsFixed(2)} kWp', Icons.battery_charging_full, Colors.blue),
+            _buildNewInfoCard('Tesis Kapasitesi(AC)', '${plantStatus.inverterNominalPower.toStringAsFixed(2)} kW', Icons.speed, Colors.purple),
             _buildNewInfoCard('Anlık Üretim', '${plantStatus.currentPVGeneration.toStringAsFixed(2)} kW', Icons.flash_on, Colors.amber),
           ],
         ),
@@ -230,11 +227,7 @@ class _PlantStatusViewState extends State<PlantStatusView> {
       }
     } catch (e) {
       if (mounted) {
-        AlertUtils.showError(
-          context,
-          title: 'Alarm Detayları Yüklenemedi',
-          error: e,
-        );
+        AlertUtils.showError(context, title: 'Alarm Detayları Yüklenemedi', error: e);
       }
     }
   }

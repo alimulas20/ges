@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 
 import '../constant/app_constants.dart';
 import '../extensions/context_extention.dart';
@@ -11,13 +11,7 @@ class MultiLineChart extends StatefulWidget {
   final bool showArea;
   final bool isCurved;
 
-  const MultiLineChart({
-    super.key,
-    required this.seriesList,
-    this.bottomDescription,
-    this.showArea = false,
-    this.isCurved = true,
-  });
+  const MultiLineChart({super.key, required this.seriesList, this.bottomDescription, this.showArea = false, this.isCurved = true});
 
   @override
   State<MultiLineChart> createState() => _MultiLineChartState();
@@ -45,15 +39,16 @@ class _MultiLineChartState extends State<MultiLineChart> {
           children: [
             Expanded(
               // Grafik alanını genişlet
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppConstants.paddingLarge),
-                    child: _buildChart(),
-                  ),
-                  // Custom tooltip
-                  if (_touchedIndex != null) _buildCustomTooltip(),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Stack(
+                    children: [
+                      Padding(padding: const EdgeInsets.only(top: AppConstants.paddingLarge), child: _buildChart()),
+                      // Custom tooltip - gerçek boyutları kullanarak konumlandır
+                      if (_touchedIndex != null) _buildCustomTooltip(constraints),
+                    ],
+                  );
+                },
               ),
             ),
             if (widget.bottomDescription != null) ...[
@@ -142,12 +137,7 @@ class _MultiLineChartState extends State<MultiLineChart> {
                   getDotPainter: (spot, percent, barData, index) {
                     // Sadece tıklanan noktayı göster
                     if (_touchedIndex != null && spot.x.toInt() == _touchedIndex) {
-                      return FlDotCirclePainter(
-                        radius: 6,
-                        color: series.color,
-                        strokeWidth: 2,
-                        strokeColor: Colors.white,
-                      );
+                      return FlDotCirclePainter(radius: 6, color: series.color, strokeWidth: 2, strokeColor: Colors.white);
                     }
                     return FlDotCirclePainter(radius: 0, color: Colors.transparent);
                   },
@@ -182,29 +172,22 @@ class _MultiLineChartState extends State<MultiLineChart> {
     return max * 1.2; // %20 boşluk bırak
   }
 
-  Widget _buildCustomTooltip() {
+  Widget _buildCustomTooltip(BoxConstraints constraints) {
     if (_touchedIndex == null) return const SizedBox.shrink();
 
     final index = _touchedIndex!;
-    
+
     if (index < 0) return const SizedBox.shrink();
 
     // Tüm serilerin bu noktadaki değerlerini topla
     final tooltipItems = <ChartTooltipItem>[];
     String? timeLabel;
-    
+
     for (final series in widget.seriesList) {
       if (index < series.dataPoints.length) {
         final dataPoint = series.dataPoints[index];
-        if (timeLabel == null) {
-          timeLabel = dataPoint.timeLabel;
-        }
-        tooltipItems.add(ChartTooltipItem(
-          label: series.label,
-          value: dataPoint.value,
-          unit: series.unit ?? '',
-          color: series.color,
-        ));
+        timeLabel ??= dataPoint.timeLabel;
+        tooltipItems.add(ChartTooltipItem(label: series.label, value: dataPoint.value, unit: series.unit ?? '', color: series.color));
       }
     }
 
@@ -215,51 +198,89 @@ class _MultiLineChartState extends State<MultiLineChart> {
     final firstDataPoint = firstSeries.dataPoints[index];
     final referenceValue = firstDataPoint.value;
 
-    // Grafik yüksekliği ve genişliği
-    const chartHeight = 250.0;
-    final chartWidth = MediaQuery.of(context).size.width - (AppConstants.paddingExtraLarge * 2);
+    // Gerçek grafik boyutlarını kullan
+    final chartHeight = constraints.maxHeight - AppConstants.paddingLarge;
+    final chartWidth = constraints.maxWidth;
 
     // Y pozisyonunu hesapla (referans değere göre)
     final maxY = _calculateMaxY();
     final minY = _calculateMinY();
     final pointY = chartHeight - (((referenceValue - minY) / (maxY - minY)) * chartHeight);
 
-    // Tooltip yüksekliği (yaklaşık) - her item için 24px + başlık için 28px
-    final tooltipHeight = 28.0 + (tooltipItems.length * 24.0);
+    // Tooltip maksimum boyutları (chart_tooltip_widget.dart ile uyumlu)
+    final maxTooltipWidth = MediaQuery.of(context).size.width * 0.6; // Ekran genişliğinin %60'ı
+    const maxTooltipHeight = 150.0; // Maksimum yükseklik (daha küçük)
+    final needsScroll = tooltipItems.length > 3; // 3'ten fazla item varsa scroll
 
-    // Eğer nokta grafiğin üst kısmındaysa (ilk %30), tooltip'i noktanın altına koy
-    // Aksi halde tooltip'i noktanın üstüne koy
-    final double yPosition;
-    if (pointY < chartHeight * 0.3) {
-      // Üst kısımda, tooltip'i noktanın altına koy
-      yPosition = pointY + 20;
-    } else {
-      // Alt kısımda, tooltip'i noktanın üstüne koy
-      yPosition = pointY - tooltipHeight;
-    }
-
-    // X pozisyonunu hesapla (grafik içindeki konum)
-    final maxX = widget.seriesList.isNotEmpty ? (widget.seriesList.first.dataPoints.length - 1).toDouble() : 0.0;
-    final pointX = (index / maxX) * chartWidth;
+    // Tooltip yüksekliği (yaklaşık) - scroll gerekiyorsa maksimum yüksekliği kullan
+    final tooltipHeight = needsScroll ? maxTooltipHeight : (28.0 + (tooltipItems.length * 24.0) + 16.0).clamp(0.0, maxTooltipHeight); // 16 padding için
 
     // Tooltip'in yaklaşık genişliğini hesapla (içeriğe göre)
-    // En uzun item'ı kullan
     double maxItemWidth = 0;
     for (final item in tooltipItems) {
       final itemWidth = (item.label.length + item.value.toStringAsFixed(1).length + item.unit.length) * 7.0 + 30.0;
       if (itemWidth > maxItemWidth) maxItemWidth = itemWidth;
     }
-    final estimatedWidth = (timeLabel.length * 7.0) + maxItemWidth + 80.0;
+    // Maksimum genişlik sınırını dikkate al
+    final estimatedWidth = ((timeLabel.length * 7.0) + maxItemWidth + 100.0).clamp(0.0, maxTooltipWidth); // Padding ve ikonlar için
 
-    // X pozisyonunu ayarla - tooltip noktanın üzerinde ortalanmış olsun
+    // X pozisyonunu hesapla (grafik içindeki konum)
+    final maxX = widget.seriesList.isNotEmpty ? (widget.seriesList.first.dataPoints.length - 1).toDouble() : 0.0;
+    final pointX = (index / maxX) * chartWidth;
+
+    // Akıllı Y pozisyonlandırma
+    // Önce üstte yer var mı kontrol et
+    final spaceAbove = pointY;
+    final spaceBelow = chartHeight - pointY;
+
+    // Güvenli clamp değerleri hesapla
+    final minYPos = 8.0;
+    final maxYPos = (chartHeight - tooltipHeight - 8.0).clamp(minYPos, double.infinity);
+
+    double yPosition;
+
+    if (spaceAbove >= tooltipHeight + 20) {
+      // Üstte yeterli yer var, üste koy
+      yPosition = (pointY - tooltipHeight - 20).clamp(minYPos, maxYPos);
+    } else if (spaceBelow >= tooltipHeight + 20) {
+      // Altta yeterli yer var, alta koy
+      yPosition = (pointY + 20).clamp(minYPos, maxYPos);
+    } else {
+      // Ne üstte ne altta yeterli yer yok, mevcut alanı kullan
+      if (spaceAbove > spaceBelow) {
+        // Üstte daha fazla yer var
+        yPosition = (pointY - tooltipHeight).clamp(minYPos, maxYPos);
+      } else {
+        // Altta daha fazla yer var
+        yPosition = (pointY + 20).clamp(minYPos, maxYPos);
+      }
+    }
+
+    // Akıllı X pozisyonlandırma - tooltip noktanın üzerinde ortalanmış olsun
     double xPosition = pointX - (estimatedWidth / 2);
 
-    // Taşmayı önle
-    xPosition = xPosition.clamp(8.0, chartWidth - estimatedWidth - 8.0);
+    // Sağdan taşmayı önle
+    if (xPosition + estimatedWidth > chartWidth - 8) {
+      xPosition = chartWidth - estimatedWidth - 8;
+    }
+
+    // Soldan taşmayı önle
+    if (xPosition < 8) {
+      xPosition = 8;
+    }
+
+    // Eğer hala taşıyorsa, tooltip'i noktanın yanına koy (sağ veya sol)
+    if (xPosition + estimatedWidth > chartWidth - 8) {
+      // Sağa taşıyor, sola kaydır
+      xPosition = pointX - estimatedWidth - 20;
+      if (xPosition < 8) {
+        xPosition = 8;
+      }
+    }
 
     return Positioned(
       left: xPosition,
-      top: yPosition.clamp(0.0, chartHeight - tooltipHeight),
+      top: yPosition,
       child: ChartTooltipWidget(
         timeLabel: timeLabel,
         items: tooltipItems,

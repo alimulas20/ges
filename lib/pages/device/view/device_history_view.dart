@@ -1,9 +1,10 @@
 // views/device_history_view.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/utils/chart_color_utils.dart';
 import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/widgets/multi_line_chart.dart';
 import '../../../global/widgets/multi_select_dropdown.dart';
@@ -46,10 +47,7 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return ErrorDisplayWidget(
-                errorMessage: viewModel.errorMessage!,
-                onRetry: () => _viewModel.setSelectedDate(DateTime.now()),
-              );
+              return ErrorDisplayWidget(errorMessage: viewModel.errorMessage!, onRetry: () => _viewModel.setSelectedDate(DateTime.now()));
             }
 
             return SingleChildScrollView(
@@ -123,25 +121,22 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     }
 
     final seriesList =
-        viewModel.selectedAttributeKeys.map((key) {
+        viewModel.selectedAttributeKeys.asMap().entries.map((entry) {
+          final index = entry.key;
+          final key = entry.value;
           final attr = viewModel.attributes.firstWhere((a) => a.key == key);
           return ChartSeries(
             dataPoints:
                 viewModel.inverterComparisonData!.dataPoints.map((point) {
                   return ChartDataPoint(value: point.values[key] ?? 0, timeLabel: DateFormat('HH:mm').format(point.timestamp));
                 }).toList(),
-            color: _getColorForAttribute(key),
+            color: ChartColorUtils.getChartColor(index),
             label: attr.name,
             unit: attr.unit,
           );
         }).toList();
 
     return MultiLineChart(seriesList: seriesList, bottomDescription: 'Inverter Verileri - ${DateFormat('dd/MM/yyyy').format(viewModel.selectedDate)}');
-  }
-
-  Color _getColorForAttribute(String key) {
-    final colors = [Colors.blue, Colors.green, Colors.red, Colors.orange, Colors.purple];
-    return colors[key.hashCode % colors.length];
   }
 
   Widget _buildPvStringSection(DeviceHistoryViewModel viewModel) {
@@ -199,14 +194,16 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
     }
 
     final seriesList =
-        viewModel.selectedPvStringIds.map((id) {
+        viewModel.selectedPvStringIds.asMap().entries.map((entry) {
+          final index = entry.key;
+          final id = entry.value;
           final pvString = viewModel.pvStrings.firstWhere((pv) => pv.id == id);
           return ChartSeries(
             dataPoints:
                 viewModel.pvComparisonData!.dataPoints.map((point) {
                   return ChartDataPoint(value: point.values[pvString.name] ?? 0, timeLabel: DateFormat('HH:mm').format(point.timestamp));
                 }).toList(),
-            color: _getColorForPvString(id),
+            color: ChartColorUtils.getChartColor(index),
             label: pvString.name,
             unit: _getUnitForMeasurementType(viewModel.selectedMeasurementType),
           );
@@ -251,14 +248,6 @@ class _DeviceHistoryViewState extends State<DeviceHistoryView> {
       case PVMeasurementType.voltage:
         return 'Voltaj (V)';
     }
-  }
-
-  Color _getColorForPvString(int id) {
-    // PV String'ler için sabit renk paleti
-    final colors = [Colors.blueAccent, Colors.greenAccent, Colors.redAccent, Colors.orangeAccent, Colors.purpleAccent, Colors.tealAccent, Colors.pinkAccent, Colors.indigoAccent];
-
-    // ID'ye göre sabit bir renk ataması yapıyoruz
-    return colors[id % colors.length];
   }
 
   Widget _buildDatePicker(DeviceHistoryViewModel viewModel) {

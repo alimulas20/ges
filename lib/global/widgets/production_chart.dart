@@ -33,15 +33,19 @@ class _ProductionChartState extends State<ProductionChart> {
       decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.elevatedShadow),
       child: Column(
         children: [
-          Stack(
-            children: [
-              SizedBox(
-                height: 250,
-                child: Padding(padding: const EdgeInsets.only(top: AppConstants.paddingLarge), child: widget.timePeriod == ProductionTimePeriod.daily ? _buildLineChart() : _buildBarChart()),
-              ),
-              // Custom tooltip - tap olduğunda göster
-              if (_touchedIndex != null) _buildCustomTooltip(),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                children: [
+                  SizedBox(
+                    height: 250,
+                    child: Padding(padding: const EdgeInsets.only(top: AppConstants.paddingLarge), child: widget.timePeriod == ProductionTimePeriod.daily ? _buildLineChart() : _buildBarChart()),
+                  ),
+                  // Custom tooltip - gerçek boyutları kullanarak konumlandır
+                  if (_touchedIndex != null) _buildCustomTooltip(constraints),
+                ],
+              );
+            },
           ),
           // Renkli açıklama (legend) - sadece günlük ve prediction varsa göster
           if (widget.timePeriod == ProductionTimePeriod.daily && widget.predictionDataPoints != null && widget.predictionDataPoints!.isNotEmpty) ...[
@@ -311,7 +315,7 @@ class _ProductionChartState extends State<ProductionChart> {
     return max * 1.2; // %20 boşluk bırak
   }
 
-  Widget _buildCustomTooltip() {
+  Widget _buildCustomTooltip(BoxConstraints constraints) {
     if (_touchedIndex == null) return const SizedBox.shrink();
 
     final index = _touchedIndex!;
@@ -345,9 +349,9 @@ class _ProductionChartState extends State<ProductionChart> {
       }
     }
 
-    // Grafik yüksekliği ve genişliği
-    final chartHeight = 250.0;
-    final chartWidth = MediaQuery.of(context).size.width - (AppConstants.paddingExtraLarge * 2);
+    // Gerçek grafik boyutlarını kullan
+    final chartHeight = 250.0 - AppConstants.paddingLarge;
+    final chartWidth = constraints.maxWidth;
 
     // Y pozisyonunu hesapla (değere göre)
     final allValues = <double>[];
@@ -360,18 +364,38 @@ class _ProductionChartState extends State<ProductionChart> {
     // Noktanın Y pozisyonunu hesapla
     final pointY = chartHeight - ((value / maxY) * chartHeight);
 
-    // Tooltip yüksekliği (yaklaşık)
-    const tooltipHeight = 60.0;
+    // Tooltip yüksekliği (yaklaşık) - zaman + değer + padding
+    const tooltipHeight = 60.0 + 16.0; // 16 padding için
 
-    // Eğer nokta grafiğin üst kısmındaysa (ilk %30), tooltip'i noktanın altına koy
-    // Aksi halde tooltip'i noktanın üstüne koy
-    final double yPosition;
-    if (pointY < chartHeight * 0.3) {
-      // Üst kısımda, tooltip'i noktanın altına koy
-      yPosition = pointY + 20;
+    // Tooltip'in yaklaşık genişliğini hesapla (içeriğe göre)
+    final estimatedWidth = (timeLabel.length * 7.0) + (value.toStringAsFixed(1).length * 7.0) + (widget.unit.length * 7.0) + (isPrediction ? 50.0 : 0.0) + 100.0; // İkonlar ve padding için
+
+    // Akıllı Y pozisyonlandırma
+    // Önce üstte yer var mı kontrol et
+    final spaceAbove = pointY;
+    final spaceBelow = chartHeight - pointY;
+    
+    // Güvenli clamp değerleri hesapla
+    final minYPos = 8.0;
+    final maxYPos = (chartHeight - tooltipHeight - 8.0).clamp(minYPos, double.infinity);
+    
+    double yPosition;
+    
+    if (spaceAbove >= tooltipHeight + 20) {
+      // Üstte yeterli yer var, üste koy
+      yPosition = (pointY - tooltipHeight - 20).clamp(minYPos, maxYPos);
+    } else if (spaceBelow >= tooltipHeight + 20) {
+      // Altta yeterli yer var, alta koy
+      yPosition = (pointY + 20).clamp(minYPos, maxYPos);
     } else {
-      // Alt kısımda, tooltip'i noktanın üstüne koy
-      yPosition = pointY - tooltipHeight;
+      // Ne üstte ne altta yeterli yer yok, mevcut alanı kullan
+      if (spaceAbove > spaceBelow) {
+        // Üstte daha fazla yer var
+        yPosition = (pointY - tooltipHeight).clamp(minYPos, maxYPos);
+      } else {
+        // Altta daha fazla yer var
+        yPosition = (pointY + 20).clamp(minYPos, maxYPos);
+      }
     }
 
     // X pozisyonunu hesapla (grafik içindeki konum)
@@ -381,18 +405,31 @@ class _ProductionChartState extends State<ProductionChart> {
             : (widget.dataPoints.length - 1).toDouble();
     final pointX = (index / maxX) * chartWidth;
 
-    // Tooltip'in yaklaşık genişliğini hesapla (içeriğe göre)
-    final estimatedWidth = (timeLabel.length * 7.0) + (value.toStringAsFixed(1).length * 7.0) + (widget.unit.length * 7.0) + (isPrediction ? 50.0 : 0.0) + 80.0; // İkonlar ve padding için
-
-    // X pozisyonunu ayarla - tooltip noktanın üzerinde ortalanmış olsun
+    // Akıllı X pozisyonlandırma - tooltip noktanın üzerinde ortalanmış olsun
     double xPosition = pointX - (estimatedWidth / 2);
-
-    // Taşmayı önle
-    xPosition = xPosition.clamp(8.0, chartWidth - estimatedWidth - 8.0);
+    
+    // Sağdan taşmayı önle
+    if (xPosition + estimatedWidth > chartWidth - 8) {
+      xPosition = chartWidth - estimatedWidth - 8;
+    }
+    
+    // Soldan taşmayı önle
+    if (xPosition < 8) {
+      xPosition = 8;
+    }
+    
+    // Eğer hala taşıyorsa, tooltip'i noktanın yanına koy (sağ veya sol)
+    if (xPosition + estimatedWidth > chartWidth - 8) {
+      // Sağa taşıyor, sola kaydır
+      xPosition = pointX - estimatedWidth - 20;
+      if (xPosition < 8) {
+        xPosition = 8;
+      }
+    }
 
     return Positioned(
       left: xPosition,
-      top: yPosition.clamp(0.0, chartHeight - tooltipHeight),
+      top: yPosition,
       child: Material(
         elevation: 8,
         borderRadius: BorderRadius.circular(12),

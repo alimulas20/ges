@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
+import '../../../global/extensions/date_time_extensions.dart';
 import '../../../global/widgets/error_display_widget.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_reading_view_model.dart';
-import '../../../global/extensions/date_time_extensions.dart';
 
 class DeviceReadingsView extends StatefulWidget {
   final int deviceSetupId;
@@ -45,10 +45,7 @@ class _DeviceReadingsViewState extends State<DeviceReadingsView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return ErrorDisplayWidget(
-                errorMessage: viewModel.errorMessage!,
-                onRetry: _viewModel.fetchDeviceReadings,
-              );
+              return ErrorDisplayWidget(errorMessage: viewModel.errorMessage!, onRetry: _viewModel.fetchDeviceReadings);
             }
 
             final readings = viewModel.deviceReadings;
@@ -86,11 +83,18 @@ class _DeviceReadingsViewState extends State<DeviceReadingsView> {
               scrollDirection: Axis.horizontal,
               child: DataTable(
                 columnSpacing: AppConstants.paddingLarge,
-                columns: const [DataColumn(label: Text('PV Adı')), DataColumn(label: Text('Voltaj (V)')), DataColumn(label: Text('Akım (A)')), DataColumn(label: Text('Güç (W)'))],
+                columns: const [
+                  DataColumn(label: Text('Port')),
+                  DataColumn(label: Text('PV Adı')),
+                  DataColumn(label: Text('Voltaj (V)')),
+                  DataColumn(label: Text('Akım (A)')),
+                  DataColumn(label: Text('Güç (W)')),
+                ],
                 rows:
                     generations.map((g) {
                       return DataRow(
                         cells: [
+                          DataCell(Text(g.inverterPortNumber.toString())),
                           DataCell(Text(g.pvStringTechnicalName)),
                           DataCell(Text(g.voltage.toStringAsFixed(2))),
                           DataCell(Text(g.current.toStringAsFixed(2))),

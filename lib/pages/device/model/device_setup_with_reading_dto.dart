@@ -207,16 +207,18 @@ class InverterReadingDetailDTO {
 // models/pv_generation_dto.dart
 class PVGenerationDTO {
   final String pvStringTechnicalName;
+  final int inverterPortNumber;
   final double voltage;
   final double current;
   final double power;
   final DateTime createdDate;
 
-  PVGenerationDTO({required this.pvStringTechnicalName, required this.voltage, required this.current, required this.power, required this.createdDate});
+  PVGenerationDTO({required this.pvStringTechnicalName, required this.inverterPortNumber, required this.voltage, required this.current, required this.power, required this.createdDate});
 
   factory PVGenerationDTO.fromJson(Map<String, dynamic> json) {
     return PVGenerationDTO(
       pvStringTechnicalName: json['pvStringTechnicalName'],
+      inverterPortNumber: json['inverterPortNumber'],
       voltage: json['voltage'].toDouble(),
       current: json['current'].toDouble(),
       power: json['power'].toDouble(),

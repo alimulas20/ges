@@ -198,6 +198,28 @@ class UserUpdateDto {
   }
 }
 
+/// Kendi şifresini değiştirmek için (mevcut şifre + yeni şifre).
+class UserPasswordUpdateDto {
+  final String currentPassword;
+  final String newPassword;
+
+  UserPasswordUpdateDto({required this.currentPassword, required this.newPassword});
+
+  Map<String, dynamic> toJson() => {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      };
+}
+
+/// Admin/Manager tarafından kullanıcı şifresi sıfırlamak için.
+class UserPasswordResetDto {
+  final String newPassword;
+
+  UserPasswordResetDto({required this.newPassword});
+
+  Map<String, dynamic> toJson() => {'newPassword': newPassword};
+}
+
 // Add this new class for file upload
 class FileUploadDto {
   final dynamic file; // This will be a MultipartFile in the service

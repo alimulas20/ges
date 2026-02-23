@@ -24,6 +24,7 @@ class _UserDetailViewState extends State<UserDetailView> {
   late UserDto _editedUser;
   final ImagePicker _picker = ImagePicker();
   bool _isSaving = false;
+  bool _isPasswordLoading = false;
 
   @override
   void initState() {
@@ -89,32 +90,45 @@ class _UserDetailViewState extends State<UserDetailView> {
         child: ListView(
           children: [
             Center(
-              child: Stack(
+              child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: AppConstants.imageMediumSize / 2,
-                    backgroundImage: _editedUser.profilePictureUrl.isNotEmpty ? NetworkImage(_editedUser.profilePictureUrl) : null,
-                    child:
-                        _editedUser.profilePictureUrl.isEmpty
-                            ? Text('${_editedUser.firstName.substring(0, 1)}${_editedUser.lastName.substring(0, 1)}', style: TextStyle(fontSize: AppConstants.fontSizeHeadline))
-                            : null,
-                  ),
-                  if (canEdit)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        height: AppConstants.paddingHuge,
-                        width: AppConstants.paddingHuge,
-                        decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
-                        child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary, size: AppConstants.paddingExtraLarge), onPressed: _pickImage),
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: AppConstants.imageMediumSize / 2,
+                        backgroundImage: _editedUser.profilePictureUrl.isNotEmpty ? NetworkImage(_editedUser.profilePictureUrl) : null,
+                        child:
+                            _editedUser.profilePictureUrl.isEmpty
+                                ? Text('${_editedUser.firstName.substring(0, 1)}${_editedUser.lastName.substring(0, 1)}', style: TextStyle(fontSize: AppConstants.fontSizeHeadline))
+                                : null,
                       ),
-                    ),
+                      if (canEdit)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Tooltip(
+                            message: 'Profil fotoğrafını değiştir',
+                            child: Container(
+                              height: AppConstants.paddingHuge,
+                              width: AppConstants.paddingHuge,
+                              decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle)),
+                              child: IconButton(icon: Icon(Icons.camera_alt, color: colorScheme.onPrimary, size: AppConstants.paddingExtraLarge), onPressed: _pickImage),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (canEdit) ...[
+                    const SizedBox(height: AppConstants.paddingSmall),
+                    Text('Profil fotoğrafı', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                  ],
                 ],
               ),
             ),
             const SizedBox(height: AppConstants.paddingExtraLarge),
             if (canEdit) ...[
+              Text('Kişisel bilgiler', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+              const SizedBox(height: AppConstants.paddingMedium),
               TextFormField(
                 initialValue: _editedUser.firstName,
                 decoration: const InputDecoration(labelText: 'Ad'),
@@ -182,6 +196,43 @@ class _UserDetailViewState extends State<UserDetailView> {
                       _editedUser = _editedUser.copyWith(receiveSMS: value);
                     }),
               ),
+              if (_hasChanges()) ...[
+                const SizedBox(height: AppConstants.paddingMedium),
+                SizedBox(
+                  width: double.infinity,
+                  height: AppConstants.buttonHeight,
+                  child: FilledButton.icon(
+                    onPressed: _isSaving ? null : () => _saveChanges(context),
+                    icon: _isSaving
+                        ? SizedBox(
+                            width: AppConstants.iconSizeSmall,
+                            height: AppConstants.iconSizeSmall,
+                            child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary)),
+                          )
+                        : const Icon(Icons.save_outlined, size: AppConstants.iconSizeMedium),
+                    label: Text(_isSaving ? 'Kaydediliyor...' : 'Bilgileri kaydet'),
+                  ),
+                ),
+              ],
+              if (isCurrentUser || (viewModel.isAdmin || viewModel.isSuperAdmin) && !isCurrentUser) ...[
+                const SizedBox(height: AppConstants.paddingExtraLarge),
+                Text('Şifre', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: AppConstants.paddingMedium),
+                if (isCurrentUser)
+                  OutlinedButton.icon(
+                    onPressed: _isPasswordLoading ? null : () => _showPasswordUpdateDialog(context),
+                    icon: const Icon(Icons.lock_outline, size: AppConstants.iconSizeSmall),
+                    label: const Text('Şifre değiştir'),
+                  )
+                else
+                  OutlinedButton.icon(
+                    onPressed: _isPasswordLoading ? null : () => _showPasswordResetDialog(context),
+                    icon: const Icon(Icons.lock_reset, size: AppConstants.iconSizeSmall),
+                    label: const Text('Şifre sıfırla'),
+                    style: OutlinedButton.styleFrom(foregroundColor: colorScheme.error),
+                  ),
+                const SizedBox(height: AppConstants.paddingExtraLarge),
+              ],
             ] else ...[
               ListTile(title: const Text('Ad'), subtitle: Text(_editedUser.firstName)),
               ListTile(title: const Text('Soyad'), subtitle: Text(_editedUser.lastName)),
@@ -189,7 +240,7 @@ class _UserDetailViewState extends State<UserDetailView> {
               if (_editedUser.phone != null && _editedUser.phone!.isNotEmpty) ListTile(title: const Text('Telefon'), subtitle: Text(_editedUser.phone!)),
             ],
             const SizedBox(height: AppConstants.paddingExtraLarge),
-            const Text('Tesisler:', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('Tesisler', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             ..._editedUser.plants.map(
               (plant) => ListTile(
                 title: Text(viewModel.getPlantNameById(plant.plantId)),
@@ -289,6 +340,166 @@ class _UserDetailViewState extends State<UserDetailView> {
           _isSaving = false;
         });
       }
+    }
+  }
+
+  Future<void> _showPasswordUpdateDialog(BuildContext context) async {
+    final currentController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final ok = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Şifre değiştir'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: currentController,
+                    decoration: const InputDecoration(labelText: 'Mevcut şifre'),
+                    obscureText: true,
+                    validator: (v) => (v?.isEmpty ?? true) ? 'Zorunlu alan' : null,
+                  ),
+                  const SizedBox(height: AppConstants.paddingMedium),
+                  TextFormField(
+                    controller: newController,
+                    decoration: const InputDecoration(labelText: 'Yeni şifre'),
+                    obscureText: true,
+                    validator: (v) {
+                      if (v?.isEmpty ?? true) return 'Zorunlu alan';
+                      if (v!.length < 6) return 'En az 6 karakter olmalı';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppConstants.paddingMedium),
+                  TextFormField(
+                    controller: confirmController,
+                    decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)'),
+                    obscureText: true,
+                    validator: (v) {
+                      if (v != newController.text) return 'Şifreler eşleşmiyor';
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('İptal')),
+              FilledButton(
+                onPressed: () {
+                  if (formKey.currentState?.validate() ?? false) {
+                    Navigator.pop(ctx, true);
+                  }
+                },
+                child: const Text('Değiştir'),
+              ),
+            ],
+          );
+      },
+    );
+
+    if (ok != true || !mounted) return;
+
+    setState(() => _isPasswordLoading = true);
+    try {
+      final viewModel = Provider.of<UserViewModel>(context, listen: false);
+      await viewModel.updateUserPassword(_editedUser.id, currentController.text, newController.text);
+      if (mounted) {
+        SnackBarUtils.showSuccess(context, 'Şifre başarıyla güncellendi');
+      }
+    } catch (e) {
+      if (mounted) {
+        AlertUtils.showError(context, title: 'Şifre değiştirilemedi', error: e);
+      }
+    } finally {
+      if (mounted) setState(() => _isPasswordLoading = false);
+    }
+  }
+
+  Future<void> _showPasswordResetDialog(BuildContext context) async {
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final ok = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Şifre sıfırla'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('${_editedUser.firstName} ${_editedUser.lastName} kullanıcısı için yeni şifre belirleyin.', style: Theme.of(ctx).textTheme.bodyMedium),
+                  const SizedBox(height: AppConstants.paddingMedium),
+                  TextFormField(
+                    controller: newController,
+                    decoration: const InputDecoration(labelText: 'Yeni şifre'),
+                    obscureText: true,
+                    validator: (v) {
+                      if (v?.isEmpty ?? true) return 'Zorunlu alan';
+                      if (v!.length < 6) return 'En az 6 karakter olmalı';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: AppConstants.paddingMedium),
+                  TextFormField(
+                    controller: confirmController,
+                    decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)'),
+                    obscureText: true,
+                    validator: (v) {
+                      if (v != newController.text) return 'Şifreler eşleşmiyor';
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('İptal')),
+            FilledButton(
+              onPressed: () {
+                if (formKey.currentState?.validate() ?? false) {
+                  Navigator.pop(ctx, true);
+                }
+              },
+              child: const Text('Sıfırla'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (ok != true || !mounted) return;
+
+    setState(() => _isPasswordLoading = true);
+    try {
+      final viewModel = Provider.of<UserViewModel>(context, listen: false);
+      await viewModel.resetUserPassword(_editedUser.id, newController.text);
+      if (mounted) {
+        SnackBarUtils.showSuccess(context, 'Şifre başarıyla sıfırlandı');
+      }
+    } catch (e) {
+      if (mounted) {
+        AlertUtils.showError(context, title: 'Şifre sıfırlanamadı', error: e);
+      }
+    } finally {
+      if (mounted) setState(() => _isPasswordLoading = false);
     }
   }
 }

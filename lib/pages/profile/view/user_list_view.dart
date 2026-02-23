@@ -147,38 +147,26 @@ class _UserListViewState extends State<UserListView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Header Section
+            // Profile Header Section (sadece fotoğraf; düzenleme butonu burada değil)
             Container(
               padding: const EdgeInsets.all(AppConstants.paddingLarge),
               decoration: BoxDecoration(
                 gradient: LinearGradient(colors: [colorScheme.primary.withOpacity(0.1), colorScheme.primary.withOpacity(0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                 borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
               ),
-              child: Stack(
-                children: [
-                  Center(
-                    child: CircleAvatar(
-                      radius: AppConstants.imageMediumSize / 2,
-                      backgroundColor: colorScheme.primary.withOpacity(0.1),
-                      backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
-                      child:
-                          user.profilePictureUrl.isEmpty
-                              ? Text(
-                                '${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}',
-                                style: TextStyle(fontSize: AppConstants.fontSizeHeadline, fontWeight: FontWeight.bold, color: colorScheme.primary),
-                              )
-                              : null,
-                    ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(AppConstants.borderRadiusCircle), boxShadow: AppConstants.cardShadow),
-                      child: IconButton(icon: Icon(Icons.edit, color: colorScheme.onPrimary, size: AppConstants.iconSizeSmall), onPressed: () => _navigateToUserDetail(context, user)),
-                    ),
-                  ),
-                ],
+              child: Center(
+                child: CircleAvatar(
+                  radius: AppConstants.imageMediumSize / 2,
+                  backgroundColor: colorScheme.primary.withOpacity(0.1),
+                  backgroundImage: user.profilePictureUrl.isNotEmpty ? NetworkImage(user.profilePictureUrl) : null,
+                  child:
+                      user.profilePictureUrl.isEmpty
+                          ? Text(
+                            '${user.firstName.substring(0, 1)}${user.lastName.substring(0, 1)}',
+                            style: TextStyle(fontSize: AppConstants.fontSizeHeadline, fontWeight: FontWeight.bold, color: colorScheme.primary),
+                          )
+                          : null,
+                ),
               ),
             ),
 
@@ -196,6 +184,19 @@ class _UserListViewState extends State<UserListView> {
                     child: Text(user.email, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
                   ),
                 ],
+              ),
+            ),
+
+            const SizedBox(height: AppConstants.paddingMedium),
+
+            // Bilgileri düzenle (profil bilgisi, fotoğraf değil) — buton avatarın yanında değil, bilgi alanının altında
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _navigateToUserDetail(context, user),
+                icon: Icon(Icons.edit_note, size: AppConstants.iconSizeMedium, color: colorScheme.primary),
+                label: const Text('Bilgileri düzenle'),
+                style: OutlinedButton.styleFrom(foregroundColor: colorScheme.primary),
               ),
             ),
 
@@ -411,10 +412,7 @@ class _UserListViewState extends State<UserListView> {
         ),
         title: Text('${user.firstName} ${user.lastName}', style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface, fontSize: AppConstants.fontSizeSmall)),
         subtitle: Text(user.email, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: AppConstants.fontSizeExtraSmall)),
-        trailing: Container(
-          decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall)),
-          child: IconButton(icon: Icon(Icons.edit, color: colorScheme.primary, size: AppConstants.iconSizeSmall), onPressed: () => _navigateToUserDetail(context, user)),
-        ),
+        trailing: Text('Bilgileri düzenle', style: TextStyle(fontSize: AppConstants.fontSizeSmall, color: colorScheme.primary, fontWeight: FontWeight.w500)),
         onTap: () => _navigateToUserDetail(context, user),
       ),
     );

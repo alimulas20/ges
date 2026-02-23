@@ -153,6 +153,38 @@ class UserViewModel with ChangeNotifier {
     }
   }
 
+  /// Kullanıcının kendi şifresini değiştirmesi.
+  Future<void> updateUserPassword(String userId, String currentPassword, String newPassword) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _service.updateUserPassword(userId, UserPasswordUpdateDto(currentPassword: currentPassword, newPassword: newPassword));
+    } catch (e) {
+      _error = 'Şifre güncellenemedi: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Admin/Manager: kullanıcı şifresini sıfırlama.
+  Future<void> resetUserPassword(String userId, String newPassword) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _service.resetUserPassword(userId, UserPasswordResetDto(newPassword: newPassword));
+    } catch (e) {
+      _error = 'Şifre sıfırlanamadı: ${AlertUtils.formatErrorMessage(e)}';
+      debugPrint('Error: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> loadPlantsDropdown() async {
     if (_plantsDropdown.isNotEmpty) return; // Zaten yüklüyse tekrar yükleme
 

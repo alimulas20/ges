@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:solar/pages/plant/views/plant_status_view.dart';
 
 import '../../../global/constant/app_constants.dart';
-import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/widgets/custom_navbar.dart';
+import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/widgets/network_image_with_placeholder.dart';
 import '../../alarm/views/alarm_view.dart';
 import '../../device/view/device_setup_list_view.dart';
@@ -67,10 +67,7 @@ class _PlantListViewState extends State<PlantListView> {
             }
 
             if (viewModel.errorMessage != null) {
-              return ErrorDisplayWidget(
-                errorMessage: viewModel.errorMessage!,
-                onRetry: () => viewModel.fetchPlants(),
-              );
+              return ErrorDisplayWidget(errorMessage: viewModel.errorMessage!, onRetry: () => viewModel.fetchPlants());
             }
 
             if (viewModel.plants.isEmpty) {
@@ -254,7 +251,7 @@ class _PlantListViewState extends State<PlantListView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
+                        Expanded(
                           child: Text(
                             plant.name,
                             style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: statusColor),
@@ -262,38 +259,45 @@ class _PlantListViewState extends State<PlantListView> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Row(
-                          children: [
-                            _buildAlarmStatusChip(alarmStatus, statusColor),
-                            const SizedBox(width: 8),
-                            if (plant.latestWeather != null)
-                              Container(
-                                constraints: const BoxConstraints(maxWidth: AppConstants.imageMediumSize),
-                                padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
-                                decoration: BoxDecoration(
-                                  color: WeatherCodeUtils.getWeatherColor(plant.latestWeather!.weatherCode),
-                                  borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(WeatherCodeUtils.getWeatherIcon(plant.latestWeather!.weatherCode), color: Colors.white, size: AppConstants.iconSizeSmall),
-                                    const SizedBox(width: AppConstants.paddingSmall),
-                                    Flexible(
-                                      child: Text(
-                                        plant.latestWeather?.weatherDescription ?? "",
-                                        style: const TextStyle(color: Colors.white, fontSize: AppConstants.fontSizeSmall),
-                                        maxLines: AppConstants.maxLinesSmall,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
+                        const SizedBox(width: AppConstants.paddingSmall),
+                        _buildAlarmStatusChip(alarmStatus, statusColor),
                       ],
                     ),
+                    if (plant.latestWeather != null) ...[
+                      const SizedBox(height: AppConstants.paddingSmall),
+                      Builder(
+                        builder: (context) {
+                          final desc = plant.latestWeather!.weatherDescription;
+                          final isShort = desc.length <= 14;
+                          final fontSize = isShort ? AppConstants.fontSizeExtraSmall : AppConstants.fontSizeSmall;
+                          final iconSize = isShort ? 16.0 : 20.0;
+                          return Container(
+                            padding: EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: isShort ? 6 : AppConstants.paddingSmall),
+                            decoration: BoxDecoration(
+                              color: WeatherCodeUtils.getWeatherColor(plant.latestWeather!.weatherCode).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
+                              border: Border.all(color: WeatherCodeUtils.getWeatherColor(plant.latestWeather!.weatherCode).withValues(alpha: 0.5)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(WeatherCodeUtils.getWeatherIcon(plant.latestWeather!.weatherCode), color: WeatherCodeUtils.getWeatherColor(plant.latestWeather!.weatherCode), size: iconSize),
+                                const SizedBox(width: AppConstants.paddingSmall),
+                                if (isShort)
+                                  Text(desc, style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey[800], fontSize: fontSize))
+                                else
+                                  Text(
+                                    desc,
+                                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey[800], fontSize: fontSize),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                     const SizedBox(height: AppConstants.paddingMedium),
                     Text('Tür: ${plant.plantType}', style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: AppConstants.paddingSmall),

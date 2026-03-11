@@ -22,6 +22,20 @@ class _ProductionChartState extends State<ProductionChart> {
   int? _touchedIndex;
 
   @override
+  void didUpdateWidget(ProductionChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Tarih veya veri değiştiğinde detay tooltip'ini kapat (yeni veriye uyum için)
+    if (oldWidget.dataPoints != widget.dataPoints ||
+        oldWidget.predictionDataPoints != widget.predictionDataPoints) {
+      if (_touchedIndex != null) {
+        setState(() {
+          _touchedIndex = null;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.dataPoints.isEmpty) {
       return const Center(child: Text('Üretim verisi bulunamadı', style: TextStyle(color: Colors.grey, fontSize: AppConstants.fontSizeMedium)));

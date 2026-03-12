@@ -67,37 +67,64 @@ class MapViewModel with ChangeNotifier {
       // Last mode: ortalamaya göre renklendirme
       switch (_colorMode) {
         case ColorMode.voltage:
-          final values = _pvStrings.map((e) => (e.lastPVV ?? 0) / e.panelCount).toList();
+          final values =
+              _pvStrings.map((e) => (e.lastPVV ?? 0) / e.panelCount).toList();
+          if (values.isEmpty) return Colors.grey;
           final avg = values.reduce((a, b) => a + b) / values.length;
           final minV = values.reduce((a, b) => a < b ? a : b);
           final maxV = values.reduce((a, b) => a > b ? a : b);
-          return _getColorByAverage((string.lastPVV ?? 0) / string.panelCount, avg, minV, maxV);
+          return _getColorByAverage(
+            (string.lastPVV ?? 0) / string.panelCount,
+            avg,
+            minV,
+            maxV,
+          );
 
         case ColorMode.current:
           final values = _pvStrings.map((e) => e.lastPVA ?? 0).toList();
+          if (values.isEmpty) return Colors.grey;
           final avg = values.reduce((a, b) => a + b) / values.length;
           final minC = values.reduce((a, b) => a < b ? a : b);
           final maxC = values.reduce((a, b) => a > b ? a : b);
           return _getColorByAverage(string.lastPVA ?? 0, avg, minC, maxC);
 
         case ColorMode.power:
-          final values = _pvStrings.map((e) => (e.lastPower ?? 0) / e.panelCount).toList();
+          final values =
+              _pvStrings.map((e) => (e.lastPower ?? 0) / e.panelCount).toList();
+          if (values.isEmpty) return Colors.grey;
           final avg = values.reduce((a, b) => a + b) / values.length;
           final minP = values.reduce((a, b) => a < b ? a : b);
           final maxP = values.reduce((a, b) => a > b ? a : b);
-          return _getColorByAverage((string.lastPower ?? 0) / string.panelCount, avg, minP, maxP);
+          return _getColorByAverage(
+            (string.lastPower ?? 0) / string.panelCount,
+            avg,
+            minP,
+            maxP,
+          );
       }
     } else {
       // Max mode: 0-%100 arası 11 renk aralığı
       switch (_colorMode) {
         case ColorMode.voltage:
-          return _getColorByPercentage(string.maxPVV ?? 0, 0, string.panelCount * string.panelType.voltageAtMaxPower);
+          return _getColorByPercentage(
+            string.maxPVV ?? 0,
+            0,
+            string.panelCount * string.panelType.voltageAtMaxPower,
+          );
 
         case ColorMode.current:
-          return _getColorByPercentage(string.maxPVA ?? 0, 0, string.panelType.currentAtMaxPower);
+          return _getColorByPercentage(
+            string.maxPVA ?? 0,
+            0,
+            string.panelType.currentAtMaxPower,
+          );
 
         case ColorMode.power:
-          return _getColorByPercentage(string.maxPower ?? 0, 0, string.panelCount * string.panelType.maxPower);
+          return _getColorByPercentage(
+            string.maxPower ?? 0,
+            0,
+            string.panelCount * string.panelType.maxPower,
+          );
       }
     }
   }
@@ -143,7 +170,12 @@ class MapViewModel with ChangeNotifier {
   }
 
   // Last mode: ortalamaya göre renklendirme
-  Color _getColorByAverage(double value, double average, double min, double max) {
+  Color _getColorByAverage(
+    double value,
+    double average,
+    double min,
+    double max,
+  ) {
     // 0 değeri için gri
     if (value == 0.0) return _colorPalette[0]; // Gri
 
@@ -186,7 +218,9 @@ class MapViewModel with ChangeNotifier {
   List<List<LatLng>> getPolygonPoints() {
     return _pvStrings.expand((string) {
       return string.locationSeries.map((series) {
-        return series.points.map((point) => LatLng(point.latitude, point.longitude)).toList();
+        return series.points
+            .map((point) => LatLng(point.latitude, point.longitude))
+            .toList();
       });
     }).toList();
   }

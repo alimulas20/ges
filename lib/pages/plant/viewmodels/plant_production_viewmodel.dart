@@ -41,15 +41,30 @@ class PlantProductionViewModel with ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      _productionData = await _service.getPlantProductionByDate(plantId, _selectedTimePeriod, _selectedDate);
+      _productionData = await _service.getPlantProductionByDate(
+        plantId,
+        _selectedTimePeriod,
+        _selectedDate,
+      );
 
       // Prediction verilerini sadece bugün ve günlük periyotta yükle
       final today = DateTime.now();
-      final isToday = _selectedDate.year == today.year && _selectedDate.month == today.month && _selectedDate.day == today.day;
+      final isToday =
+          _selectedDate.year == today.year &&
+          _selectedDate.month == today.month &&
+          _selectedDate.day == today.day;
 
-      if (_selectedTimePeriod == ProductionTimePeriod.daily && isToday && _productionData != null && _productionData!.dataPoints.isNotEmpty) {
+      if (_selectedTimePeriod == ProductionTimePeriod.daily &&
+          isToday &&
+          _productionData != null &&
+          _productionData!.dataPoints.isNotEmpty) {
         try {
-          final predictionResponse = await _service.getPlantProductionPrediction(plantId, _selectedTimePeriod, _selectedDate);
+          final predictionResponse = await _service
+              .getPlantProductionPrediction(
+                plantId,
+                _selectedTimePeriod,
+                _selectedDate,
+              );
 
           // Gerçek verinin son saatinden sonrasını filtrele (geleceğe yönelik tahminler)
           final lastRealDataTime = _productionData!.dataPoints.last.timestamp;
@@ -64,11 +79,15 @@ class PlantProductionViewModel with ChangeNotifier {
           if (_predictionData != null && _predictionData!.isNotEmpty) {
             // Her tahmin noktası saatlik güç (kW) değeri, bunu kWh'ye çevirmek için topluyoruz
             // Genellikle saatlik veriler olduğu için her değer 1 saatlik üretimi temsil eder
-            futurePredictionTotal = _predictionData!.fold(0.0, (sum, point) => sum + point.totalProduction);
+            futurePredictionTotal = _predictionData!.fold(
+              0.0,
+              (sum, point) => sum + point.totalProduction,
+            );
           }
 
           // Bugün tahmin edilen üretim = Mevcut gerçek üretim + Gelecek saatlerin tahmin toplamı
-          _predictedTotalEnergy = _productionData!.totalProduction + futurePredictionTotal;
+          _predictedTotalEnergy =
+              _productionData!.totalProduction + futurePredictionTotal;
         } catch (e) {
           // Prediction hatası kritik değil, sadece log'la
           _predictionData = null;
@@ -79,14 +98,28 @@ class PlantProductionViewModel with ChangeNotifier {
         _predictedTotalEnergy = null;
       }
 
-      var prodList = _productionData?.dataPoints.map((d) => d.totalProduction).toList() ?? [];
+      final prodList =
+          _productionData?.dataPoints.map((d) => d.totalProduction).toList() ??
+          <double>[];
       switch (_selectedTimePeriod) {
         case ProductionTimePeriod.daily:
-          final maxValue = prodList.isEmpty ? 0 : _productionData!.dataPoints.map((d) => d.totalProduction).reduce(max);
+          final maxValue =
+              prodList.isEmpty
+                  ? 0
+                  : _productionData!.dataPoints
+                      .map((d) => d.totalProduction)
+                      .reduce(max);
           _bottomDescription = "Maksimum Güç : $maxValue kW";
           break;
         default:
-          _bottomDescription = 'Maksimum Üretim: ${_productionData?.dataPoints.map((e) => e.totalProduction).reduce(max).toStringAsFixed(2)} kWh';
+          if (prodList.isEmpty) {
+            // Veri yoksa bu bir hata değil; grafik kendi içinde "Üretim verisi bulunamadı" gösterecek.
+            _bottomDescription = null;
+          } else {
+            final maxValue = prodList.reduce(max);
+            _bottomDescription =
+                'Maksimum Üretim: ${maxValue.toStringAsFixed(2)} kWh';
+          }
       }
       _errorMessage = null;
     } catch (e) {

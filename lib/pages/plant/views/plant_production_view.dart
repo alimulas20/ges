@@ -33,20 +33,18 @@ class _PlantProductionViewState extends State<PlantProductionView> {
     return ChangeNotifierProvider.value(
       value: _viewModel,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Üretim Verileri'), actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.refresh())], toolbarHeight: AppConstants.appBarHeight),
+        appBar: AppBar(
+          title: const Text('Üretim Verileri'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () => _viewModel.refresh(),
+            ),
+          ],
+          toolbarHeight: AppConstants.appBarHeight,
+        ),
         body: Consumer<PlantProductionViewModel>(
           builder: (context, viewModel, child) {
-            if (viewModel.isLoading && viewModel.productionData == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (viewModel.errorMessage != null) {
-              return ErrorDisplayWidget(
-                errorMessage: viewModel.errorMessage!,
-                onRetry: () => viewModel.refresh(),
-              );
-            }
-
             return SingleChildScrollView(
               padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
               child: Column(
@@ -56,8 +54,28 @@ class _PlantProductionViewState extends State<PlantProductionView> {
                   _buildControls(viewModel),
                   const SizedBox(height: AppConstants.paddingUltraLarge),
 
+                  // Yükleme / hata durumunda bile seçim alanlarını ekranda tut
+                  if (viewModel.isLoading &&
+                      viewModel.productionData == null) ...[
+                    const SizedBox(height: AppConstants.paddingHuge),
+                    const Center(child: CircularProgressIndicator()),
+                    const SizedBox(height: AppConstants.paddingHuge),
+                  ] else if (viewModel.errorMessage != null) ...[
+                    ErrorDisplayWidget(
+                      errorMessage: viewModel.errorMessage!,
+                      onRetry: () => viewModel.refresh(),
+                    ),
+                    const SizedBox(height: AppConstants.paddingUltraLarge),
+                  ],
+
                   // Total production card - TABLONUN ÜSTÜNDE GÖRÜNTÜLE
-                  if (viewModel.productionData != null) _buildTotalProductionCard(viewModel.productionData!, viewModel.predictedTotalEnergy, viewModel.selectedDate, viewModel.selectedTimePeriod),
+                  if (viewModel.productionData != null)
+                    _buildTotalProductionCard(
+                      viewModel.productionData!,
+                      viewModel.predictedTotalEnergy,
+                      viewModel.selectedDate,
+                      viewModel.selectedTimePeriod,
+                    ),
 
                   const SizedBox(height: AppConstants.paddingUltraLarge),
 
@@ -80,27 +98,50 @@ class _PlantProductionViewState extends State<PlantProductionView> {
   }
 
   // Toplam üretim kartı
-  Widget _buildTotalProductionCard(PlantProductionDTO productionData, double? predictedTotalEnergy, DateTime selectedDate, ProductionTimePeriod timePeriod) {
+  Widget _buildTotalProductionCard(
+    PlantProductionDTO productionData,
+    double? predictedTotalEnergy,
+    DateTime selectedDate,
+    ProductionTimePeriod timePeriod,
+  ) {
     return Container(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge), boxShadow: AppConstants.elevatedShadow),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        boxShadow: AppConstants.elevatedShadow,
+      ),
       child: Card(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.paddingLarge),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Toplam Üretim', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'Toplam Üretim',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: AppConstants.paddingMedium),
               Row(
                 children: [
                   Text(
                     productionData.totalProduction.toStringAsFixed(2),
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(width: AppConstants.paddingSmall),
-                  Text("kWh", style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.secondary)),
+                  Text(
+                    "kWh",
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
                 ],
               ),
               // Tahmin edilen üretim (sadece bugün ve prediction varsa)
@@ -108,13 +149,30 @@ class _PlantProductionViewState extends State<PlantProductionView> {
                 const SizedBox(height: AppConstants.paddingLarge),
                 const Divider(),
                 const SizedBox(height: AppConstants.paddingMedium),
-                Text('Bugün Tahmin Edilen Üretim', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: Colors.orange)),
+                Text(
+                  'Bugün Tahmin Edilen Üretim',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.orange,
+                  ),
+                ),
                 const SizedBox(height: AppConstants.paddingSmall),
                 Row(
                   children: [
-                    Text(predictedTotalEnergy.toStringAsFixed(2), style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.orange, fontWeight: FontWeight.bold)),
+                    Text(
+                      predictedTotalEnergy.toStringAsFixed(2),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(width: AppConstants.paddingSmall),
-                    Text("kWh", style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.orange.withOpacity(0.8))),
+                    Text(
+                      "kWh",
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.orange.withOpacity(0.8),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -134,14 +192,26 @@ class _PlantProductionViewState extends State<PlantProductionView> {
         // Time period dropdown
         DropdownButtonFormField<ProductionTimePeriod>(
           value: viewModel.selectedTimePeriod,
-          items: ProductionTimePeriod.values.map((period) => DropdownMenuItem(value: period, child: Text(period.displayName))).toList(),
+          items:
+              ProductionTimePeriod.values
+                  .map(
+                    (period) => DropdownMenuItem(
+                      value: period,
+                      child: Text(period.displayName),
+                    ),
+                  )
+                  .toList(),
           onChanged: (period) => viewModel.setSelectedTimePeriod(period!),
-          decoration: const InputDecoration(labelText: 'Zaman Periyodu', border: OutlineInputBorder()),
+          decoration: const InputDecoration(
+            labelText: 'Zaman Periyodu',
+            border: OutlineInputBorder(),
+          ),
         ),
         const SizedBox(height: AppConstants.paddingLarge),
 
         // Date picker - hidden for lifetime
-        if (viewModel.selectedTimePeriod != ProductionTimePeriod.lifetime) _buildDatePicker(viewModel),
+        if (viewModel.selectedTimePeriod != ProductionTimePeriod.lifetime)
+          _buildDatePicker(viewModel),
       ],
     );
   }
@@ -170,14 +240,26 @@ class _PlantProductionViewState extends State<PlantProductionView> {
         decoration: const InputDecoration(
           labelText: 'Tarih',
           border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: AppConstants.paddingMedium),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: AppConstants.paddingLarge,
+            vertical: AppConstants.paddingMedium,
+          ),
         ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(dateText), const Icon(Icons.calendar_today, size: AppConstants.iconSizeMedium)]),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(dateText),
+            const Icon(Icons.calendar_today, size: AppConstants.iconSizeMedium),
+          ],
+        ),
       ),
     );
   }
 
-  Future<void> _selectDate(BuildContext context, PlantProductionViewModel viewModel) async {
+  Future<void> _selectDate(
+    BuildContext context,
+    PlantProductionViewModel viewModel,
+  ) async {
     DatePickerMode mode;
     DateTime lastDate;
 
@@ -200,7 +282,13 @@ class _PlantProductionViewState extends State<PlantProductionView> {
         return; // Lifetime için date picker göstermiyoruz
     }
 
-    final DateTime? picked = await CustomDatePicker.showCustomDatePicker(context: context, initialDate: viewModel.selectedDate, mode: mode, firstDate: DateTime(2000), lastDate: lastDate);
+    final DateTime? picked = await CustomDatePicker.showCustomDatePicker(
+      context: context,
+      initialDate: viewModel.selectedDate,
+      mode: mode,
+      firstDate: DateTime(2000),
+      lastDate: lastDate,
+    );
 
     if (picked != null && picked != viewModel.selectedDate) {
       viewModel.setSelectedDate(picked);

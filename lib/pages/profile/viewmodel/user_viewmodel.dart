@@ -123,15 +123,24 @@ class UserViewModel with ChangeNotifier {
   }
 
   List<RoleDto> get displayRoles {
-    return _roles.where((role) => isSuperAdmin || role.key != 'SuperAdmin').toList();
+    return _roles
+        .where((role) => isSuperAdmin || role.key != 'SuperAdmin')
+        .toList();
   }
 
   // Key'e göre RoleDto bulma
   RoleDto getRoleByKey(String key) {
-    return _roles.firstWhere((role) => role.key == key, orElse: () => RoleDto(key: key, value: key));
+    return _roles.firstWhere(
+      (role) => role.key == key,
+      orElse: () => RoleDto(key: key, value: key),
+    );
   }
 
   RoleDto getDefaultRole() {
+    if (_roles.isEmpty) {
+      // Rollerin yüklenmediği/boş geldiği durumlarda patlamasın.
+      return RoleDto(key: 'Viewer', value: 'Görüntüleme');
+    }
     return _roles.first;
   }
 
@@ -154,11 +163,21 @@ class UserViewModel with ChangeNotifier {
   }
 
   /// Kullanıcının kendi şifresini değiştirmesi.
-  Future<void> updateUserPassword(String userId, String currentPassword, String newPassword) async {
+  Future<void> updateUserPassword(
+    String userId,
+    String currentPassword,
+    String newPassword,
+  ) async {
     _isLoading = true;
     notifyListeners();
     try {
-      await _service.updateUserPassword(userId, UserPasswordUpdateDto(currentPassword: currentPassword, newPassword: newPassword));
+      await _service.updateUserPassword(
+        userId,
+        UserPasswordUpdateDto(
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        ),
+      );
     } catch (e) {
       _error = 'Şifre güncellenemedi: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
@@ -174,7 +193,10 @@ class UserViewModel with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      await _service.resetUserPassword(userId, UserPasswordResetDto(newPassword: newPassword));
+      await _service.resetUserPassword(
+        userId,
+        UserPasswordResetDto(newPassword: newPassword),
+      );
     } catch (e) {
       _error = 'Şifre sıfırlanamadı: ${AlertUtils.formatErrorMessage(e)}';
       debugPrint('Error: $e');
@@ -204,6 +226,11 @@ class UserViewModel with ChangeNotifier {
 
   // Helper method to get plant name by ID
   String getPlantNameById(int id) {
-    return _plantsDropdown.firstWhere((plant) => plant.id == id, orElse: () => DropdownDto(id: id, name: 'Unknown Plant')).name;
+    return _plantsDropdown
+        .firstWhere(
+          (plant) => plant.id == id,
+          orElse: () => DropdownDto(id: id, name: 'Unknown Plant'),
+        )
+        .name;
   }
 }

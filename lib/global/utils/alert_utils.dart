@@ -45,6 +45,12 @@ class AlertUtils {
     errorString = errorString.replaceAll(RegExp(r'^Error:\s*'), '');
     errorString = errorString.replaceAll(RegExp(r'^Failed to .*:\s*'), '');
 
+    // Empty-result / not-found style errors (often thrown by .first/.single on empty lists)
+    // Show a user-friendly message instead of technical "Bad state: No element".
+    if (errorString.contains('Bad state: No element') || errorString.contains('No element')) {
+      return 'Seçtiğiniz kriterlere uygun kayıt bulunamadı.';
+    }
+
     // Common error message mappings
     if (errorString.contains('SocketException') || errorString.contains('Failed host lookup')) {
       return 'İnternet bağlantısı yok. Lütfen bağlantınızı kontrol edin.';

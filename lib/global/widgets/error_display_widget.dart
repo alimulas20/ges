@@ -14,10 +14,28 @@ class ErrorDisplayWidget extends StatelessWidget {
     this.retryButtonText,
   });
 
+  bool _isEmptyStateMessage(String message) {
+    final m = message.toLowerCase();
+    return m.contains('kayıt bulunamadı') ||
+        m.contains('kayit bulunamadi') ||
+        m.contains('veri bulunamadı') ||
+        m.contains('veri bulunamadi') ||
+        m.contains('uygun kayıt bulunamadı') ||
+        m.contains('uygun kayit bulunamadi') ||
+        m.contains('no element'); // fallback if any leaks through
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isEmptyState = _isEmptyStateMessage(errorMessage);
+    final title = isEmptyState ? 'Kayıt Bulunamadı' : 'Bir Hata Oluştu';
+    final icon = isEmptyState ? Icons.inbox_outlined : Icons.error_outline_rounded;
+    final accentColor = isEmptyState ? colorScheme.primary : colorScheme.error;
+    final containerColor =
+        isEmptyState ? colorScheme.primaryContainer.withOpacity(0.12) : colorScheme.errorContainer.withOpacity(0.1);
+    final cardColor = isEmptyState ? colorScheme.surfaceContainerHighest.withOpacity(0.6) : colorScheme.errorContainer.withOpacity(0.1);
 
     return Padding(
       padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
@@ -30,22 +48,22 @@ class ErrorDisplayWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
                 decoration: BoxDecoration(
-                  color: colorScheme.errorContainer.withOpacity(0.1),
+                  color: containerColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.error_outline_rounded,
+                  icon,
                   size: 64,
-                  color: colorScheme.error,
+                  color: accentColor,
                 ),
               ),
               const SizedBox(height: AppConstants.paddingExtraLarge),
               // Error Title
               Text(
-                'Bir Hata Oluştu',
+                title,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.error,
+                  color: accentColor,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -56,7 +74,7 @@ class ErrorDisplayWidget extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
                 ),
-                color: colorScheme.errorContainer.withOpacity(0.1),
+                color: cardColor,
                 child: Padding(
                   padding: const EdgeInsets.all(AppConstants.paddingLarge),
                   child: Row(
@@ -64,7 +82,7 @@ class ErrorDisplayWidget extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: colorScheme.error,
+                        color: accentColor,
                         size: AppConstants.iconSizeMedium,
                       ),
                       const SizedBox(width: AppConstants.paddingMedium),
@@ -92,8 +110,8 @@ class ErrorDisplayWidget extends StatelessWidget {
                     icon: const Icon(Icons.refresh_rounded),
                     label: Text(retryButtonText ?? 'Yenile'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.error,
-                      foregroundColor: colorScheme.onError,
+                      backgroundColor: accentColor,
+                      foregroundColor: isEmptyState ? colorScheme.onPrimary : colorScheme.onError,
                       padding: const EdgeInsets.symmetric(
                         vertical: AppConstants.paddingMedium,
                         horizontal: AppConstants.paddingLarge,

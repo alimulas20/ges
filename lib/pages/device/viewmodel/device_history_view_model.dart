@@ -150,23 +150,39 @@ class DeviceHistoryViewModel with ChangeNotifier {
   }
 
   void setSelectedAttributeKeys(List<String> keys) {
-    _selectedAttributeKeys = keys;
+    _selectedAttributeKeys = List<String>.from(keys);
+    if (_selectedAttributeKeys.isEmpty) {
+      _inverterComparisonData = null;
+      _isLoadingInverterData = false;
+      notifyListeners();
+      return;
+    }
+    notifyListeners();
     _fetchInverterData();
   }
 
   void setSelectedDate(DateTime date) {
     _selectedDate = date;
+    notifyListeners();
     _fetchInverterData();
     _fetchPvComparisonData();
   }
 
   void setSelectedMeasurementType(PVMeasurementType type) {
     _selectedMeasurementType = type;
+    notifyListeners();
     _fetchPvComparisonData();
   }
 
   void setSelectedPvStrings(List<int> ids) {
-    _selectedPvStringIds = ids;
+    _selectedPvStringIds = List<int>.from(ids);
+    if (_selectedPvStringIds.isEmpty) {
+      _pvComparisonData = null;
+      _isLoadingPvComparison = false;
+      notifyListeners();
+      return;
+    }
+    notifyListeners();
     _fetchPvComparisonData();
   }
 }

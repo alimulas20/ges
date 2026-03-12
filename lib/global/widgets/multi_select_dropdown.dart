@@ -1,4 +1,5 @@
 // widgets/multi_select_dropdown.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class MultiSelectDropdown<T> extends StatefulWidget {
@@ -31,7 +32,8 @@ class MultiSelectDropdownState<T> extends State<MultiSelectDropdown<T>> {
   @override
   void didUpdateWidget(MultiSelectDropdown<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedValues != widget.selectedValues) {
+    // Seçimler aynı liste instance'ı üzerinde mutate edilirse bile UI senkron kalsın
+    if (!listEquals(oldWidget.selectedValues, widget.selectedValues)) {
       _tempSelectedValues.clear();
       _tempSelectedValues.addAll(widget.selectedValues);
     }
@@ -64,8 +66,9 @@ class MultiSelectDropdownState<T> extends State<MultiSelectDropdown<T>> {
                       onChanged: (bool? checked) {
                         setDialogState(() {
                           if (checked == true) {
-                            if (!_tempSelectedValues.contains(item.value)) {
-                              _tempSelectedValues.add(item.value!);
+                            final value = item.value;
+                            if (value != null && !_tempSelectedValues.contains(value)) {
+                              _tempSelectedValues.add(value);
                             }
                           } else {
                             _tempSelectedValues.remove(item.value);

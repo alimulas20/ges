@@ -419,27 +419,34 @@ class _ProductionChartState extends State<ProductionChart> {
             : (widget.dataPoints.length - 1).toDouble();
     final pointX = (index / maxX) * chartWidth;
 
-    // Akıllı X pozisyonlandırma - tooltip noktanın üzerinde ortalanmış olsun
-    double xPosition = pointX - (estimatedWidth / 2);
-    
-    // Sağdan taşmayı önle
-    if (xPosition + estimatedWidth > chartWidth - 8) {
-      xPosition = chartWidth - estimatedWidth - 8;
+    // X konumu: 4 koşul (sol/sağ + sığar/sığmaz) ve tıklanan noktaya 3px offset
+    const edgePadding = 8.0;
+    const tapOffset = 3.0;
+
+    // Not: pointX "plot alanı" koordinatına daha yakın; overlay Stack içinde sol eksen boşluğu var.
+    // Sağ taraftaki yanlış "sola yaslama" bunun yüzünden oluyordu. Sadece sağ taraf için düzeltme uyguluyoruz.
+    final overlayPointX = (pointX + AppConstants.chartLeftAxisWidth).clamp(0.0, chartWidth);
+
+    final centerX = chartWidth / 2;
+    final isLeftSide = pointX < centerX; // Sol tarafı (kabul edilebilir dediğin için) olduğu gibi bırakıyoruz.
+
+    double xPosition;
+    if (isLeftSide) {
+      // Sol tarafta: sığıyorsa tıklanan yerden 3px sağa başlat, sığmıyorsa sağa yasla
+      final proposedLeft = pointX + tapOffset;
+      final fitsToRight = proposedLeft + estimatedWidth <= chartWidth - edgePadding;
+      xPosition = fitsToRight ? proposedLeft : (chartWidth - estimatedWidth - edgePadding);
+    } else {
+      // Sağ tarafta: overlayPointX'e göre sığıyorsa tıklanan yerden 3px sola bitecek şekilde yerleştir, sığmıyorsa sola yasla
+      final proposedLeft = (overlayPointX - tapOffset) - estimatedWidth;
+      final fitsToLeft = proposedLeft >= edgePadding;
+      xPosition = fitsToLeft ? proposedLeft : edgePadding;
     }
-    
-    // Soldan taşmayı önle
-    if (xPosition < 8) {
-      xPosition = 8;
-    }
-    
-    // Eğer hala taşıyorsa, tooltip'i noktanın yanına koy (sağ veya sol)
-    if (xPosition + estimatedWidth > chartWidth - 8) {
-      // Sağa taşıyor, sola kaydır
-      xPosition = pointX - estimatedWidth - 20;
-      if (xPosition < 8) {
-        xPosition = 8;
-      }
-    }
+
+    // Ek güvenlik clamp'i
+    final minX = edgePadding;
+    final maxXPos = (chartWidth - estimatedWidth - edgePadding).clamp(minX, double.infinity);
+    xPosition = xPosition.clamp(minX, maxXPos);
 
     return Positioned(
       left: xPosition,

@@ -256,27 +256,30 @@ class _MultiLineChartState extends State<MultiLineChart> {
       }
     }
 
-    // Akıllı X pozisyonlandırma - tooltip noktanın üzerinde ortalanmış olsun
-    double xPosition = pointX - (estimatedWidth / 2);
+    // X konumu: 4 koşul (sol/sağ + sığar/sığmaz) ve tıklanan noktaya 3px offset
+    const edgePadding = 8.0;
+    const tapOffset = 3.0;
 
-    // Sağdan taşmayı önle
-    if (xPosition + estimatedWidth > chartWidth - 8) {
-      xPosition = chartWidth - estimatedWidth - 8;
+    final centerX = chartWidth / 2;
+    final isLeftSide = pointX < centerX;
+
+    double xPosition;
+    if (isLeftSide) {
+      // Sol tarafta: sığıyorsa tıklanan yerden 3px sağa başlat, sığmıyorsa sağa yasla
+      final proposedLeft = pointX + tapOffset;
+      final fitsToRight = proposedLeft + estimatedWidth <= chartWidth - edgePadding;
+      xPosition = fitsToRight ? proposedLeft : (chartWidth - estimatedWidth - edgePadding);
+    } else {
+      // Sağ tarafta: sığıyorsa tıklanan yerden 3px sola bitecek şekilde yerleştir, sığmıyorsa sola yasla
+      final proposedLeft = (pointX - tapOffset) - estimatedWidth;
+      final fitsToLeft = proposedLeft >= edgePadding;
+      xPosition = fitsToLeft ? proposedLeft : edgePadding;
     }
 
-    // Soldan taşmayı önle
-    if (xPosition < 8) {
-      xPosition = 8;
-    }
-
-    // Eğer hala taşıyorsa, tooltip'i noktanın yanına koy (sağ veya sol)
-    if (xPosition + estimatedWidth > chartWidth - 8) {
-      // Sağa taşıyor, sola kaydır
-      xPosition = pointX - estimatedWidth - 20;
-      if (xPosition < 8) {
-        xPosition = 8;
-      }
-    }
+    // Ek güvenlik clamp'i
+    final minX = edgePadding;
+    final maxXPos = (chartWidth - estimatedWidth - edgePadding).clamp(minX, double.infinity);
+    xPosition = xPosition.clamp(minX, maxXPos);
 
     return Positioned(
       left: xPosition,

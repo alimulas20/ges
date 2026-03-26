@@ -20,6 +20,7 @@ class ProductionChart extends StatefulWidget {
 
 class _ProductionChartState extends State<ProductionChart> {
   int? _touchedIndex;
+  final GlobalKey _chartStackKey = GlobalKey();
 
   @override
   void didUpdateWidget(ProductionChart oldWidget) {
@@ -50,6 +51,7 @@ class _ProductionChartState extends State<ProductionChart> {
           LayoutBuilder(
             builder: (context, constraints) {
               return Stack(
+                key: _chartStackKey,
                 children: [
                   SizedBox(
                     height: 250,
@@ -108,14 +110,13 @@ class _ProductionChartState extends State<ProductionChart> {
           handleBuiltInTouches: false,
           touchSpotThreshold: 20,
           touchCallback: (FlTouchEvent event, LineTouchResponse? touchResponse) {
-            // Tap (basınca) ile tooltip göster
+            // Tap (basınca) ile tooltip göster; konumu tıklanan yerden al
             if (event is FlTapUpEvent && touchResponse != null && touchResponse.lineBarSpots != null && touchResponse.lineBarSpots!.isNotEmpty) {
               final spot = touchResponse.lineBarSpots!.first;
               setState(() {
                 _touchedIndex = spot.x.toInt();
               });
             } else if (event is FlPanEndEvent) {
-              // Pan bittiğinde tooltip'i kapat
               setState(() {
                 _touchedIndex = null;
               });
@@ -363,8 +364,8 @@ class _ProductionChartState extends State<ProductionChart> {
       }
     }
 
-    // Gerçek grafik boyutlarını kullan
-    final chartHeight = 250.0 - AppConstants.paddingLarge;
+    // Gerçek grafik boyutlarını kullan (fl_chart bottom titles reservedSize: 30)
+    final chartHeight = 250.0 - 30.0;
     final chartWidth = constraints.maxWidth;
 
     // Y pozisyonunu hesapla (değere göre)
@@ -381,8 +382,12 @@ class _ProductionChartState extends State<ProductionChart> {
     // Tooltip yüksekliği (yaklaşık) - zaman + değer + padding
     const tooltipHeight = 60.0 + 16.0; // 16 padding için
 
-    // Tooltip'in yaklaşık genişliğini hesapla (içeriğe göre)
-    final estimatedWidth = (timeLabel.length * 7.0) + (value.toStringAsFixed(1).length * 7.0) + (widget.unit.length * 7.0) + (isPrediction ? 50.0 : 0.0) + 100.0; // İkonlar ve padding için
+    final tooltipValueText = '${value.toStringAsFixed(1)} ${widget.unit}${isPrediction ? " (Tahmin)" : ""}';
+    final tooltipWidth = _calculateTooltipWidth(
+      context: context,
+      timeLabel: timeLabel,
+      valueText: tooltipValueText,
+    );
 
     // Akıllı Y pozisyonlandırma
     // Önce üstte yer var mı kontrol et
@@ -412,46 +417,50 @@ class _ProductionChartState extends State<ProductionChart> {
       }
     }
 
-    // X pozisyonunu hesapla (grafik içindeki konum)
+    // X pozisyonunu hesapla: fl_chart sol eksen için chartLeftAxisWidth ayırıyor,
+    // çizim alanı [chartLeftAxisWidth, chartWidth] aralığında. Nokta konumu bu alana göre olmalı.
     final maxX =
         widget.predictionDataPoints != null && widget.predictionDataPoints!.isNotEmpty
             ? (widget.dataPoints.length + widget.predictionDataPoints!.length - 1).toDouble()
             : (widget.dataPoints.length - 1).toDouble();
-    final pointX = (index / maxX) * chartWidth;
+    final plotWidth = chartWidth - AppConstants.chartLeftAxisWidth;
+    final pointX = AppConstants.chartLeftAxisWidth + (index / maxX) * plotWidth;
 
     // X konumu: 4 koşul (sol/sağ + sığar/sığmaz) ve tıklanan noktaya 3px offset
     const edgePadding = 8.0;
-    const tapOffset = 3.0;
+    const sideGap = 6.0;
+    final minX = edgePadding;
+    final maxXPos = (chartWidth - tooltipWidth - edgePadding).clamp(minX, double.infinity);
 
-    // Not: pointX "plot alanı" koordinatına daha yakın; overlay Stack içinde sol eksen boşluğu var.
-    // Sağ taraftaki yanlış "sola yaslama" bunun yüzünden oluyordu. Sadece sağ taraf için düzeltme uyguluyoruz.
-    final overlayPointX = (pointX + AppConstants.chartLeftAxisWidth).clamp(0.0, chartWidth);
-
-    final centerX = chartWidth / 2;
-    final isLeftSide = pointX < centerX; // Sol tarafı (kabul edilebilir dediğin için) olduğu gibi bırakıyoruz.
+    // Tercih: mümkünse noktanın sağında göster; sağda yer yoksa solunda göster.
+    // İki taraf da sıkışıksa ortala ve clamp et.
+    final rightCandidate = pointX + sideGap;
+    final leftCandidate = pointX - tooltipWidth - sideGap;
+    final canShowRight = rightCandidate <= maxXPos;
+    final canShowLeft = leftCandidate >= minX;
 
     double xPosition;
-    if (isLeftSide) {
-      // Sol tarafta: sığıyorsa tıklanan yerden 3px sağa başlat, sığmıyorsa sağa yasla
-      final proposedLeft = pointX + tapOffset;
-      final fitsToRight = proposedLeft + estimatedWidth <= chartWidth - edgePadding;
-      xPosition = fitsToRight ? proposedLeft : (chartWidth - estimatedWidth - edgePadding);
+    if (canShowRight) {
+      xPosition = rightCandidate;
+    } else if (canShowLeft) {
+      xPosition = leftCandidate;
     } else {
-      // Sağ tarafta: overlayPointX'e göre sığıyorsa tıklanan yerden 3px sola bitecek şekilde yerleştir, sığmıyorsa sola yasla
-      final proposedLeft = (overlayPointX - tapOffset) - estimatedWidth;
-      final fitsToLeft = proposedLeft >= edgePadding;
-      xPosition = fitsToLeft ? proposedLeft : edgePadding;
+      xPosition = (pointX - (tooltipWidth / 2)).clamp(minX, maxXPos);
     }
 
-    // Ek güvenlik clamp'i
-    final minX = edgePadding;
-    final maxXPos = (chartWidth - estimatedWidth - edgePadding).clamp(minX, double.infinity);
-    xPosition = xPosition.clamp(minX, maxXPos);
+    // Grafik Padding(top: paddingLarge) ile sarılı; nokta gerçek Y'si Stack'ta paddingLarge + pointY
+    final topOffset = AppConstants.paddingLarge;
+    final yPositionInStack = yPosition + topOffset;
 
     return Positioned(
       left: xPosition,
-      top: yPosition,
-      child: Material(
+      top: yPositionInStack,
+      child: _buildTooltipContent(timeLabel, value, isPrediction),
+    );
+  }
+
+  Widget _buildTooltipContent(String timeLabel, double value, bool isPrediction) {
+    return Material(
         elevation: 8,
         borderRadius: BorderRadius.circular(12),
         shadowColor: Colors.black.withOpacity(0.3),
@@ -512,7 +521,6 @@ class _ProductionChartState extends State<ProductionChart> {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -533,5 +541,40 @@ class _ProductionChartState extends State<ProductionChart> {
         Text(label, style: TextStyle(fontSize: AppConstants.fontSizeSmall, color: Colors.grey[700])),
       ],
     );
+  }
+
+  double _calculateTooltipWidth({
+    required BuildContext context,
+    required String timeLabel,
+    required String valueText,
+  }) {
+    final baseStyle = TextStyle(
+      color: Theme.of(context).colorScheme.onSurface,
+      fontSize: AppConstants.fontSizeSmall,
+      fontWeight: FontWeight.w600,
+    );
+    final boldStyle = baseStyle.copyWith(fontWeight: FontWeight.bold);
+
+    double textWidth(String text, TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout();
+      return painter.width;
+    }
+
+    // Row genişlikleri: icon(14) + gap(6) + text
+    final row1 = 14.0 + 6.0 + textWidth(timeLabel, boldStyle);
+    final row2 = 14.0 + 6.0 + textWidth(valueText, baseStyle);
+
+    // İç yapı:
+    // Stack içinde Column sağdan 24 padding alıyor (close butonu için)
+    // Container dış padding: left 12, right 8
+    final contentWidth = (row1 > row2 ? row1 : row2) + 24.0;
+    final containerWidth = contentWidth + 12.0 + 8.0;
+
+    // Güvenlik için minimum
+    return containerWidth < 140.0 ? 140.0 : containerWidth;
   }
 }

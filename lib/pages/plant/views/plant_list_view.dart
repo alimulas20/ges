@@ -6,6 +6,7 @@ import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
 import '../../../global/widgets/error_display_widget.dart';
 import '../../../global/widgets/network_image_with_placeholder.dart';
+import '../../../global/widgets/refresh_action_button.dart';
 import '../../alarm/views/alarm_view.dart';
 import '../../device/view/device_setup_list_view.dart';
 import '../../map/views/map_view.dart';
@@ -57,12 +58,17 @@ class _PlantListViewState extends State<PlantListView> {
                     const PopupMenuItem(value: 'Çevrim Dışı', child: Text('Çevrim Dışı')),
                   ],
             ),
-            IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.fetchPlants()),
+            Consumer<PlantListViewModel>(
+              builder: (context, viewModel, child) => RefreshActionButton(
+                isLoading: viewModel.isLoading,
+                onPressed: viewModel.fetchPlants,
+              ),
+            ),
           ],
         ),
         body: Consumer<PlantListViewModel>(
           builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
+            if (viewModel.isLoading && viewModel.plants.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -76,19 +82,30 @@ class _PlantListViewState extends State<PlantListView> {
 
             final filteredPlants = _getFilteredPlants(viewModel.plants);
 
-            return Column(
+            return Stack(
               children: [
-                _buildFilterChips(),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                    itemCount: filteredPlants.length,
-                    itemBuilder: (context, index) {
-                      final plant = filteredPlants[index];
-                      return _buildPlantCard(plant);
-                    },
-                  ),
+                Column(
+                  children: [
+                    _buildFilterChips(),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                        itemCount: filteredPlants.length,
+                        itemBuilder: (context, index) {
+                          final plant = filteredPlants[index];
+                          return _buildPlantCard(plant);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
+                if (viewModel.isLoading)
+                  const Positioned.fill(
+                    child: ColoredBox(
+                      color: Color(0x22000000),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
               ],
             );
           },

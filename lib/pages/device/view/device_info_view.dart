@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/error_display_widget.dart';
+import '../../../global/widgets/refresh_action_button.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_info_view_model.dart';
 import '../../../global/extensions/date_time_extensions.dart';
@@ -34,7 +35,14 @@ class _DeviceInfoViewState extends State<DeviceInfoView> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Cihaz Bilgileri', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
-          actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _viewModel.fetchDeviceInfo)],
+          actions: [
+            Consumer<DeviceInfoViewModel>(
+              builder: (context, viewModel, child) => RefreshActionButton(
+                isLoading: viewModel.isLoading,
+                onPressed: viewModel.fetchDeviceInfo,
+              ),
+            ),
+          ],
           toolbarHeight: AppConstants.appBarHeight,
         ),
         body: Consumer<DeviceInfoViewModel>(
@@ -55,28 +63,39 @@ class _DeviceInfoViewState extends State<DeviceInfoView> {
               return const Center(child: Text('Cihaz bilgisi bulunamadı'));
             }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppConstants.paddingLarge),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Cihaz Bilgileri', style: Theme.of(context).textTheme.titleLarge),
-                      const Divider(),
-                      _buildInfoRow('Cihaz Adı', deviceInfo.deviceName, context),
-                      _buildInfoRow('Kurulum Adı', deviceInfo.setupName, context),
-                      _buildInfoRow('Santral Adı', deviceInfo.plantName, context),
-                      _buildInfoRow('Adres', deviceInfo.plantAddress, context),
-                      _buildInfoRow('Slave No', deviceInfo.slaveNumber.toString(), context),
-                      if (deviceInfo.warrantyExpirationDate != null) _buildInfoRow('Garanti Bitiş', deviceInfo.warrantyExpirationDate!.fullDate, context),
-                      _buildInfoRow('Cihaz Türü', deviceInfo.deviceType, context),
-                      _buildInfoRow('Yazılım Versiyonu', deviceInfo.softwareVersion, context),
-                    ],
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Cihaz Bilgileri', style: Theme.of(context).textTheme.titleLarge),
+                          const Divider(),
+                          _buildInfoRow('Cihaz Adı', deviceInfo.deviceName, context),
+                          _buildInfoRow('Kurulum Adı', deviceInfo.setupName, context),
+                          _buildInfoRow('Santral Adı', deviceInfo.plantName, context),
+                          _buildInfoRow('Adres', deviceInfo.plantAddress, context),
+                          _buildInfoRow('Slave No', deviceInfo.slaveNumber.toString(), context),
+                          if (deviceInfo.warrantyExpirationDate != null) _buildInfoRow('Garanti Bitiş', deviceInfo.warrantyExpirationDate!.fullDate, context),
+                          _buildInfoRow('Cihaz Türü', deviceInfo.deviceType, context),
+                          _buildInfoRow('Yazılım Versiyonu', deviceInfo.softwareVersion, context),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                if (viewModel.isLoading)
+                  const Positioned.fill(
+                    child: ColoredBox(
+                      color: Color(0x33000000),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+              ],
             );
           },
         ),

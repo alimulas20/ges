@@ -6,6 +6,7 @@ import 'package:solar/global/managers/token_manager.dart';
 import '../../../global/constant/app_constants.dart';
 import '../../../global/utils/snack_bar_utils.dart';
 import '../../../global/widgets/error_display_widget.dart';
+import '../../../global/widgets/refresh_action_button.dart';
 import '../../plant/services/plant_service.dart';
 import '../../plant/views/plant_update_view.dart';
 import '../model/user_model.dart';
@@ -47,7 +48,10 @@ class _UserListViewState extends State<UserListView> {
               title: const Text('Profil', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
               toolbarHeight: AppConstants.appBarHeight,
               actions: [
-                IconButton(icon: const Icon(Icons.refresh), onPressed: () => viewModel.refresh()),
+                RefreshActionButton(
+                  isLoading: viewModel.isLoading,
+                  onPressed: viewModel.refresh,
+                ),
                 if (viewModel.isAdmin || viewModel.isSuperAdmin) IconButton(icon: const Icon(Icons.add), onPressed: () => _navigateToCreateUser(context)),
               ],
             ),
@@ -75,8 +79,9 @@ class _UserListViewState extends State<UserListView> {
       return const Center(child: Text('Kullanıcı bilgisi bulunamadı'));
     }
 
+    final Widget content;
     if (!viewModel.isAdmin && !viewModel.isSuperAdmin) {
-      return SingleChildScrollView(
+      content = SingleChildScrollView(
         child: Column(
           children: [
             _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
@@ -103,36 +108,49 @@ class _UserListViewState extends State<UserListView> {
           ],
         ),
       );
-    }
-
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
-          const SizedBox(height: AppConstants.paddingExtraLarge),
-          _buildAdminView(viewModel, theme, colorScheme),
-          const SizedBox(height: AppConstants.paddingExtraLarge),
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                TokenManager.clearToken();
-                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-              },
-              icon: const Icon(Icons.logout),
-              label: const Text("Çıkış Yap"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-                foregroundColor: Theme.of(context).colorScheme.onError,
-                padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingMedium),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
-                elevation: AppConstants.elevationSmall,
+    } else {
+      content = SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildCurrentUserCard(viewModel.currentUser!, theme, colorScheme),
+            const SizedBox(height: AppConstants.paddingExtraLarge),
+            _buildAdminView(viewModel, theme, colorScheme),
+            const SizedBox(height: AppConstants.paddingExtraLarge),
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  TokenManager.clearToken();
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text("Çıkış Yap"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError,
+                  padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingMedium),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium)),
+                  elevation: AppConstants.elevationSmall,
+                ),
               ),
             ),
+          ],
+        ),
+      );
+    }
+
+    return Stack(
+      children: [
+        content,
+        if (viewModel.isLoading)
+          const Positioned.fill(
+            child: ColoredBox(
+              color: Color(0x22000000),
+              child: Center(child: CircularProgressIndicator()),
+            ),
           ),
-        ],
-      ),
+      ],
     );
   }
 

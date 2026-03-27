@@ -5,6 +5,7 @@ import '../../../global/constant/app_constants.dart';
 import '../../../global/utils/alert_utils.dart';
 import '../../../global/widgets/alarm_detail_dialog.dart';
 import '../../../global/widgets/error_display_widget.dart';
+import '../../../global/widgets/refresh_action_button.dart';
 import '../../../global/widgets/solar_connection_animation.dart';
 import '../../alarm/model/alarm_dto.dart';
 import '../../alarm/service/alarm_service.dart';
@@ -35,10 +36,21 @@ class _PlantStatusViewState extends State<PlantStatusView> {
     return ChangeNotifierProvider.value(
       value: _viewModel,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Tesis Durumu'), toolbarHeight: AppConstants.appBarHeight, actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.refresh())]),
+        appBar: AppBar(
+          title: const Text('Tesis Durumu'),
+          toolbarHeight: AppConstants.appBarHeight,
+          actions: [
+            Consumer<PlantStatusViewModel>(
+              builder: (context, viewModel, child) => RefreshActionButton(
+                isLoading: viewModel.isLoading,
+                onPressed: viewModel.refresh,
+              ),
+            ),
+          ],
+        ),
         body: Consumer<PlantStatusViewModel>(
           builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
+            if (viewModel.isLoading && viewModel.plantStatus == null) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -50,11 +62,13 @@ class _PlantStatusViewState extends State<PlantStatusView> {
               return const Center(child: Text('Tesis bulunamadı'));
             }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppConstants.paddingMedium),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   // Alarm List Section
                   if (viewModel.displayAlarms.isNotEmpty) ...[_buildAlarmSection(viewModel.displayAlarms), const SizedBox(height: AppConstants.paddingLarge)],
 
@@ -71,8 +85,17 @@ class _PlantStatusViewState extends State<PlantStatusView> {
 
                   // Add bottom padding to prevent overflow
                   const SizedBox(height: AppConstants.paddingLarge),
-                ],
-              ),
+                    ],
+                  ),
+                ),
+                if (viewModel.isLoading)
+                  const Positioned.fill(
+                    child: ColoredBox(
+                      color: Color(0x22000000),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+              ],
             );
           },
         ),

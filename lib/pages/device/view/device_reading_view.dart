@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../global/constant/app_constants.dart';
 import '../../../global/extensions/date_time_extensions.dart';
 import '../../../global/widgets/error_display_widget.dart';
+import '../../../global/widgets/refresh_action_button.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
 import '../viewmodel/device_reading_view_model.dart';
@@ -35,7 +36,16 @@ class _DeviceReadingsViewState extends State<DeviceReadingsView> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Anlık Okumalar', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
-          actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _viewModel.fetchDeviceReadings)],
+          actions: [
+            Consumer<DeviceReadingsViewModel>(
+              builder: (context, viewModel, child) {
+                return RefreshActionButton(
+                  isLoading: viewModel.isLoading,
+                  onPressed: viewModel.fetchDeviceReadings,
+                );
+              },
+            ),
+          ],
           toolbarHeight: AppConstants.appBarHeight,
         ),
         body: Consumer<DeviceReadingsViewModel>(
@@ -53,15 +63,26 @@ class _DeviceReadingsViewState extends State<DeviceReadingsView> {
               return const Center(child: Text('Okuma bilgisi bulunamadı'));
             }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
-              child: Column(
-                children: [
-                  if (readings.pvGenerations.isNotEmpty) _buildPVGenerationsTable(readings.pvGenerations, context),
-                  const SizedBox(height: AppConstants.paddingLarge),
-                  if (readings.latestReading != null) _buildInverterReadingCard(readings.latestReading!, context),
-                ],
-              ),
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+                  child: Column(
+                    children: [
+                      if (readings.pvGenerations.isNotEmpty) _buildPVGenerationsTable(readings.pvGenerations, context),
+                      const SizedBox(height: AppConstants.paddingLarge),
+                      if (readings.latestReading != null) _buildInverterReadingCard(readings.latestReading!, context),
+                    ],
+                  ),
+                ),
+                if (viewModel.isLoading)
+                  const Positioned.fill(
+                    child: ColoredBox(
+                      color: Color(0x33000000),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+              ],
             );
           },
         ),

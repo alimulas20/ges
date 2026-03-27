@@ -6,6 +6,7 @@ import 'package:solar/global/constant/type_constants.dart';
 import '../../../global/constant/app_constants.dart';
 import '../../../global/widgets/custom_navbar.dart';
 import '../../../global/widgets/error_display_widget.dart';
+import '../../../global/widgets/refresh_action_button.dart';
 import '../../alarm/views/alarm_view.dart';
 import '../model/device_setup_with_reading_dto.dart';
 import '../service/device_setup_service.dart';
@@ -41,12 +42,19 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
         appBar: AppBar(
           title: const Text('Inverterler', style: TextStyle(fontSize: AppConstants.fontSizeExtraLarge)),
 
-          actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => _viewModel.fetchDevices(widget.plantId))],
+          actions: [
+            Consumer<DeviceSetupListViewModel>(
+              builder: (context, viewModel, child) => RefreshActionButton(
+                isLoading: viewModel.isLoading,
+                onPressed: () => viewModel.fetchDevices(widget.plantId),
+              ),
+            ),
+          ],
           toolbarHeight: AppConstants.appBarHeight,
         ),
         body: Consumer<DeviceSetupListViewModel>(
           builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
+            if (viewModel.isLoading && viewModel.devices.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -61,13 +69,24 @@ class _DeviceSetupListViewState extends State<DeviceSetupListView> {
               return const Center(child: Text('Inverter bulunamadı'));
             }
 
-            return ListView.builder(
-              padding: const EdgeInsets.all(AppConstants.paddingMedium),
-              itemCount: viewModel.devices.length,
-              itemBuilder: (context, index) {
-                final device = viewModel.devices[index];
-                return _buildDeviceCard(device, context);
-              },
+            return Stack(
+              children: [
+                ListView.builder(
+                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                  itemCount: viewModel.devices.length,
+                  itemBuilder: (context, index) {
+                    final device = viewModel.devices[index];
+                    return _buildDeviceCard(device, context);
+                  },
+                ),
+                if (viewModel.isLoading)
+                  const Positioned.fill(
+                    child: ColoredBox(
+                      color: Color(0x22000000),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+              ],
             );
           },
         ),

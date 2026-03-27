@@ -19,6 +19,8 @@ class MultiLineChart extends StatefulWidget {
 
 class _MultiLineChartState extends State<MultiLineChart> {
   int? _touchedIndex;
+  Offset? _touchLocationGlobal;
+  final GlobalKey _chartStackKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +44,7 @@ class _MultiLineChartState extends State<MultiLineChart> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return Stack(
+                    key: _chartStackKey,
                     children: [
                       Padding(padding: const EdgeInsets.only(top: AppConstants.paddingLarge), child: _buildChart()),
                       // Custom tooltip - gerçek boyutları kullanarak konumlandır
@@ -74,11 +77,13 @@ class _MultiLineChartState extends State<MultiLineChart> {
               final spot = touchResponse.lineBarSpots!.first;
               setState(() {
                 _touchedIndex = spot.x.toInt();
+                _touchLocationGlobal = touchResponse.touchLocation;
               });
             } else if (event is FlPanEndEvent) {
               // Pan bittiğinde tooltip'i kapat
               setState(() {
                 _touchedIndex = null;
+                _touchLocationGlobal = null;
               });
             }
           },
@@ -215,18 +220,22 @@ class _MultiLineChartState extends State<MultiLineChart> {
     // Tooltip yüksekliği (yaklaşık) - scroll gerekiyorsa maksimum yüksekliği kullan
     final tooltipHeight = needsScroll ? maxTooltipHeight : (28.0 + (tooltipItems.length * 24.0) + 16.0).clamp(0.0, maxTooltipHeight); // 16 padding için
 
-    // Tooltip'in yaklaşık genişliğini hesapla (içeriğe göre)
-    double maxItemWidth = 0;
-    for (final item in tooltipItems) {
-      final itemWidth = (item.label.length + item.value.toStringAsFixed(1).length + item.unit.length) * 7.0 + 30.0;
-      if (itemWidth > maxItemWidth) maxItemWidth = itemWidth;
-    }
-    // Maksimum genişlik sınırını dikkate al
-    final estimatedWidth = ((timeLabel.length * 7.0) + maxItemWidth + 100.0).clamp(0.0, maxTooltipWidth); // Padding ve ikonlar için
+    final estimatedWidth = _estimateMultiTooltipWidth(
+      context: context,
+      timeLabel: timeLabel,
+      items: tooltipItems,
+      maxTooltipWidth: maxTooltipWidth,
+    );
 
-    // X pozisyonunu hesapla (grafik içindeki konum)
+    // X pozisyonunu hesapla (yedek): plot alanı + sol eksen payı
     final maxX = widget.seriesList.isNotEmpty ? (widget.seriesList.first.dataPoints.length - 1).toDouble() : 0.0;
-    final pointX = (index / maxX) * chartWidth;
+    final safeMaxX = maxX <= 0 ? 1.0 : maxX;
+    final plotWidth = chartWidth - AppConstants.chartLeftAxisWidth;
+    final pointX = AppConstants.chartLeftAxisWidth + (index / safeMaxX) * plotWidth;
+    // Birincil anchor: gerçek dokunma pikseli (daha stabil)
+    final stackBox = _chartStackKey.currentContext?.findRenderObject() as RenderBox?;
+    final touchLocalX = (_touchLocationGlobal != null && stackBox != null && stackBox.hasSize) ? stackBox.globalToLocal(_touchLocationGlobal!).dx : null;
+    final anchorX = touchLocalX ?? pointX;
 
     // Akıllı Y pozisyonlandırma
     // Önce üstte yer var mı kontrol et
@@ -256,30 +265,14 @@ class _MultiLineChartState extends State<MultiLineChart> {
       }
     }
 
-    // X konumu: 4 koşul (sol/sağ + sığar/sığmaz) ve tıklanan noktaya 3px offset
+    // X konumu: tek ve sürekli formül.
+    // Noktanın sağında başlamayı dener, sığmıyorsa sağ sınıra clamp eder.
+    // Böylece küçük tıklama farklarında ani taraf değişimi olmaz.
     const edgePadding = 8.0;
-    const tapOffset = 3.0;
-
-    final centerX = chartWidth / 2;
-    final isLeftSide = pointX < centerX;
-
-    double xPosition;
-    if (isLeftSide) {
-      // Sol tarafta: sığıyorsa tıklanan yerden 3px sağa başlat, sığmıyorsa sağa yasla
-      final proposedLeft = pointX + tapOffset;
-      final fitsToRight = proposedLeft + estimatedWidth <= chartWidth - edgePadding;
-      xPosition = fitsToRight ? proposedLeft : (chartWidth - estimatedWidth - edgePadding);
-    } else {
-      // Sağ tarafta: sığıyorsa tıklanan yerden 3px sola bitecek şekilde yerleştir, sığmıyorsa sola yasla
-      final proposedLeft = (pointX - tapOffset) - estimatedWidth;
-      final fitsToLeft = proposedLeft >= edgePadding;
-      xPosition = fitsToLeft ? proposedLeft : edgePadding;
-    }
-
-    // Ek güvenlik clamp'i
+    const sideGap = 4.0;
     final minX = edgePadding;
     final maxXPos = (chartWidth - estimatedWidth - edgePadding).clamp(minX, double.infinity);
-    xPosition = xPosition.clamp(minX, maxXPos);
+    final xPosition = (anchorX + sideGap).clamp(minX, maxXPos);
 
     return Positioned(
       left: xPosition,
@@ -290,10 +283,46 @@ class _MultiLineChartState extends State<MultiLineChart> {
         onClose: () {
           setState(() {
             _touchedIndex = null;
+            _touchLocationGlobal = null;
           });
         },
       ),
     );
+  }
+
+  double _estimateMultiTooltipWidth({
+    required BuildContext context,
+    required String timeLabel,
+    required List<ChartTooltipItem> items,
+    required double maxTooltipWidth,
+  }) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final timeStyle = TextStyle(color: onSurface, fontSize: AppConstants.fontSizeSmall, fontWeight: FontWeight.bold);
+    final labelStyle = TextStyle(color: onSurface, fontSize: AppConstants.fontSizeSmall, fontWeight: FontWeight.w500);
+    final valueStyle = TextStyle(color: onSurface, fontSize: AppConstants.fontSizeSmall, fontWeight: FontWeight.w600);
+
+    double textWidth(String text, TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout();
+      return painter.width;
+    }
+
+    final timeRowWidth = 14.0 + 6.0 + textWidth(timeLabel, timeStyle);
+    double maxDataRowWidth = 0;
+    for (final item in items) {
+      final label = '${item.label}: ';
+      final value = '${item.value.toStringAsFixed(1)} ${item.unit}';
+      final rowWidth = 12.0 + 6.0 + textWidth(label, labelStyle) + textWidth(value, valueStyle);
+      if (rowWidth > maxDataRowWidth) maxDataRowWidth = rowWidth;
+    }
+
+    final contentWidth = (timeRowWidth > maxDataRowWidth ? timeRowWidth : maxDataRowWidth) + 24.0; // close alanı
+    final containerWidth = contentWidth + 12.0 + 8.0; // dış padding
+    final clamped = containerWidth.clamp(140.0, maxTooltipWidth);
+    return clamped.toDouble();
   }
 }
 

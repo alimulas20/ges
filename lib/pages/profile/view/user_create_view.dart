@@ -30,6 +30,9 @@ class _UserCreateViewState extends State<UserCreateView> {
   bool _receiveSMS = false;
   bool _loadingPlants = false;
   late RoleDto _selectedRole;
+  static final RegExp _passwordUppercaseRegex = RegExp(r'[A-Z]');
+  static final RegExp _passwordLowercaseRegex = RegExp(r'[a-z]');
+  static final RegExp _passwordDigitRegex = RegExp(r'\d');
 
   @override
   void initState() {
@@ -110,11 +113,7 @@ class _UserCreateViewState extends State<UserCreateView> {
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Şifre'),
                 obscureText: true,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Zorunlu alan';
-                  if (value!.length < 6) return 'Şifre en az 6 karakter olmalı';
-                  return null;
-                },
+                validator: _validatePassword,
               ),
               const SizedBox(height: AppConstants.paddingExtraLarge),
               TextFormField(
@@ -252,6 +251,16 @@ class _UserCreateViewState extends State<UserCreateView> {
     setState(() {
       _selectedPlantIds.remove(plantId);
     });
+  }
+
+  String? _validatePassword(String? value) {
+    if (value?.isEmpty ?? true) return 'Zorunlu alan';
+    final password = value!;
+    if (password.length < 8) return 'Şifre en az 8 karakter olmalı';
+    if (!_passwordUppercaseRegex.hasMatch(password)) return 'Şifre en az 1 büyük harf içermeli';
+    if (!_passwordLowercaseRegex.hasMatch(password)) return 'Şifre en az 1 küçük harf içermeli';
+    if (!_passwordDigitRegex.hasMatch(password)) return 'Şifre en az 1 sayı içermeli';
+    return null;
   }
 
   void _submitForm() {

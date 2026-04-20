@@ -25,6 +25,9 @@ class _UserDetailViewState extends State<UserDetailView> {
   final ImagePicker _picker = ImagePicker();
   bool _isSaving = false;
   bool _isPasswordLoading = false;
+  static final RegExp _passwordUppercaseRegex = RegExp(r'[A-Z]');
+  static final RegExp _passwordLowercaseRegex = RegExp(r'[a-z]');
+  static final RegExp _passwordDigitRegex = RegExp(r'\d');
 
   @override
   void initState() {
@@ -85,10 +88,13 @@ class _UserDetailViewState extends State<UserDetailView> {
         ],
         toolbarHeight: AppConstants.appBarHeight,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
-        child: ListView(
-          children: [
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.paddingExtraLarge),
+          child: ListView(
+            children: [
             Center(
               child: Column(
                 children: [
@@ -258,10 +264,30 @@ class _UserDetailViewState extends State<UserDetailView> {
               ),
             ),
             if (canEdit) ElevatedButton(onPressed: () => _addPlants(context), child: const Text('Tesis Ekle')),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  String? _validatePassword(String? value) {
+    if (value?.isEmpty ?? true) return 'Zorunlu alan';
+    final password = value!;
+    if (password.length < 8) return 'En az 8 karakter olmalı';
+    if (!_passwordUppercaseRegex.hasMatch(password)) return 'En az 1 büyük harf içermeli';
+    if (!_passwordLowercaseRegex.hasMatch(password)) return 'En az 1 küçük harf içermeli';
+    if (!_passwordDigitRegex.hasMatch(password)) return 'En az 1 sayı içermeli';
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value, String originalPassword) {
+    final passwordError = _validatePassword(value);
+    if (passwordError != null) {
+      return passwordError;
+    }
+    if (value != originalPassword) return 'Şifreler eşleşmiyor';
+    return null;
   }
 
   bool _hasChanges() {
@@ -373,21 +399,14 @@ class _UserDetailViewState extends State<UserDetailView> {
                     controller: newController,
                     decoration: const InputDecoration(labelText: 'Yeni şifre'),
                     obscureText: true,
-                    validator: (v) {
-                      if (v?.isEmpty ?? true) return 'Zorunlu alan';
-                      if (v!.length < 6) return 'En az 6 karakter olmalı';
-                      return null;
-                    },
+                    validator: _validatePassword,
                   ),
                   const SizedBox(height: AppConstants.paddingMedium),
                   TextFormField(
                     controller: confirmController,
                     decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)'),
                     obscureText: true,
-                    validator: (v) {
-                      if (v != newController.text) return 'Şifreler eşleşmiyor';
-                      return null;
-                    },
+                    validator: (v) => _validateConfirmPassword(v, newController.text),
                   ),
                 ],
               ),
@@ -450,21 +469,14 @@ class _UserDetailViewState extends State<UserDetailView> {
                     controller: newController,
                     decoration: const InputDecoration(labelText: 'Yeni şifre'),
                     obscureText: true,
-                    validator: (v) {
-                      if (v?.isEmpty ?? true) return 'Zorunlu alan';
-                      if (v!.length < 6) return 'En az 6 karakter olmalı';
-                      return null;
-                    },
+                    validator: _validatePassword,
                   ),
                   const SizedBox(height: AppConstants.paddingMedium),
                   TextFormField(
                     controller: confirmController,
                     decoration: const InputDecoration(labelText: 'Yeni şifre (tekrar)'),
                     obscureText: true,
-                    validator: (v) {
-                      if (v != newController.text) return 'Şifreler eşleşmiyor';
-                      return null;
-                    },
+                    validator: (v) => _validateConfirmPassword(v, newController.text),
                   ),
                 ],
               ),
